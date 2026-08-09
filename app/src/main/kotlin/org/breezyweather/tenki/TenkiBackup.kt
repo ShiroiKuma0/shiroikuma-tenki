@@ -147,37 +147,63 @@ object TenkiBackup {
 
     // ------------------------------------------------------------- SAF destination
 
+    /** What an export produced: the file it wrote, its real size, and the categories in it. */
+    data class ExportResult(val name: String, val bytes: Long, val categories: Set<Cat>)
+
     /**
-     * Writes [bytes] into the SAF tree [treeUri] **atomically**: a `.part` document first, renamed
-     * to the final name only once the archive is complete, and deleted if anything goes wrong. A
-     * killed export must never leave something that looks like a backup.
+     * The one export-to-a-folder implementation — the UI panel and the headless automation service
+     * are both thin callers of it.
+     *
+     * Streams [writeZip] straight into the SAF tree **atomically**: a `.part` document first,
+     * renamed to the final name only once the archive is closed and complete, and deleted if
+     * anything fails or the run is cancelled. A killed export must never leave something that looks
+     * like a backup — 白い熊 keeps every app's archives in one folder sorted by date, so a truncated
+     * one would silently become "the latest backup".
      */
-    fun writeToTree(context: Context, treeUri: Uri, bytes: ByteArray): String {
+    suspend fun exportToTree(
+        context: Context,
+        treeUri: Uri,
+        categories: Set<Cat>,
+        onProgress: Progress? = null,
+        isCancelled: () -> Boolean = { false },
+    ): ExportResult {
         val finalName = exportFileName()
         val parent = DocumentsContract.buildDocumentUriUsingTree(
             treeUri,
             DocumentsContract.getTreeDocumentId(treeUri)
         )
-        var partUri: Uri? = null
-        return runCatching {
-            val part = DocumentsContract.createDocument(
-                context.contentResolver,
-                parent,
-                MIME_ZIP,
-                "$finalName.part"
-            ) ?: error("The backup folder could not be written to.")
-            partUri = part
-            context.contentResolver.openOutputStream(part)?.use { it.write(bytes) }
-                ?: error("The backup folder could not be written to.")
+        val part = DocumentsContract.createDocument(
+            context.contentResolver,
+            parent,
+            MIME_ZIP,
+            "$finalName.part"
+        ) ?: error("The backup folder could not be written to.")
+
+        return try {
+            val written = context.contentResolver.openOutputStream(part)?.use { out ->
+                writeZip(context, categories, out, onProgress, isCancelled)
+            } ?: error("The backup folder could not be written to.")
+
+            if (isCancelled()) error("cancelled")
+
+            val size = documentSize(context, part)
             DocumentsContract.renameDocument(context.contentResolver, part, finalName)
-            finalName
-        }.getOrElse { failure ->
-            partUri?.let {
-                runCatching { DocumentsContract.deleteDocument(context.contentResolver, it) }
-            }
+            ExportResult(finalName, size, written)
+        } catch (failure: Throwable) {
+            runCatching { DocumentsContract.deleteDocument(context.contentResolver, part) }
             throw failure
         }
     }
+
+    private fun documentSize(context: Context, document: Uri): Long = runCatching {
+        context.contentResolver.query(
+            document,
+            arrayOf(DocumentsContract.Document.COLUMN_SIZE),
+            null,
+            null,
+            null
+        )?.use { cursor -> if (cursor.moveToFirst()) cursor.getLong(0) else 0L } ?: 0L
+    }.getOrDefault(0L)
 
     // ------------------------------------------------------------------ import
 
@@ -446,6 +472,14 @@ object TenkiBackup {
 
     fun formatTimestamp(millis: Long): String =
         SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(Date(millis))
+
+    /** Human size for the automation reply — `4.6 MB`, `1.20 GB`. */
+    fun humanSize(bytes: Long): String = when {
+        bytes >= 1_073_741_824L -> String.format(Locale.ROOT, "%.2f GB", bytes / 1_073_741_824.0)
+        bytes >= 1_048_576L -> String.format(Locale.ROOT, "%.1f MB", bytes / 1_048_576.0)
+        bytes >= 1024L -> String.format(Locale.ROOT, "%.1f kB", bytes / 1024.0)
+        else -> "$bytes B"
+    }
 
     private const val SOURCE_PREFS_PREFIX = "source_"
 }

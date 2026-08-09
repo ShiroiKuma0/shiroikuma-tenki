@@ -5,6 +5,9 @@
 
 package org.breezyweather.ui.tenki
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,6 +52,7 @@ import org.breezyweather.tenki.ColorSlot
 import org.breezyweather.tenki.LocalTenkiUi
 import org.breezyweather.tenki.TenkiFonts
 import org.breezyweather.tenki.TenkiUiState
+import org.breezyweather.tenki.automation.TenkiAutomationAuth
 import org.breezyweather.ui.common.widgets.Material3Scaffold
 import org.breezyweather.ui.common.widgets.insets.FitStatusBarTopAppBar
 
@@ -96,6 +100,9 @@ fun TenkiUiScreen(onNavigateBack: () -> Unit) {
                 summaryIsWarning = ui.exportDir.isBlank(),
                 onClick = { showExportImport = true }
             )
+            // The 保存復元 automation rows belong here, under the export rows — a backup feature
+            // lives where backup lives, and every sister app looks the same.
+            AutomationRows(ui)
 
             // -------------------------------------------------------------- theme
             SectionHeader(ui, "Theme")
@@ -190,6 +197,59 @@ fun TenkiUiScreen(onNavigateBack: () -> Unit) {
             onFinishedAndClose = {
                 showExportImport = false
                 onNavigateBack()
+            }
+        )
+    }
+}
+
+/**
+ * The two contract rows: a master switch (default OFF — nothing is reachable from outside until
+ * 白い熊 turns it on) and the token, abbreviated, copied on tap, regenerated on the right.
+ */
+@Composable
+private fun AutomationRows(ui: TenkiUiState) {
+    val context = LocalContext.current
+    var enabled by remember { mutableStateOf(TenkiAutomationAuth.enabled(context)) }
+    var token by remember { mutableStateOf(TenkiAutomationAuth.token(context)) }
+
+    ToggleRow(ui, "Automation export", enabled) {
+        TenkiAutomationAuth.setEnabled(context, it)
+        enabled = it
+    }
+    RowNote(
+        ui,
+        "Lets 白い熊 自由作業盤 trigger this app's export through the token-gated intent."
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                context.getSystemService(ClipboardManager::class.java)
+                    ?.setPrimaryClip(ClipData.newPlainText("token", token))
+                Toast.makeText(context, "Token copied", Toast.LENGTH_SHORT).show()
+            }
+            .padding(
+                start = rowIndent(ui, false),
+                end = 16.dp,
+                top = ui.rowPadding.dp,
+                bottom = ui.rowPadding.dp
+            ),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            RowTitle(ui, "Automation token", TenkiAutomationAuth.abbreviated(token))
+        }
+        Text(
+            text = "Regenerate",
+            color = Color(ui.warnColor),
+            fontSize = ui.labelSize.sp,
+            modifier = Modifier.clickable {
+                token = TenkiAutomationAuth.regenerate(context)
+                Toast.makeText(
+                    context,
+                    "New token — update every copy you pasted elsewhere",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         )
     }

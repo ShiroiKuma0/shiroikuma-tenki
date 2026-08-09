@@ -58,6 +58,20 @@ Our one feature so far, in the kxkb page grammar (see also the sister implementa
 | `tenki/TenkiBackup.kt` | the category ZIP — `writeZip(categories, OutputStream, onProgress, isCancelled)` is the ONE export implementation; atomic `.part`-then-rename on the SAF path |
 | `ui/tenki/TenkiUiScreen.kt` | the page itself: section headings with word-width underlines, two-level indents, tight rows, a preview under every group |
 | `ui/tenki/TenkiDialogs.kt` | RGBA colour picker with recent-colour swatches, font picker rendering each font in its own glyphs, and the Export/Import panel |
+| `tenki/automation/` | the 保存復元 sister-app contract — `TenkiAutomationAuth` (token, switch default OFF), `StateExportReceiver` (exported, 3 actions), `StateExportService` (foreground `dataSync`) |
+
+**The 保存復元 contract** (定義: `~/git/shiroikuma-jiyusagyoban/sister-app-contract-backup-automation-hand-off.md`)
+— 白い熊 自由作業盤 drives this app's export headlessly through
+`shiroikuma.tenki.action.{EXPORT_STATE,LIST_CATEGORIES,CANCEL_EXPORT}`, gated by the token on the UI
+page. The receiver only checks the gate and hands off; the export runs in a foreground service, since
+a manifest receiver that overruns the broadcast window gets the process ANR'd mid-write. Exactly one
+terminal reply per request, guarded by an `AtomicBoolean`; progress broadcasts carry the category id
+and real counts, never a percentage.
+
+**We deliberately do not hold `MANAGE_EXTERNAL_STORAGE`** — a weather app has no business with
+All-Files-Access. So the contract's `path` extra is honoured only if the grant happens to exist, and
+otherwise the export lands in the SAF folder set on the UI page; with neither, the reply is
+`ERROR:no-directory` (or `ERROR:no-storage-access` when a `path` was asked for and cannot be used).
 
 - **`BreezyWeatherTheme` is the single wrapping point** — all 39 call sites go through it, so
   providing `LocalTenkiUi` and swapping the `ColorScheme`/`Typography`/`Shapes` there themes the

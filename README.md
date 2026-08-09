@@ -41,6 +41,20 @@ the same filename shape every sister app uses.
 
 ---
 
+## 🤖 On the 保存復元 batch
+
+The app implements the sister-app backup-automation contract, so 白い熊 自由作業盤 can drive its
+export headlessly as part of the one-run batch across every app: a token-gated intent in, the export
+run in a foreground service (never in the receiver, which would be ANR'd mid-write), progress
+reported with real counts rather than a percentage, and one terminal reply carrying the path, the
+byte count and the human size.
+
+The switch defaults to **off** and the token lives outside every backup category — nothing is
+reachable from another app until it is turned on and the token copied across. Both rows sit in the
+Export/Import section of the UI page, where backup lives.
+
+---
+
 ## 🖤 The house look
 
 The launcher icon is upstream's four-blade pinwheel redrawn as stroke-only line-art, pure `#FFFF00`
