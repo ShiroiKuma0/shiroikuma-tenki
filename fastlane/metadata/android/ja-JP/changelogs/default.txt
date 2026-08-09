@@ -1,2 +1,2 @@
 リリースノートは以下のリンクからGitHubにてご覧ください：
-https://github.com/breezy-weather/breezy-weather/releases
+https://github.com/ShiroiKuma0/shiroikuma-tenki/releases

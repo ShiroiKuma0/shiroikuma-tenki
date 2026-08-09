@@ -469,7 +469,7 @@
     <string name="widget_custom_subtitle_keyword_xaqi_description">Index kvality ovzdušia na dnes, zajtra, …, o 4 dni</string>
     <string name="widget_style_nano">Nano</string>
     <string name="settings_appearance_icon_pack_title">Balíček ikon</string>
-    <string name="dialog_permissions_location_content">Aplikácia Breezy Weather musí zhromažďovať informácie o vašej polohe na popredí alebo na pozadí, aby mohla poskytovať údaje o počasí vo vašej aktuálnej polohe. Na tento účel si vyžiadame niektoré povolenia. Informácie o vašej polohe sa použijú len na získanie údajov o počasí vo vašej aktuálnej polohe. Ak nechcete zdieľať informácie o svojej polohe, môžete tieto požiadavky odmietnuť a ručne nastaviť svoju polohu v spravovacej stránke.</string>
+    <string name="dialog_permissions_location_content">Aplikácia 白い熊 天気 musí zhromažďovať informácie o vašej polohe na popredí alebo na pozadí, aby mohla poskytovať údaje o počasí vo vašej aktuálnej polohe. Na tento účel si vyžiadame niektoré povolenia. Informácie o vašej polohe sa použijú len na získanie údajov o počasí vo vašej aktuálnej polohe. Ak nechcete zdieľať informácie o svojej polohe, môžete tieto požiadavky odmietnuť a ručne nastaviť svoju polohu v spravovacej stránke.</string>
     <string name="widget_ellipsis">…</string>
     <string name="widget_label_hide_header">Skryť záhlavie</string>
     <string name="widget_label_subtitle_data">Dáta popisku</string>
@@ -769,8 +769,8 @@
     <string name="visibility_perfectly_clear">Úplne jasná</string>
     <string name="air_quality_pm10_about">O vdychovateľných časticiach (%s)</string>
     <string name="air_quality_pm10_full">Vdychovateľné častice (&lt; %s)</string>
-    <string name="content_provider_permission_label">Načítať údaje Breezy Weather</string>
-    <string name="content_provider_permission_description">získate informácie o počasí od Breezy Weather, vrátane súradníc vašich miest, napríklad vašej aktuálnej polohy, ak ste ju pridali</string>
+    <string name="content_provider_permission_label">Načítať údaje 白い熊 天気</string>
+    <string name="content_provider_permission_description">získate informácie o počasí od 白い熊 天気, vrátane súradníc vašich miest, napríklad vašej aktuálnej polohy, ak ste ju pridali</string>
     <string name="common_weather_text_mostly_cloudy">Väčšinou oblačno</string>
     <string name="label_expanded">Rozbalené</string>
     <string name="label_collapsed">Zbalené</string>

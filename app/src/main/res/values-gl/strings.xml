@@ -134,7 +134,7 @@
     <string name="settings_weather_sources_default_source">Fonte predeterminada para novas localizacións</string>
     <string name="settings_weather_source_unavailable">%s(non dispoñible)</string>
     <string name="settings_weather_sources_per_location_summary">Personalizar as fontes de datos meteorolóxicos utilizadas para esta localización</string>
-    <string name="settings_weather_source_freenet_disclaimer">Hai máis fontes meteorolóxicas dispoñibles noutras versións de Breezy Weather. Toque aquí para obter máis información.</string>
+    <string name="settings_weather_source_freenet_disclaimer">Hai máis fontes meteorolóxicas dispoñibles noutras versións de 白い熊 天気. Toque aquí para obter máis información.</string>
     <string name="settings_source_default_value">Por defecto (sin modificar)</string>
     <string name="settings_weather_source_open_meteo_weather_models_best_match">Mellor combinación</string>
     <string name="settings_appearance">Aparencia</string>
@@ -747,8 +747,8 @@
     <string name="about_translators">Tradutores</string>
     <string name="about_contribution_WangDaYeeeeee">Desenvolvedor do proxecto orixinal Geometric Weather</string>
     <string name="about_contribution_designer">Deseñador do logotipo</string>
-    <string name="content_provider_permission_label">Ler datos de Breezy Weather</string>
-    <string name="content_provider_permission_description">obter información meteorolóxica de Breezy Weather, incluídas as coordenadas das túas localizacións, como a túa localización actual se a engadiches</string>
+    <string name="content_provider_permission_label">Ler datos de 白い熊 天気</string>
+    <string name="content_provider_permission_description">obter información meteorolóxica de 白い熊 天気, incluídas as coordenadas das túas localizacións, como a túa localización actual se a engadiches</string>
     <string name="common_weather_text_mostly_cloudy">Maiormente nubrado</string>
     <string name="common_weather_text_rain_freezing_light">Choiva xeada lixeira</string>
     <string name="common_weather_text_rain_freezing_heavy">Choiva xeada intensa</string>

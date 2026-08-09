@@ -758,8 +758,8 @@
     <string name="about_check_for_app_updates">בדיקת עדכונים ליישום</string>
     <string name="about_no_new_updates">אין עדכונים חדשים זמינים</string>
     <string name="about_update_check_eol">גרסת אנדרואיד זו אינה נתמכת עוד</string>
-    <string name="content_provider_permission_label">קרא נתוני Breezy Weather</string>
-    <string name="content_provider_permission_description">קבל נתוני מזג אוויר מ-Breezy Weather, כולל קואורדינטות של המיקומים, כגון המיקום הנוכחי שלך אם הוספת אותו</string>
+    <string name="content_provider_permission_label">קרא נתוני 白い熊 天気</string>
+    <string name="content_provider_permission_description">קבל נתוני מזג אוויר מ-白い熊 天気, כולל קואורדינטות של המיקומים, כגון המיקום הנוכחי שלך אם הוספת אותו</string>
     <string name="common_weather_text_mostly_cloudy">מעונן בעיקר</string>
     <string name="common_weather_text_mist">ערפל</string>
     <string name="common_weather_text_dry">יבש</string>

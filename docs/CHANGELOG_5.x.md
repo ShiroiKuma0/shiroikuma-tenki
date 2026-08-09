@@ -211,7 +211,7 @@
 **Improvements and fixes**
 - Sources are now split by continents in the source dialog to make it easier to find a specific national source
 - Sources now contains the country they are from in their name when relevant (@chunshek)
-- When a source failed to refresh a specific feature, Breezy Weather will now attempt to continue refreshing other features while restoring the old data for failed features, when possible. A non-blocking error message mentioning the failed feature(s) will be visible in that case.
+- When a source failed to refresh a specific feature, 白い熊 天気 will now attempt to continue refreshing other features while restoring the old data for failed features, when possible. A non-blocking error message mentioning the failed feature(s) will be visible in that case.
 - Fix no error message when location permission was previously denied (@min7-i)
 - New refresh error message: “Location access is off” when permission is granted but system disabled (@min7-i)
 - Main screen is now able to show more than one error at a time (instead of only displaying the first one) (@min7-i)
@@ -526,7 +526,7 @@ Due to a technical change, if you had set up a different language than your syst
 # Version 5.1.7 (2024-03-20)
 
 **Improvements and fixes**
-- [Privacy] If you enabled sending data to Gadgetbridge, Breezy Weather will no longer share your longitude, latitude and if your location is your current position with Gadgetbridge or any other app.
+- [Privacy] If you enabled sending data to Gadgetbridge, 白い熊 天気 will no longer share your longitude, latitude and if your location is your current position with Gadgetbridge or any other app.
 - [Privacy] The “Send weather data to Gadgetbridge” option was renamed “Broadcast my weather data to other apps” as any app can “pretend to be Gadgetbridge”. A confirmation dialog will appear to make the user confirm they fully understand the risks.
 - [Privacy] The “Send weather data to Gadgetbridge” (which is off by default, unless you enabled it) will be turned off on all devices on update to let users decide if they still want to enable it.
 - For sources not providing colors, we now make the color of the alert dynamic based on severity instead of always orange. This scale is the same as the one used by World Meteorological Organization and may differ with colors usually provided by your national provider. For sources without severity, this will fallback to Unknown color.
@@ -570,7 +570,7 @@ Due to a technical change, if you had set up a different language than your syst
 # Version 5.1.4-beta (2024-03-16)
 
 **New features**
-- We now have our own repo for F-Droid and Google Play flavors of Breezy Weather. If you want to switch from our current repo (Standard flavor) to a different flavor, you should remove the repo for the Standard flavor first to avoid getting updates for the wrong flavor. [Link to Breezy Weather F-Droid repos](https://github.com/breezy-weather/fdroid-repo/blob/main/README.md)
+- We now have our own repo for F-Droid and Google Play flavors of 白い熊 天気. If you want to switch from our current repo (Standard flavor) to a different flavor, you should remove the repo for the Standard flavor first to avoid getting updates for the wrong flavor. [Link to 白い熊 天気 F-Droid repos](https://github.com/breezy-weather/fdroid-repo/blob/main/README.md)
 
 **Weather sources**
 - [World Meteorological Organization (WMO) Severe Weather] Added experimental support as secondary alert source. Translations are not supported (yet). Please report as soon as possible if you encounter a refresh error, making sure you mention the country of your location in the issue.
@@ -584,7 +584,7 @@ Due to a technical change, if you had set up a different language than your syst
 | France   | Pollen      | Open-Meteo  | Recosanté   |
 
 **Improvements and fixes**
-- Background weather update will now only process the first location, unless you have multi cities usage. This makes the process more green and efficient, and other secondary locations will automatically be updated when you open them instead (this means that if you don’t check these locations very often, it will no longer uselessly refresh them in the background). A document has been written to describe in details how the full weather update process work: https://github.com/breezy-weather/breezy-weather/blob/main/docs/UPDATES.md
+- Background weather update will now only process the first location, unless you have multi cities usage. This makes the process more green and efficient, and other secondary locations will automatically be updated when you open them instead (this means that if you don’t check these locations very often, it will no longer uselessly refresh them in the background). A document has been written to describe in details how the full weather update process work: https://github.com/ShiroiKuma0/shiroikuma-tenki/blob/main/docs/UPDATES.md
 - Fix AccuWeather being the default weather source instead of automatic recommendations
 - Fix "Please wait a few seconds before retrying" when adding a location
 - Fix some sources not being available for current location if current location didn’t change
@@ -645,7 +645,7 @@ Due to a technical change, if you had set up a different language than your syst
 # Version 5.1.0-beta (2024-03-08)
 
 **New features**
-- Breezy Weather now comes in 3 flavors:
+- 白い熊 天気 now comes in 3 flavors:
   - Standard: this is the version you used so far
   - Google Play: same as Standard + proprietary Fused location from Google Play Services. Useful if you use “Current location” feature AND have Google Play Services installed on your device. Otherwise, you should use the standard version.
   - F-Droid: this version removes support for any weather sources which are not libre and self-hostable, so you are sure to get a 100% FOSS experience and not connect by mistake to a non-free network. There are plans to add this version to the default F-Droid repository.
@@ -685,7 +685,7 @@ Due to a technical change, if you had set up a different language than your syst
 # Version 5.0.3-alpha (2024-03-02)
 
 **Improvements and fixes**
-- You can now choose to always use a specific weather source for new locations instead of Breezy Weather recommendations (Settings > Weather sources)
+- You can now choose to always use a specific weather source for new locations instead of 白い熊 天気 recommendations (Settings > Weather sources)
 - Bring back “auto” mode for Live Wallpaper
 - Add colors to cloud cover hourly chart
 - Use a different font for temperature icon in status bar to improve readability (@min7-i)

@@ -36,7 +36,7 @@ The source may be temporarily unavailable, please retry later or check your netw
 
 ### “Required API key missing” / “API requests limit reached” / “API access unauthorized” / “Update not yet available”
 
-For most sources, we only have a limited number of calls allowed for free for all users of our app. If too many users use the same source, the only way to be able to continue using it is to check instructions on the source website to have your own API key. This may be troublesome, but if you have your own API key, the rate-limit will only apply to you (one user vs all users of Breezy Weather).
+For most sources, we only have a limited number of calls allowed for free for all users of our app. If too many users use the same source, the only way to be able to continue using it is to check instructions on the source website to have your own API key. This may be troublesome, but if you have your own API key, the rate-limit will only apply to you (one user vs all users of 白い熊 天気).
 
 Regarding the “API access unauthorized”, this error may appear when you subscribed to the wrong product, or you’re trying to use features of the API that your subscription doesn’t allow.
 
@@ -61,7 +61,7 @@ The forecast source you selected reports hourly forecast on the :00 time, while 
 
 ### “Source no longer available”
 
-This error may happen when a source is no longer provided by Breezy Weather. In that case, you will need to add a new location with another source, and delete this location. It can also happen when you switch from the standard flavor of Breezy Weather to `freenet` one which has less sources supported.
+This error may happen when a source is no longer provided by 白い熊 天気. In that case, you will need to add a new location with another source, and delete this location. It can also happen when you switch from the standard flavor of 白い熊 天気 to `freenet` one which has less sources supported.
 
 
 ### “Secure connection failed”
@@ -71,11 +71,11 @@ This can mean many things.
 If this only happens with one source and not others:
 1) If you are using an Android version lower than Android 14, it is possible the server is using a Certificate Authority that was not trusted by the old Android version back then. On Android 14 and later, an updated trust store should be available to Google Play users. Note that we have our own bundled trust store in the app, where we can add missing Certificate Authorities.
 2) If you have a low Android version, the server may be communicating with a more modern protocol or cipher suites than is supported by your device
-3) The certificate may be expired. In that case, all users are affected, and the source will probably fix it very soon as this means no one can use the source (in any project, not just Breezy Weather)
+3) The certificate may be expired. In that case, all users are affected, and the source will probably fix it very soon as this means no one can use the source (in any project, not just 白い熊 天気)
 
 If this is happening will all sources, and presumably with other apps, in the worst case, you may be a victim of a [man-in-middle attack](https://en.wikipedia.org/wiki/Man-in-the-middle_attack).
 
-If in doubt, [start a discussion to ask for help](https://github.com/breezy-weather/breezy-weather/discussions/new?category=general).
+If in doubt, [start a discussion to ask for help](https://github.com/ShiroiKuma0/shiroikuma-tenki/discussions/new?category=general).
 
 ___
 
@@ -87,7 +87,7 @@ If the app is installed in a work or private profile, turning off that profile w
 
 Certain manufacturers implement non-standard Android behaviors, which prevents the app from working properly.
 
-The first thing to try is to whitelist Breezy Weather from battery optimization. From the app, go to Settings > Background updates and tap on “Disable battery optimization” (don’t worry, our background update job is optimized to be very battery-friendly, and you can change “Refresh rate” to “Never” at any time!).
+The first thing to try is to whitelist 白い熊 天気 from battery optimization. From the app, go to Settings > Background updates and tap on “Disable battery optimization” (don’t worry, our background update job is optimized to be very battery-friendly, and you can change “Refresh rate” to “Never” at any time!).
 
 If it still doesn’t work, you can find ways to circumvent aggressive manufacturer behaviors on the [Don’t kill my app! website](https://dontkillmyapp.com/).
 
@@ -111,7 +111,7 @@ Otherwise, this “persistent notification” method was based on a foreground s
 
 It is not battery-friendly at all. The worker method that we use just tells Android "we need something to run a task every 1 h 30, but if you are too busy to run it at that moment, you have a 10 minute margin to run it", so it’s much more efficient as Android takes care of running all jobs from all apps by itself at the moment it feels the most appropriate, instead of each app having their own foreground service.
 
-If your manufacturer thinks it’s a good idea to not run scheduled workers but has no problem letting foreground services drain battery, then the problem is the manufacturer, not Breezy Weather, not you.
+If your manufacturer thinks it’s a good idea to not run scheduled workers but has no problem letting foreground services drain battery, then the problem is the manufacturer, not 白い熊 天気, not you.
 
 So we will not bring back/implement “persistent notification” for these reasons:
 - it implies writing huge duplicate code (that was known to have duplicate run issues in Geometric Weather, btw) and maintaining it
@@ -125,27 +125,27 @@ But more generally, we recommend that you follow steps from “Background update
 Short answer: no.
 
 Long answer:
-Breezy Weather should honor the “refresh rate” setting from Settings > Background updates. If it does not, have a look at troubleshooting above.
+白い熊 天気 should honor the “refresh rate” setting from Settings > Background updates. If it does not, have a look at troubleshooting above.
 If for any reason the background update failed, it will refresh if weather was updated more than “refresh rate time” ago.
 
 If you still want shorter refreshes:
 - models are refreshed at best once an hour. Although there might be some little exceptions for some particular data, it’s mostly useless to refresh at intervals less than 30 minutes. Additionally, some providers send header instructions to not contact server again before X (datetime) so you would be served the same cached data anyway.
-- we ask for fair usage of API and resources. This app and these API are provided for free and shared by all users of Breezy Weather. Due to noticed abuse, we even had to implement additional caching methods to prevent these abuses and ensure API can still be used by everyone.
+- we ask for fair usage of API and resources. This app and these API are provided for free and shared by all users of 白い熊 天気. Due to noticed abuse, we even had to implement additional caching methods to prevent these abuses and ensure API can still be used by everyone.
 - you can still force refresh from main screen by “swiping to refresh”.
 
 ___
 
 ## Launcher
 
-### Why is the app not called “Breezy Weather” on my launcher?
+### Why is the app not called “白い熊 天気” on my launcher?
 
-The app name is “Breezy Weather”, however in the launcher we use the translated word for “weather”.
+The app name is “白い熊 天気”, however in the launcher we use the translated word for “weather”.
 
 The rationale behind this is to offer a better user experience:
 - You don’t have to recall what was the app name to find it in the list. You just have to remind you want to access the weather.
 - It better adapts to other languages, as we use the translated word for “weather” and you don’t have to recall a non-native word (Breezy).
 
-This choice is aligned with Breezy Weather principles to make it easy to use as a new user. Many other apps make the same decision.
+This choice is aligned with 白い熊 天気 principles to make it easy to use as a new user. Many other apps make the same decision.
 
 For users with advanced needs not happy with this choice, we recommend using a launcher that allows customisation of app names.
 
@@ -181,4 +181,4 @@ With clear design toolkit guidelines, Material 3 Expressive provides a **consist
 
 Regarding the ability to make an option to switch between the new and old design, it’s not possible, because there were significant technical changes during the migration to get rid of most of the technical debt, which allows for easier maintenance of the app.
 
-Maintaining more than 1 design has a high maintenance cost. We do provide some abilities to customize this design for flexibility, but for more significant changes, we provide the [ability to make 3rd party designs](https://github.com/breezy-weather/breezy-weather/discussions/2089), either by yourself or by commissioning someone. If you concretize it, we would be happy if you could share it in the [Show & Tell section](https://github.com/breezy-weather/breezy-weather/discussions/categories/show-and-tell)!
+Maintaining more than 1 design has a high maintenance cost. We do provide some abilities to customize this design for flexibility, but for more significant changes, we provide the [ability to make 3rd party designs](https://github.com/ShiroiKuma0/shiroikuma-tenki/discussions/2089), either by yourself or by commissioning someone. If you concretize it, we would be happy if you could share it in the [Show & Tell section](https://github.com/ShiroiKuma0/shiroikuma-tenki/discussions/categories/show-and-tell)!

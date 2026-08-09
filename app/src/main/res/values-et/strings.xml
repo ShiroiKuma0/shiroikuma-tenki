@@ -771,8 +771,8 @@
     <string name="settings_appearance_dark_mode_locations_day_night">Sõltuvalt päevast või ööst</string>
     <string name="settings_appearance_dark_mode_locations_dark">Alati tume, kui rakendus on tumedas režiimis</string>
     <string name="about_update_check_eol">Seda Androidi versiooni enam ei toetata</string>
-    <string name="content_provider_permission_label">Loe Breezy Weather andmeid</string>
-    <string name="content_provider_permission_description">Hangi ilmateave Breezy Weatherist, sh oma asukohtade koordinaadid, näiteks oma praeguse asukoha, kui oled selle lisanud</string>
+    <string name="content_provider_permission_label">Loe 白い熊 天気 andmeid</string>
+    <string name="content_provider_permission_description">Hangi ilmateave 白い熊 天気ist, sh oma asukohtade koordinaadid, näiteks oma praeguse asukoha, kui oled selle lisanud</string>
     <string name="common_weather_text_mostly_cloudy">Peamiselt pilvine</string>
     <string name="action_change">Muuda</string>
     <string name="widget_custom_subtitle_alert_box_title">Abiteave kohandatud subtiitrite kohta</string>

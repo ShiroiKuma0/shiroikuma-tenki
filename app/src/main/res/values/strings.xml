@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App -->
     <string name="app_name">Weather</string>
-    <string name="breezy_weather" translatable="false">Breezy Weather</string>
+    <string name="breezy_weather" translatable="false">白い熊 天気</string>
     <string name="forecast">Forecast</string>
     <string name="daily_forecast">Daily forecast</string>
     <string name="hourly_forecast">Hourly forecast</string>
@@ -388,7 +388,7 @@
     <string name="ceiling_short">Ceiling</string>
     <!-- Weather sources -->
     <string name="data_sources">Data sources</string>
-    <!-- %s = Breezy Weather -->
+    <!-- %s = 白い熊 天気 -->
     <string name="data_modified">This material has been modified from the original by %s mainly to compute or extrapolate missing data.</string>
     <string name="weather_message_data_refresh_failed">Data refresh failed</string>
     <string name="weather_message_unsupported_feature">Source doesn’t support one of requested features</string>
@@ -423,7 +423,7 @@
     <string name="weather_source_accu_preference_hours_72">72 hours</string>
     <string name="weather_source_accu_preference_hours_120">120 hours</string>
     <string name="weather_source_accu_preference_hours_240">240 hours</string>
-    <!-- %s = Breezy Weather -->
+    <!-- %s = 白い熊 天気 -->
     <string name="broadcast_source_breezy_weather_update_notifier">%s Location Update Notifier</string>
     <!-- Location -->
     <string name="locations">Locations</string>
@@ -468,7 +468,7 @@
     <string name="action_search">Search</string>
     <string name="action_add_current_location">Add current location</string>
     <string name="action_add_new_location">Add a new location</string>
-    <!-- Label shown when sharing coordinates from a maps app to Breezy Weather -->
+    <!-- Label shown when sharing coordinates from a maps app to 白い熊 天気 -->
     <string name="action_add_as_location">Add as location</string>
     <string name="action_add_debug_location" translatable="false">Add debug location</string>
     <string name="action_edit_location">Edit this location</string>
@@ -837,7 +837,7 @@
     <string name="settings_modules_section_general" translatable="false">@string/settings_section_general</string>
     <string name="settings_modules_live_wallpaper_title">Live wallpaper</string>
     <string name="settings_modules_live_wallpaper_summary">Set a weather animation as wallpaper</string>
-    <!-- %s = Breezy Weather -->
+    <!-- %s = 白い熊 天気 -->
     <string name="settings_modules_live_wallpaper_error">Couldn’t launch wallpaper chooser. You can still enable %s wallpaper by choosing “Live Wallpaper” in your home screen wallpaper picker.</string>
     <string name="settings_modules_week_icon_mode_title">Icon to display in weekly views</string>
     <string name="settings_modules_monochrome_icons_title">Monochrome icons</string>
@@ -929,8 +929,8 @@
     <!-- %s is a link -->
     <string name="about_open_link_message">Open %s?</string>
     <!-- Content provider -->
-    <string name="content_provider_permission_label">Read Breezy Weather data</string>
-    <string name="content_provider_permission_description">get weather information from Breezy Weather, including the coordinates of your locations, such as your current location if you added it</string>
+    <string name="content_provider_permission_label">Read 白い熊 天気 data</string>
+    <string name="content_provider_permission_description">get weather information from 白い熊 天気, including the coordinates of your locations, such as your current location if you added it</string>
     <!-- Weather condition text -->
     <!-- Check https://unterm.un.org/unterm2/en/ -->
     <!-- We don’t use all of them currently, but they might come useful some day -->

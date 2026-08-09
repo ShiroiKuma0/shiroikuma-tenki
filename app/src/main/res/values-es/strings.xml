@@ -804,8 +804,8 @@
     <string name="settings_appearance_dark_mode_locations_day_night">Seguir día/noche</string>
     <string name="settings_appearance_dark_mode_locations_dark">Siempre oscuro con la app en modo oscuro</string>
     <string name="about_update_check_eol">Esta versión de Android ya no tiene soporte</string>
-    <string name="content_provider_permission_label">Leer datos de Breezy Weather</string>
-    <string name="content_provider_permission_description">obtener información meteorológica de Breezy Weather, incluidas las coordenadas de tus ubicaciones, como la ubicación actual si la has añadido</string>
+    <string name="content_provider_permission_label">Leer datos de 白い熊 天気</string>
+    <string name="content_provider_permission_description">obtener información meteorológica de 白い熊 天気, incluidas las coordenadas de tus ubicaciones, como la ubicación actual si la has añadido</string>
     <string name="common_weather_text_mostly_cloudy">Muy nuboso</string>
     <string name="settings_appearance_dark_mode_custom">Modo oscuro de %1$s a %2$s</string>
     <string name="action_pull_down_to_refresh">Desliza abajo para actualizar</string>

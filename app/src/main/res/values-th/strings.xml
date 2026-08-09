@@ -821,8 +821,8 @@
     <string name="widget_live_wallpaper_animations_enable_warning1">ภาพพื้นหลังแบบเคลื่อนไหวสามารถทำให้เกิดสิ่งเหล่านี้ได้: ใช้พลังงานแบตเตอรี่สูง แบตเตอรี่ร้อนเกินไป ใช้หน่วยความจำสูง ระบบตอบสนองช้าลง ระบบแอนดรอยด์ล้มเหลว และอื่น ๆ</string>
     <string name="widget_live_wallpaper_animations_enable_warning2">หากคุณตัดสินใจที่จะเปิดใช้งาน ความรับผิดชอบต่อทุกปัญหาที่อาจเกิดขึ้นตกอยู่ที่คุณ และจะไม่มีการให้การสนับสนุนจากพวกเรา</string>
     <string name="settings_regional_preference">ตามภูมิภาค</string>
-    <string name="content_provider_permission_label">อ่านข้อมูลของ Breezy Weather</string>
-    <string name="content_provider_permission_description">รับข้อมูลสภาพอากาศจาก Breezy Weather ซึ่งรวมไปถึงพิกัดของที่ตั้งที่คุณเพิ่มเอาไว้ อย่างที่ตั้งปัจจุบันของคุณหากคุณได้เพิ่มเอาไว้เป็นหนึ่งในที่ตั้ง</string>
+    <string name="content_provider_permission_label">อ่านข้อมูลของ 白い熊 天気</string>
+    <string name="content_provider_permission_description">รับข้อมูลสภาพอากาศจาก 白い熊 天気 ซึ่งรวมไปถึงพิกัดของที่ตั้งที่คุณเพิ่มเอาไว้ อย่างที่ตั้งปัจจุบันของคุณหากคุณได้เพิ่มเอาไว้เป็นหนึ่งในที่ตั้ง</string>
     <string name="common_weather_text_mostly_cloudy">เมฆคลุมเป็นส่วนใหญ่</string>
     <string name="settings_appearance_dark_mode_custom">โหมดมืดตั้งแต่ %1$s ถึง %2$s</string>
     <string name="action_pull_down_to_refresh">ลากลงเพื่อรีเฟรช</string>

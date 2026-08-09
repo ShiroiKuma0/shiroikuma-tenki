@@ -4,7 +4,7 @@ body:
     id: feature-description
     attributes:
       label: Describe your idea
-      description: How can Breezy Weather be improved for the community? Suggest only one idea at a time (open a new issue for a different idea).
+      description: How can 白い熊 天気 be improved for the community? Suggest only one idea at a time (open a new issue for a different idea).
       placeholder: |
         Example:
           "Here is how it should work: …"
@@ -24,11 +24,11 @@ body:
       label: Acknowledgements
       description: Your issue will be closed if you don’t read this carefully.
       options:
-        - label: I have searched the [existing issues](https://github.com/breezy-weather/breezy-weather/issues) and [existing discussions](https://github.com/breezy-weather/breezy-weather/discussions/categories/ideas) and this is a new ticket, **NOT** a duplicate or related to another open OR closed issue or discussion.
+        - label: I have searched the [existing issues](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues) and [existing discussions](https://github.com/ShiroiKuma0/shiroikuma-tenki/discussions/categories/ideas) and this is a new ticket, **NOT** a duplicate or related to another open OR closed issue or discussion.
           required: true
-        - label: The idea I’m suggesting is not in the [list of features that will not be implemented](https://github.com/breezy-weather/breezy-weather/blob/main/README.md#features-that-will-not-be-implemented).
+        - label: The idea I’m suggesting is not in the [list of features that will not be implemented](https://github.com/ShiroiKuma0/shiroikuma-tenki/blob/main/README.md#features-that-will-not-be-implemented).
           required: true
-        - label: I have updated the app to **[version 6.2.1 or later](https://github.com/breezy-weather/breezy-weather/releases)**. Even if I’m getting updates from F-Droid default repo, I don’t need to uninstall/reinstall to update.
+        - label: I have updated the app to **[version 6.2.1 or later](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)**. Even if I’m getting updates from F-Droid default repo, I don’t need to uninstall/reinstall to update.
           required: true
         - label: I wrote my request in English, and any screenshot I attached are also in English (language can be changed from Settings > Appearance). I can write in my native language under the English text, if necessary.
           required: true

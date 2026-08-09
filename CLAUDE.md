@@ -37,7 +37,7 @@ enough and the global **`git-versioning`** skill does **not** apply here.
 | namespace (R/BuildConfig pkg) | `org.breezyweather` (**never rename**) | `app/build.gradle.kts` |
 | App label / brand | `白い熊 天気` | `brand_name` in `app/src/res_fork/values/strings.xml` |
 | Launcher label | `@string/brand_name` (not upstream's per-locale `app_name`) | `app/src/main/AndroidManifest.xml` → `MainActivity` |
-| App icon | black-yellow traced sun-and-cloud (yellow `#FFFF00` line-art on black) | `app/src/res_fork/**` (`drawable/ic_launcher_background.xml`, `drawable-v24/ic_launcher_foreground.xml`, `mipmap-*/ic_launcher*.webp`), `design/shiroikuma-tenki-icon.svg` |
+| App icon | black-yellow traced four-blade pinwheel (yellow `#FFFF00` line-art on black), cut by `tools/icon/emit_launcher.py` | `app/src/res_fork/**` (`drawable/ic_launcher_{background,foreground}.xml`, `mipmap-*/ic_launcher*.webp`), `app/src/main/ic_launcher-playstore.png`, `design/shiroikuma-tenki-icon.svg` |
 | Version tail | `versionName = "<upstream>+NNN"`, `versionCode = <upstream code>*10000+N` | `app/build.gradle.kts` fork blocks |
 | Signing | gitignored `keystore.properties` → `~/.android-keystores/shiroikuma-tenki.jks` (alias `tenki`) | `app/build.gradle.kts` `signingConfigs` |
 | Fork links | our repo everywhere the app links out | `gradle.properties` → the `app.*` block |

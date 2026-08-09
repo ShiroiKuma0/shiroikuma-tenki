@@ -730,7 +730,7 @@
     <string name="about_dependencies">종속성</string>
     <string name="about_contribution_designer">로고 디자이너</string>
     <string name="about_open_link_message">%s에 접속하시겠습니까?</string>
-    <string name="content_provider_permission_label">Breezy Weather 데이터 읽기</string>
+    <string name="content_provider_permission_label">白い熊 天気 데이터 읽기</string>
     <string name="common_weather_text_mostly_cloudy">구름 많음</string>
     <string name="common_weather_text_rain_snow_mixed_light">약한 진눈깨비</string>
     <string name="common_weather_text_rain_snow_mixed_heavy">강한 진눈깨비</string>
@@ -810,7 +810,7 @@
     <string name="settings_background_updates_refresh_never_warning3">백그라운드 업데이트를 끄는 대신 새로고침 빈도를 낮추는 것을 권장드리지만, 그래도 계속 진행하려면 “계속”을 누르십시오.</string>
     <string name="settings_location_access_background_summaryOff">현재 위치를 백그라운드에서 새로고침하려면 “항상 허용”으로 설정해 주십시오.</string>
     <string name="settings_background_updates_refresh_never_warning1">백그라운드 업데이트를 끄면 더 이상 기상특보나 강수량 알림을 받지 않게 됩니다. 앱을 열기 전까지 위젯이 갱신되지 않습니다.</string>
-    <string name="content_provider_permission_description">Breezy Weather로부터 날씨 정보를 받으며, 현재 위치 등 사용자가 추가한 위치들의 좌표 정보를 포함합니다</string>
+    <string name="content_provider_permission_description">白い熊 天気로부터 날씨 정보를 받으며, 현재 위치 등 사용자가 추가한 위치들의 좌표 정보를 포함합니다</string>
     <string name="widget_custom_subtitle_alert_box_title">사용자 지정 부제목 도움말</string>
     <string name="widget_custom_subtitle_help_content_description">사용자 지정 부제목 키워드 도움말 표시</string>
     <string name="settings_source_api_key_invalid">값이 예상치 못한 형식입니다</string>

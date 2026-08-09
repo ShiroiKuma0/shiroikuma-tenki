@@ -826,8 +826,8 @@
     <string name="cloud_cover_from_to_description">Entre %1$s e %2$s</string>
     <string name="visibility_scale">Escala de visibilidade</string>
     <string name="cloud_cover_scale">Escala de nebulosidade</string>
-    <string name="content_provider_permission_label">Ler dados do Breezy Weather</string>
-    <string name="content_provider_permission_description">obter informações do clima a partir do Breezy Weather, incluindo as coordenadas das suas localizações, como a sua localização atual se você a adicionou</string>
+    <string name="content_provider_permission_label">Ler dados do 白い熊 天気</string>
+    <string name="content_provider_permission_description">obter informações do clima a partir do 白い熊 天気, incluindo as coordenadas das suas localizações, como a sua localização atual se você a adicionou</string>
     <string name="broadcast_source_breezy_weather_update_notifier">Notificante de atualização de localização do %s</string>
     <string name="action_add_as_location">Adicionar como localização</string>
     <string name="settings_regional_preference">Preferência regional</string>

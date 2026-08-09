@@ -774,8 +774,8 @@
     <string name="common_weather_text_mostly_cloudy">Stark bewölkt</string>
     <string name="visibility_scale">Sichtbarkeitsskala</string>
     <string name="cloud_cover_scale">Wolkenbedeckungsskala</string>
-    <string name="content_provider_permission_description">Wetterinformationen von Breezy Weather abrufen, einschließlich der Koordinaten deiner Standorte, z. B. deines aktuellen Standorts, wenn du diesen hinzugefügt hast</string>
-    <string name="content_provider_permission_label">Breezy Weather Daten lesen</string>
+    <string name="content_provider_permission_description">Wetterinformationen von 白い熊 天気 abrufen, einschließlich der Koordinaten deiner Standorte, z. B. deines aktuellen Standorts, wenn du diesen hinzugefügt hast</string>
+    <string name="content_provider_permission_label">白い熊 天気 Daten lesen</string>
     <string name="action_add_as_location">Als Ort hinzufügen</string>
     <string name="settings_regional_preference">Regionale Präferenz</string>
     <string name="broadcast_source_breezy_weather_update_notifier">%s Benachrichtigung über Ortsaktualisierung</string>

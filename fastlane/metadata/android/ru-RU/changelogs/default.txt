@@ -1,2 +1,2 @@
 Примечания к выпускам доступны на GitHub:
-https://github.com/breezy-weather/breezy-weather/releases
+https://github.com/ShiroiKuma0/shiroikuma-tenki/releases

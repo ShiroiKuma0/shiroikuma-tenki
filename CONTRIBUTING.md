@@ -21,7 +21,7 @@ When your contribution is ready:
 
 While we welcome pull requests, before implementing any new feature/improvement, we ask you to come talk to us, to be sure it goes in the right direction. We don’t want you to spend time implementing something we don’t want (see “Rules for new features/improvements requests” section below) or implementing it the wrong way. Same goes for bug reports, as we want to make sure the contribution guidelines are correctly followed.
 
-That's why you can only contribute to [existing issues tagged “Open to contributions”](https://github.com/breezy-weather/breezy-weather/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Open%20to%20contributions%22), or [existing ideas tagged “Open to contributions”](https://github.com/breezy-weather/breezy-weather/discussions?discussions_q=is%3Aopen+label%3A%22Open+to+contributions%22) *after* you’ve expressed interest in that discussion.
+That's why you can only contribute to [existing issues tagged “Open to contributions”](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Open%20to%20contributions%22), or [existing ideas tagged “Open to contributions”](https://github.com/ShiroiKuma0/shiroikuma-tenki/discussions?discussions_q=is%3Aopen+label%3A%22Open+to+contributions%22) *after* you’ve expressed interest in that discussion.
 
 
 ### AI guidelines
@@ -52,7 +52,7 @@ Since you started working on your pull request, many commits might have been add
 
 First, make sure you added our repo as `upstream` remote:
 ```
-git remote add upstream https://github.com/breezy-weather/breezy-weather
+git remote add upstream https://github.com/ShiroiKuma0/shiroikuma-tenki
 ```
 
 Then:
@@ -79,7 +79,7 @@ You can make a new commit, and once again, push your changes adding the `--force
 
 ## Rules for contributions for organization members
 
-All organization members of Breezy Weather must follow the following rule:
+All organization members of 白い熊 天気 must follow the following rule:
 - If someone has not followed the contribution guidelines and has published their code anyway, you are not allowed to copy that code. You may review the bug report to understand and analyze the issue, but you must then resolve it in your own way. For fixes that require only a few lines of code, it is possible that the two versions will be very similar, or even identical. Even if the contributor made the mistake of not following our warnings regarding the prohibition on contributing without our consent, they can still claim authorship of the code because it was written first, even if the code you wrote afterward is rightfully yours. In this case, you may decide to rewrite the code to avoid any misunderstanding. If this rewrite makes the code less optimized, it must be submitted to another member of the organization, who will impartially review the situation and the claims of both parties. This member of the organization will strive to reach a mutual agreement. If this proves impossible, they will decide either on a complete rewrite, a partial rewrite, or a complete commit revert. Since a rewrite may require writing code that is much less optimized to make it sufficiently different, it should be avoided, and a mutual agreement should be sought as a priority.
 
 
@@ -87,7 +87,7 @@ All organization members of Breezy Weather must follow the following rule:
 
 ### General direction
 
-Breezy Weather wants to be:
+白い熊 天気 wants to be:
 - a general weather app covering most of what you can expect from a weather app, but not *all* of what you can expect. For advanced usage, some specialized apps will always cover it better
 - usable without having to be an expert to find anything in the app
 - mainly target small displays, so we don’t want to fit too many things, as we also want to let the design breathe a bit
@@ -141,7 +141,7 @@ Fork the project on GitHub.
 
 Clone the project locally, then add our repository as `upstream` remote:
 ```
-git remote add upstream https://github.com/breezy-weather/breezy-weather
+git remote add upstream https://github.com/ShiroiKuma0/shiroikuma-tenki
 ```
 
 Create a new branch for your pull request, for example:
@@ -224,4 +224,4 @@ As explained in other documents, the daytime half-day is expected from 06:00 to 
 - If your source has half days with different hours, please follow their recommendations (for example, ColorfulClouds uses 08:00 to 19:59 and 20:00 to 07:59 (or 31:59)).
 - If your source has no half day, a typical mistake you can make is to put the minimum temperature of the day as temperature of the night. However, your source probably gives you the minimum temperature from the past overnight, not from the night to come, so make sure to pick the correct data!
 
-Once your source is complete (you use all available data from the API and available in Breezy Weather), please rebase and submit it as a pull request (see instructions above). Please allow Breezy Weather maintainers to make adjustments (but we won’t write the source for you, you will have to make significant implementation).
+Once your source is complete (you use all available data from the API and available in 白い熊 天気), please rebase and submit it as a pull request (see instructions above). Please allow 白い熊 天気 maintainers to make adjustments (but we won’t write the source for you, you will have to make significant implementation).

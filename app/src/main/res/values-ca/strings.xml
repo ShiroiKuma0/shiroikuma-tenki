@@ -769,8 +769,8 @@
     <string name="settings_debug_notification_permission">Es necessita per notificat sobre tancaments inesperats i actualitzacions del temps fallides. %s</string>
     <string name="settings_regional_preference">Preferència regional</string>
     <string name="about_update_check_eol">Aquesta versió d’Android ja no està suportada</string>
-    <string name="content_provider_permission_label">Llegir les dades del Breezy Weather</string>
-    <string name="content_provider_permission_description">obteniu informació del temps des de Breezy Weather, incloent les coordinades de les vostres ubicacions, així com la vostra ubicació actual si l’heu afegit</string>
+    <string name="content_provider_permission_label">Llegir les dades del 白い熊 天気</string>
+    <string name="content_provider_permission_description">obteniu informació del temps des de 白い熊 天気, incloent les coordinades de les vostres ubicacions, així com la vostra ubicació actual si l’heu afegit</string>
     <string name="common_weather_text_mostly_cloudy">Majorment nuvolat</string>
     <string name="common_weather_text_mist">Bruma</string>
     <string name="common_weather_text_dry">Sec</string>

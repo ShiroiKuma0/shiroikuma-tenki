@@ -779,8 +779,8 @@
     <string name="settings_appearance_dark_mode_locations_dark">Uygulama karanlık moddayken her zaman karanlık</string>
     <string name="settings_regional_preference">Bölgesel tercih</string>
     <string name="about_update_check_eol">Bu Android sürümü artık desteklenmiyor</string>
-    <string name="content_provider_permission_label">Breezy Weather verilerini okuyun</string>
-    <string name="content_provider_permission_description">Breezy Weather’dan, konumunuzun koordinatları da dahil olmak üzere hava durumu bilgilerini alın (eğer eklediyseniz mevcut konumunuz gibi)</string>
+    <string name="content_provider_permission_label">白い熊 天気 verilerini okuyun</string>
+    <string name="content_provider_permission_description">白い熊 天気’dan, konumunuzun koordinatları da dahil olmak üzere hava durumu bilgilerini alın (eğer eklediyseniz mevcut konumunuz gibi)</string>
     <string name="common_weather_text_mostly_cloudy">Çoğunlukla bulutlu</string>
     <string name="pressure_standard">Standart</string>
     <string name="settings_source_api_key_invalid">Değer beklenen biçimde değil</string>

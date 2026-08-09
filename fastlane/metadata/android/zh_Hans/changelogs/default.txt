@@ -1,2 +1,2 @@
 版本说明请参考 GitHub：
-https://github.com/breezy-weather/breezy-weather/releases
+https://github.com/ShiroiKuma0/shiroikuma-tenki/releases

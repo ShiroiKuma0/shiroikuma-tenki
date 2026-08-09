@@ -779,8 +779,8 @@
     <string name="settings_appearance_dark_mode_custom">Mod întunecat de la %1$s la %2$s</string>
     <string name="settings_regional_preference">Preferință regională</string>
     <string name="about_update_check_eol">Această versiune Android nu mai este suportată</string>
-    <string name="content_provider_permission_label">Citește datele Breezy Weather</string>
-    <string name="content_provider_permission_description">obțineți datele meteo de la Breezy Weather, inclusiv coordonatele locațiilor dvs., cum ar fi locația curentă dacă ați adăugat-o</string>
+    <string name="content_provider_permission_label">Citește datele 白い熊 天気</string>
+    <string name="content_provider_permission_description">obțineți datele meteo de la 白い熊 天気, inclusiv coordonatele locațiilor dvs., cum ar fi locația curentă dacă ați adăugat-o</string>
     <string name="common_weather_text_mostly_cloudy">Predominant noros</string>
     <string name="message_source_non_free_network_title">Această sursă necesită versiunea Standard a aplicației</string>
     <string name="message_source_non_free_network_content">Folosești versiunea Freenet a aplicației, care suportă doar surse găzduite pe o rețea liberă. Pentru a continua să folosești această sursă, treci înapoi pe versiunea standard. Altfel, alege o sursă diferită.</string>

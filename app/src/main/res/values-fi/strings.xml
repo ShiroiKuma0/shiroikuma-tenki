@@ -798,6 +798,6 @@
     <string name="settings_source_api_key_invalid">Arvo ei ole odotetussa muodossa</string>
     <string name="settings_main_background_title">Säähän perustuva tausta</string>
     <string name="settings_regional_preference">Alueellinen mieltymys</string>
-    <string name="content_provider_permission_label">Lue Breezy Weather -tietoja</string>
-    <string name="content_provider_permission_description">saat Breezy Weatherin säätietoja, mukaan lukien sijaintiesi koordinaatit, kuten nykyisen sijaintisi, jos olet lisännyt sen</string>
+    <string name="content_provider_permission_label">Lue 白い熊 天気 -tietoja</string>
+    <string name="content_provider_permission_description">saat 白い熊 天気in säätietoja, mukaan lukien sijaintiesi koordinaatit, kuten nykyisen sijaintisi, jos olet lisännyt sen</string>
 </resources>

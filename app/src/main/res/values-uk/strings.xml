@@ -761,8 +761,8 @@
     <string name="common_weather_text_mostly_cloudy">Переважно хмарно</string>
     <string name="visibility_scale">Шкала видимості</string>
     <string name="cloud_cover_scale">Шкала хмарності</string>
-    <string name="content_provider_permission_label">Читати дані Breezy Weather</string>
-    <string name="content_provider_permission_description">отримувати інформацію про погоду від Breezy Weather, включаючи координати ваших місць розташування, наприклад, ваше поточне місцезнаходження, якщо ви його додали</string>
+    <string name="content_provider_permission_label">Читати дані 白い熊 天気</string>
+    <string name="content_provider_permission_description">отримувати інформацію про погоду від 白い熊 天気, включаючи координати ваших місць розташування, наприклад, ваше поточне місцезнаходження, якщо ви його додали</string>
     <string name="broadcast_source_breezy_weather_update_notifier">%s Сповіщувач оновлень місцезнаходження</string>
     <string name="action_add_as_location">Додати як місцезнаходження</string>
     <string name="settings_regional_preference">Регіональні уподобання</string>

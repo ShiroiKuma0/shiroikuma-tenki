@@ -1,14 +1,14 @@
 # Coverage
 
-This page documents the coverage status of weather sources around the world in Breezy Weather. Before you submit a request for a new source, please check this document to see if it has been considered for coverage in the past.
+This page documents the coverage status of weather sources around the world in 白い熊 天気. Before you submit a request for a new source, please check this document to see if it has been considered for coverage in the past.
 
-In general, a weather source can be considered for inclusion in the official release of Breezy Weather if it meets the following requirements:
+In general, a weather source can be considered for inclusion in the official release of 白い熊 天気 if it meets the following requirements:
 
-- **Geolocation availability:** A source should be able to provide data directly from geographical coordinates (latitude and longitude) directly, or return forecast locations from given coordinates. Breezy Weather is a mobile app, and is primary used for querying weather forecasts on the go. It is not enough to for a source to provide forecast from location names alone.
+- **Geolocation availability:** A source should be able to provide data directly from geographical coordinates (latitude and longitude) directly, or return forecast locations from given coordinates. 白い熊 天気 is a mobile app, and is primary used for querying weather forecasts on the go. It is not enough to for a source to provide forecast from location names alone.
 - **Data format:** A source should provide its forecast data in JSON or XML format.
 - **Forecast availability:** _(for Forecast sources)_ A source should provide hourly forecast. The minimum frequency should be 6-hourly. Sources providing current observation, air pollution, pollen, alerts, or temperature normals WITHOUT hourly forecast can be implemented as a “Secondary Source.”
 - **Privacy requirement:** If an API key is needed to access the data, it should not ask for personally identifiable information such as credit card or telephone number.
-- **Concentration requirement:**  _(for Air Quality and Pollen sources)_ A source must provide air pollutant concentration data in µg/m³, mg/m³, ppb, or ppm. Pollen concentration must be in pollen count /m³. If the data source only provides a calculated index, it cannot be included in Breezy Weather, since every country has its own AQI standard which is often different from others.
+- **Concentration requirement:**  _(for Air Quality and Pollen sources)_ A source must provide air pollutant concentration data in µg/m³, mg/m³, ppb, or ppm. Pollen concentration must be in pollen count /m³. If the data source only provides a calculated index, it cannot be included in 白い熊 天気, since every country has its own AQI standard which is often different from others.
 
 ## Summary
 
@@ -21,7 +21,7 @@ In general, a weather source can be considered for inclusion in the official rel
 - [Other sources](#other-sources)
 
 ## Africa
-> [ClimWeb](https://github.com/wmo-raf/climweb) is an open source web CMS created by WMO Regional Office For Africa for use by National Meteorological and Hydrological Services in Africa. As of v0.9.4, ClimWeb offers alerts and temperature normals in JSON format, but weather forecasts are in HTML only. ClimWeb sources are implemented as Secondary Sources for Alerts and Temperature Normals from Breezy Weather v5.3.0.
+> [ClimWeb](https://github.com/wmo-raf/climweb) is an open source web CMS created by WMO Regional Office For Africa for use by National Meteorological and Hydrological Services in Africa. As of v0.9.4, ClimWeb offers alerts and temperature normals in JSON format, but weather forecasts are in HTML only. ClimWeb sources are implemented as Secondary Sources for Alerts and Temperature Normals from 白い熊 天気 v5.3.0.
 
 | Country/Territory                                 | Agency                                               | Status                           | Last Checked |
 |---------------------------------------------------|------------------------------------------------------|----------------------------------|--------------|
@@ -126,7 +126,7 @@ In general, a weather source can be considered for inclusion in the official rel
 | 🇸🇦 Saudi Arabia         | [NCM](https://ncm.gov.sa/)                    |                                                                                        |              |
 | 🇸🇬 Singapore            | [MSS](https://www.weather.gov.sg/)            | ❌ no hourly                                                                            | 2024-11-30   |
 | 🇱🇰 Sri Lanka            | [Sri Lanka](https://meteo.gov.lk/)            | ❌ no geolocation, no hourly                                                            | 2024-11-30   |
-| 🇰🇷 South Korea          | [KMA](https://data.kma.go.kr/)                | ❌ [requires phone number](https://github.com/breezy-weather/breezy-weather/issues/593) | 2023-12-09   |
+| 🇰🇷 South Korea          | [KMA](https://data.kma.go.kr/)                | ❌ [requires phone number](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/593) | 2023-12-09   |
 | 🇸🇾 Syria                | SGDM                                          | ❌ only on Facebook                                                                     |              |
 | 🇹🇼 Taiwan               | [CWA](https://www.cwa.gov.tw/)                | ✅ included from v5.2.5                                                                 |              |
 | 🇹🇯 Tajikistan           | [Tajikistan](https://www.meteo.tj/)           |                                                                                        |              |
@@ -164,7 +164,7 @@ In general, a weather source can be considered for inclusion in the official rel
 | 🇬🇮 Gibraltar                | [Met Office](https://www.metoffice.gov.uk/)           | ✅ included from v5.3.0                                                                |              |
 | 🇬🇷 Greece                   | [EMY](http://www.emy.gr/)                             |                                                                                       |              |
 | 🇬🇬 Guernsey                 | [Met Office](https://www.metoffice.gov.uk/)           | ✅ included from v5.3.0                                                                |              |
-| 🇭🇺 Hungary                  | [HungaroMet](https://www.met.hu/)                     | ❌ [no hourly](https://github.com/breezy-weather/breezy-weather/issues/821)            | 2024-03-19   |
+| 🇭🇺 Hungary                  | [HungaroMet](https://www.met.hu/)                     | ❌ [no hourly](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/821)            | 2024-03-19   |
 | 🇮🇸 Iceland                  | [IMO](https://en.vedur.is/)                           | ✅ included from v6.0.5                                                                | 2025-08-23   |
 | 🇮🇪 Ireland                  | [MET Éireann](https://www.met.ie/)                    | ✅ included from v5.0.0                                                                |              |
 | 🇮🇲 Isle of Man              | [Met Office](https://www.metoffice.gov.uk/)           | ✅ included from v5.3.0                                                                |              |
@@ -179,10 +179,10 @@ In general, a weather source can be considered for inclusion in the official rel
 | 🇲🇩 Moldova                  | [SHS](https://www.meteo.md/)                          |                                                                                       |              |
 | 🇲🇨 Monaco                   | [Météo-France](https://meteofrance.com/)              | ✅ included                                                                            |              |
 | 🇲🇪 Montenegro               | [ZHMS](https://www.meteo.co.me/)                      |                                                                                       |              |
-| 🇳🇱 Netherlands              | [KNMI](https://www.knmi.nl/)                          | ❌ [no geolocation](https://github.com/breezy-weather/breezy-weather/issues/1025)      | 2024-05-03   |
+| 🇳🇱 Netherlands              | [KNMI](https://www.knmi.nl/)                          | ❌ [no geolocation](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/1025)      | 2024-05-03   |
 | 🇲🇰 North Macedonia          | [UHMR](https://uhmr.gov.mk/)                          |                                                                                       |              |
 | 🇳🇴 Norway                   | [MET Norway](https://www.met.no/)                     | ✅ included from v4.0.0                                                                |              |
-| 🇵🇱 Poland                   | [IMGW](https://www.imgw.pl/)                          | [open to contributions](https://github.com/breezy-weather/breezy-weather/issues/998)  | 2024-12-01   |
+| 🇵🇱 Poland                   | [IMGW](https://www.imgw.pl/)                          | [open to contributions](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/998)  | 2024-12-01   |
 | 🇵🇹 Portugal                 | [IPMA](https://www.ipma.pt/)                          | ✅ Included from v5.3.0                                                                |              |
 | 🇷🇴 Romania                  | [Meteo România](https://www.meteoromania.ro/)         |                                                                                       |              |
 | 🇷🇺 Russia                   |                                                       |                                                                                       |              |
@@ -191,7 +191,7 @@ In general, a weather source can be considered for inclusion in the official rel
 | 🇸🇰 Slovakia                 | [SHMÚ](https://www.shmu.sk/)                          |                                                                                       |              |
 | 🇸🇮 Slovenia                 | [ARSO](https://www.arso.gov.si/)                      |                                                                                       |              |
 | 🇪🇸 Spain                    | [AEMET](https://www.aemet.es/)                        | ✅ included from v5.3.0                                                                |              |
-|                               | [Meteogalicia](https://www.meteogalicia.gal/)         | [open to contributions](https://github.com/breezy-weather/breezy-weather/issues/1066) | 2024-05-23   |
+|                               | [Meteogalicia](https://www.meteogalicia.gal/)         | [open to contributions](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/1066) | 2024-05-23   |
 | 🇸🇯 Svalbard &amp; Jan Mayen | [MET Norway](https://www.met.no/)                     | ✅ included from v4.0.0                                                                |              |
 | 🇸🇪 Sweden                   | [SMHI](https://www.smhi.se/)                          | ✅ included from v5.0.0                                                                |              |
 | 🇨🇭 Switzerland              | [MeteoSwiss](https://www.meteoswiss.admin.ch/)        | ❌ no geolocation                                                                      | 2024-11-30   |
@@ -268,9 +268,9 @@ In general, a weather source can be considered for inclusion in the official rel
 | Country/Territory                    | Agency                                     | Status                                                                           | Last Checked |
 |--------------------------------------|--------------------------------------------|----------------------------------------------------------------------------------|--------------|
 | 🇦🇸 American Samoa                  | [NWS](https://www.weather.gov/)            | ❌ NWS API does not support American Samoa                                        | 2024-11-21   |
-| 🇦🇺 Australia                       | [BOM](http://www.bom.gov.au/)              | ❌ [restricted API](https://github.com/breezy-weather/breezy-weather/issues/1299) | 2024-09-14   |
-| 🇨🇽 Christmas Island                | [BOM](http://www.bom.gov.au/)              | ❌ [restricted API](https://github.com/breezy-weather/breezy-weather/issues/1299) | 2024-09-14   |
-| 🇨🇨 Cocos (Keeling) Is.             | [BOM](http://www.bom.gov.au/)              | ❌ [restricted API](https://github.com/breezy-weather/breezy-weather/issues/1299) | 2024-09-14   |
+| 🇦🇺 Australia                       | [BOM](http://www.bom.gov.au/)              | ❌ [restricted API](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/1299) | 2024-09-14   |
+| 🇨🇽 Christmas Island                | [BOM](http://www.bom.gov.au/)              | ❌ [restricted API](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/1299) | 2024-09-14   |
+| 🇨🇨 Cocos (Keeling) Is.             | [BOM](http://www.bom.gov.au/)              | ❌ [restricted API](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/1299) | 2024-09-14   |
 | 🇨🇰 Cook Is.                        | [CIMS](https://met.gov.ck/)                |                                                                                  |              |
 | 🇫🇯 Fiji                            | [FMS](https://www.met.gov.fj/)             | ❌ no geolocation, no JSON                                                        | 2024-11-30   |
 | 🇵🇫 French Polynesia                | [Météo-France](https://meteofrance.com/)   | ✅ included                                                                       |              |
@@ -314,16 +314,16 @@ In general, a weather source can be considered for inclusion in the official rel
 | Recosanté          | ✅ included from v5.1.1                                                                     |              |
 | WMO Severe Weather | ✅ included from v5.1.4                                                                     |              |
 | Apple WeatherKit   | ❌ no free tier                                                                             |              |
-| AROME PIAF         | [data in `.grid` format](https://github.com/breezy-weather/breezy-weather/issues/847)      | 2024-03-25   |
-| Azure Maps         | ❌ [requires credit card](https://github.com/breezy-weather/breezy-weather/issues/265)      | 2023-08-04   |
-| EPA AirNow         | ❌ [no concentration](https://github.com/breezy-weather/breezy-weather/issues/929)          | 2024-04-12   |
-| Graphcast          | ❌ [no API server](https://github.com/breezy-weather/breezy-weather/issues/576)             | 2023-11-27   |
-| HERE               | ❌ [removed from v6.0.6](https://github.com/breezy-weather/breezy-weather/issues/1849)      | 2025-08-24   |
+| AROME PIAF         | [data in `.grid` format](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/847)      | 2024-03-25   |
+| Azure Maps         | ❌ [requires credit card](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/265)      | 2023-08-04   |
+| EPA AirNow         | ❌ [no concentration](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/929)          | 2024-04-12   |
+| Graphcast          | ❌ [no API server](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/576)             | 2023-11-27   |
+| HERE               | ❌ [removed from v6.0.6](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/1849)      | 2025-08-24   |
 | Microsoft Azure    | ❌ free tier requires credit card info                                                      |              |
-| Pollenrapporten    | ❌ [no geolocation](https://github.com/breezy-weather/breezy-weather/issues/758)            | 2024-03-08   |
-| QWeather           | ❌ [privacy concern](https://github.com/breezy-weather/breezy-weather/pull/574)             | 2024-04-11   |
-| Seniverse          | ❌ [no geolocation, no hourly](https://github.com/breezy-weather/breezy-weather/issues/508) | 2023-10-05   |
-| Tomorrow.io        | [open to contribution](https://github.com/breezy-weather/breezy-weather/issues/469)        | 2023-09-28   |
-| WeatherAPI         | [open to contribution](https://github.com/breezy-weather/breezy-weather/issues/453)        | 2023-09-08   |
+| Pollenrapporten    | ❌ [no geolocation](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/758)            | 2024-03-08   |
+| QWeather           | ❌ [privacy concern](https://github.com/ShiroiKuma0/shiroikuma-tenki/pull/574)             | 2024-04-11   |
+| Seniverse          | ❌ [no geolocation, no hourly](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/508) | 2023-10-05   |
+| Tomorrow.io        | [open to contribution](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/469)        | 2023-09-28   |
+| WeatherAPI         | [open to contribution](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/453)        | 2023-09-08   |
 | WeatherBit         | ❌ free tier does not have hourly forecasts                                                 |              |
-| WetterOnline       | ❌ [no geolocation](https://github.com/breezy-weather/breezy-weather/issues/1068)           | 2024-05-23   |
+| WetterOnline       | ❌ [no geolocation](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues/1068)           | 2024-05-23   |

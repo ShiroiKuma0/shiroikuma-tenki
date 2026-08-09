@@ -352,8 +352,8 @@
     <string name="about_contribution_WangDaYeeeeee">Orijinal Geometric Weather layihəsinin tərtibatçısı</string>
     <string name="about_contribution_designer">Loqo dizayneri</string>
     <string name="about_open_link_message">%s açılsın?</string>
-    <string name="content_provider_permission_label">Breezy Weather məlumatlarını oxuyun</string>
-    <string name="content_provider_permission_description">Breezy Weather-dən hava məlumatlarını, o cümlədən yerlərinizin koordinatlarını, məsələn, əlavə etmisinizsə, cari yerinizin koordinatlarını əldə edin</string>
+    <string name="content_provider_permission_label">白い熊 天気 məlumatlarını oxuyun</string>
+    <string name="content_provider_permission_description">白い熊 天気-dən hava məlumatlarını, o cümlədən yerlərinizin koordinatlarını, məsələn, əlavə etmisinizsə, cari yerinizin koordinatlarını əldə edin</string>
     <string name="common_weather_text_clear_sky">Aydın səma</string>
     <string name="common_weather_text_mostly_clear">Əsasən aydın</string>
     <string name="common_weather_text_partly_cloudy">Qismən buludlu</string>

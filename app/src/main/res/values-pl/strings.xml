@@ -378,7 +378,7 @@
     <string name="weather_api_limit_reached_title">Osiągnięto limit żądań API</string>
     <string name="ephemeris_sunset_at">Zachód słońca o %s</string>
     <string name="ephemeris_moonrise_at">Wschód księżyca o %s</string>
-    <string name="dialog_permissions_location_content">Breezy Weather musi zbierać informacje o Twojej lokalizacji na pierwszym planie lub w tle, aby dostarczać dane pogodowe dla Twojej bieżącej lokalizacji. W tym celu poprosimy o pewne uprawnienia. Informacje o Twojej lokalizacji będą wykorzystywane wyłącznie do uzyskiwania danych pogodowych w Twojej bieżącej lokalizacji. Jeśli nie chcesz udostępniać informacji o swojej lokalizacji, możesz odrzucić te wymagania i ręcznie ustawić swoją lokalizację przez stronę zarządzania.</string>
+    <string name="dialog_permissions_location_content">白い熊 天気 musi zbierać informacje o Twojej lokalizacji na pierwszym planie lub w tle, aby dostarczać dane pogodowe dla Twojej bieżącej lokalizacji. W tym celu poprosimy o pewne uprawnienia. Informacje o Twojej lokalizacji będą wykorzystywane wyłącznie do uzyskiwania danych pogodowych w Twojej bieżącej lokalizacji. Jeśli nie chcesz udostępniać informacji o swojej lokalizacji, możesz odrzucić te wymagania i ręcznie ustawić swoją lokalizację przez stronę zarządzania.</string>
     <string name="weather_api_unauthorized_content">W przypadku niektórych źródeł danych pogodowych musisz podać własny klucz API. Jeśli już go podałeś, sprawdź ponownie podany klucz API.</string>
     <string name="weather_api_key_required_missing_title">Brak wymaganego klucza API</string>
     <string name="weather_api_key_required_missing_content">Aby korzystać z tego źródła, musisz podać klucz API.</string>
@@ -774,8 +774,8 @@
     <string name="common_weather_text_mostly_cloudy">Przeważnie pochmurno</string>
     <string name="visibility_scale">Skala widzialności</string>
     <string name="cloud_cover_scale">Skala zachmurzenia</string>
-    <string name="content_provider_permission_label">Odczytaj dane z Breezy Weather</string>
-    <string name="content_provider_permission_description">pobierz informacje pogodowe z Breezy Weather, w tym współrzędne Twoich lokalizacji – na przykład bieżącej, jeśli została dodana</string>
+    <string name="content_provider_permission_label">Odczytaj dane z 白い熊 天気</string>
+    <string name="content_provider_permission_description">pobierz informacje pogodowe z 白い熊 天気, w tym współrzędne Twoich lokalizacji – na przykład bieżącej, jeśli została dodana</string>
     <string name="action_add_as_location">Dodaj jako lokalizację</string>
     <string name="settings_regional_preference">Ustawienia regionalne</string>
     <string name="broadcast_source_breezy_weather_update_notifier">Powiadomienie o aktualizacji lokalizacji z %s</string>

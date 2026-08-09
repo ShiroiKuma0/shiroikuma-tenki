@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Idea
-    url: https://github.com/breezy-weather/breezy-weather/discussions/new?category=ideas
+    url: https://github.com/ShiroiKuma0/shiroikuma-tenki/discussions/new?category=ideas
     about: Suggest something to improve app
   - name: Translations
-    url: https://hosted.weblate.org/projects/breezy-weather/breezy-weather-android/#information
+    url: https://hosted.weblate.org/projects/ShiroiKuma0/shiroikuma-tenki-android/#information
     about: New translation, update to existing translations on Weblate
   - name: Questions
-    url: https://github.com/breezy-weather/breezy-weather/discussions/categories/q-a
+    url: https://github.com/ShiroiKuma0/shiroikuma-tenki/discussions/categories/q-a
     about: Ask the community for help

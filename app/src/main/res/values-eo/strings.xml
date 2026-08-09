@@ -813,8 +813,8 @@
     <string name="settings_appearance_dark_mode_locations_dark">Ĉiam malhela, kiam aplikaĵo estas en malhela reĝimo</string>
     <string name="settings_regional_preference">Regiona prefero</string>
     <string name="about_update_check_eol">Ĉi tiu Android versio ne plu estas subtenata</string>
-    <string name="content_provider_permission_label">Legu Breezy Weather datenojn</string>
-    <string name="content_provider_permission_description">akiri veterinformojn de Breezy Weather, enhavita koordinatoj de viaj lokoj, kiel ekzemple via nuna loko se vi aldonis ĝin</string>
+    <string name="content_provider_permission_label">Legu 白い熊 天気 datenojn</string>
+    <string name="content_provider_permission_description">akiri veterinformojn de 白い熊 天気, enhavita koordinatoj de viaj lokoj, kiel ekzemple via nuna loko se vi aldonis ĝin</string>
     <string name="common_weather_text_mostly_cloudy">Plejparte nuba</string>
     <string name="action_pull_down_to_refresh">Subentiri por aktualigi</string>
     <string name="message_source_non_free_network_title">Ĉi tiu fonto postulas la norman version de la aplikaĵo</string>
