@@ -18,6 +18,29 @@ Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
 ---
 
+## 🎨 The 白い熊 天気 UI page
+
+Every knob that shapes the app's look, on one page — colours, fonts, sizes, roundness, border and
+divider widths, indent step, row padding, group spacing. It is not a settings screen that takes
+effect on restart: each write lands in preferences *and* in Compose state, so dragging a slider
+repaints the app underneath you. The page is themed by the very values it edits, which makes the app
+its own preview.
+
+Colours come from an RGBA picker with a one-click row of colours already in use; fonts from a picker
+that renders every candidate — including `.ttf`/`.otf` files you import — in its own glyphs. The
+border, divider and roundness sliders all reach **0 meaning "draw nothing"**, not "the Material
+default".
+
+Reach it from Settings (first item) or by **long-pressing the settings cog** on the locations screen.
+
+At the top of the page sits **Export / Import**: a settable backup folder — red until it is set,
+yellow once it is — the newest archive found there, and a category checklist (UI, app settings,
+weather source configuration, locations, imported fonts). Exports are written atomically, `.part`
+first and renamed only when the archive is complete, as `shiroikuma-tenki_<yyyy-MM-dd_HH-mm-ss>.zip`,
+the same filename shape every sister app uses.
+
+---
+
 ## 🖤 The house look
 
 The launcher icon is upstream's four-blade pinwheel redrawn as stroke-only line-art, pure `#FFFF00`

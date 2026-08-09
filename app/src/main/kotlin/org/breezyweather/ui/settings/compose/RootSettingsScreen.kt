@@ -57,6 +57,20 @@ fun RootSettingsView(
         PreferenceScreen(
             paddingValues = paddings.plus(PaddingValues(horizontal = dimensionResource(R.dimen.normal_margin)))
         ) {
+            // shiroikuma fork: our own page comes first — it is the one 白い熊 opens most, and
+            // the settings cog's long-press lands straight on it.
+            clickablePreferenceItem(R.string.settings_tenki_ui) { id ->
+                PreferenceViewWithCard(
+                    titleId = id,
+                    iconId = R.drawable.ic_palette,
+                    summaryId = R.string.settings_tenki_ui_summary,
+                    isFirst = true,
+                    isLast = true
+                ) {
+                    onNavigateTo(SettingsScreenRouter.TenkiUi.route)
+                }
+            }
+            largeSeparatorItem()
             clickablePreferenceItem(R.string.settings_background_updates) { id ->
                 PreferenceViewWithCard(
                     titleId = id,

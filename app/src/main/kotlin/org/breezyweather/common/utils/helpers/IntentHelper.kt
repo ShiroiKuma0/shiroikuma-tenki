@@ -135,6 +135,19 @@ object IntentHelper {
         activity.startActivity(Intent(activity, SettingsActivity::class.java))
     }
 
+    /**
+     * shiroikuma fork: open Settings straight on the 白い熊 天気 UI page — what a long press on
+     * the settings cog does.
+     */
+    fun startTenkiUiSettingsActivity(activity: Activity) {
+        activity.startActivity(
+            Intent(activity, SettingsActivity::class.java).putExtra(
+                SettingsActivity.KEY_SETTINGS_ACTIVITY_START_DESTINATION,
+                SettingsScreenRouter.TenkiUi.route
+            )
+        )
+    }
+
     fun startCardDisplayManageActivity(activity: Activity) {
         activity.startActivity(Intent(activity, CardDisplayManageActivity::class.java))
     }
