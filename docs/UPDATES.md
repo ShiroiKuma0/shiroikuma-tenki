@@ -77,7 +77,7 @@ When weather for the location is done refreshing manually, the following tasks a
 
 ## Caching
 
-Breezy Weather has another caching layer on top of existing caching mechanisms (HTTP headers).
+白い熊 天気 has another caching layer on top of existing caching mechanisms (HTTP headers).
 
 Basically, depending on the features requested and your latest time of refresh, the same previous weather data may be restored.
 

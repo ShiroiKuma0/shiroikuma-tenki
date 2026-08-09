@@ -777,8 +777,8 @@
     <string name="settings_appearance_dark_mode_locations_dark">Πάντα σκοτεινό όταν η εφαρμογή είναι σε σκοτεινή λειτουργία</string>
     <string name="settings_regional_preference">Προτιμήσεις περιοχής</string>
     <string name="about_update_check_eol">Αυτή η έκδοση του Android δεν υποστηρίζεται πλέον</string>
-    <string name="content_provider_permission_label">Πρόσβαση στα δεδομένα του Breezy Weather</string>
-    <string name="content_provider_permission_description">Λήψη πληροφοριών καιρού και τοποθεσίας από το Breezy Weather</string>
+    <string name="content_provider_permission_label">Πρόσβαση στα δεδομένα του 白い熊 天気</string>
+    <string name="content_provider_permission_description">Λήψη πληροφοριών καιρού και τοποθεσίας από το 白い熊 天気</string>
     <string name="common_weather_text_mostly_cloudy">Κυρίως συννεφιασμένος</string>
     <string name="pressure_standard">Τυπική</string>
     <string name="message_please_wait_refresh">Παρακαλώ περιμένετε μέχρι να ολοκληρωθεί η ανανέωση</string>

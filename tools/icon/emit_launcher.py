@@ -23,6 +23,7 @@ Usage:  python3 tools/icon/emit_launcher.py [repo-root]
 import os
 import subprocess
 import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.dirname(HERE))
@@ -125,21 +126,20 @@ def render(svg_text, relative_path, size, fmt):
     """SVG text -> PNG (rsvg-convert) -> optionally WebP (ImageMagick)."""
     full = os.path.join(REPO, relative_path)
     os.makedirs(os.path.dirname(full), exist_ok=True)
-    tmp_svg = os.path.join(HERE, ".tmp-render.svg")
-    tmp_png = os.path.join(HERE, ".tmp-render.png")
-    with open(tmp_svg, "w") as fh:
-        fh.write(svg_text)
-    subprocess.run(
-        ["rsvg-convert", "-w", str(size), "-h", str(size), tmp_svg, "-o", tmp_png], check=True
-    )
-    if fmt == "png":
-        subprocess.run(["magick", tmp_png, "-strip", full], check=True)
-    else:
+    with tempfile.TemporaryDirectory() as scratch:
+        tmp_svg = os.path.join(scratch, "render.svg")
+        tmp_png = os.path.join(scratch, "render.png")
+        with open(tmp_svg, "w") as fh:
+            fh.write(svg_text)
         subprocess.run(
-            ["magick", tmp_png, "-strip", "-define", "webp:lossless=true", full], check=True
+            ["rsvg-convert", "-w", str(size), "-h", str(size), tmp_svg, "-o", tmp_png], check=True
         )
-    os.remove(tmp_svg)
-    os.remove(tmp_png)
+        if fmt == "png":
+            subprocess.run(["magick", tmp_png, "-strip", full], check=True)
+        else:
+            subprocess.run(
+                ["magick", tmp_png, "-strip", "-define", "webp:lossless=true", full], check=True
+            )
     print("wrote", relative_path)
 
 

@@ -1,8 +1,8 @@
 # Weather sources
 
-This is a user-end guide to weather sources available in Breezy Weather. If you are a developer looking to add a new source in Breezy Weather, have a look at [contribute](../CONTRIBUTE.md). Unless otherwise mentioned, **the information below is valid assuming you’re using the latest version of Breezy Weather**.
+This is a user-end guide to weather sources available in 白い熊 天気. If you are a developer looking to add a new source in 白い熊 天気, have a look at [contribute](../CONTRIBUTE.md). Unless otherwise mentioned, **the information below is valid assuming you’re using the latest version of 白い熊 天気**.
 
-By default, when you add a location manually, Breezy Weather will auto-suggest your national weather source if we have support for it, and combine it with other secondary weather sources for missing features. When we don’t have support for your national weather source, we suggest **Open-Meteo** which is the only free and open source weather source on this list, and probably also the most privacy-friendly.
+By default, when you add a location manually, 白い熊 天気 will auto-suggest your national weather source if we have support for it, and combine it with other secondary weather sources for missing features. When we don’t have support for your national weather source, we suggest **Open-Meteo** which is the only free and open source weather source on this list, and probably also the most privacy-friendly.
 
 Below, you can find details about the support and implementation status for features on each weather source. Note that no forecast above 7 days is reliable, so you should not decide based on the highest number of days available.
 
@@ -152,7 +152,7 @@ Below, you can find details about the support and implementation status for feat
 </details>
 
 ### AccuWeather
-> 🔐 **This source requires an API key.** Breezy Weather comes with a pre-bundled API key. However, you may also configure your own API key. [Register here](https://developer.accuweather.com/)
+> 🔐 **This source requires an API key.** 白い熊 天気 comes with a pre-bundled API key. However, you may also configure your own API key. [Register here](https://developer.accuweather.com/)
 
 **[AccuWeather](https://www.accuweather.com/)** is a commercial weather data provider based in State College, Pennsylvania, United States.
 
@@ -183,7 +183,7 @@ Below, you can find details about the support and implementation status for feat
 </details>
 
 ### OpenWeather
-> 🔐 **This source requires an API key.** Breezy Weather comes with a pre-bundled API key. However, it is often rate-limited, so you may want to configure your own API key instead. [Register here](https://home.openweathermap.org/users/sign_up). Pick up the regular free API, not the One Call API which require payment info and is incompatible with Breezy Weather.
+> 🔐 **This source requires an API key.** 白い熊 天気 comes with a pre-bundled API key. However, it is often rate-limited, so you may want to configure your own API key instead. [Register here](https://home.openweathermap.org/users/sign_up). Pick up the regular free API, not the One Call API which require payment info and is incompatible with 白い熊 天気.
 
 **[OpenWeather](https://openweathermap.org/)** is a weather data provider based in London, United Kingdom.
 
@@ -1009,7 +1009,7 @@ This source aggregates data from Beijing Meteorological Service, ColorfulClouds 
 5. When prompted, check the box to confirm you have read the terms and conditions and press **Confirm.**
 6. On the **Your Details** page, populate the required fields and **Continue**.
 7. Copy the provided API key
-8. In Breezy Weather, go to Settings > Weather Sources and paste the API key in the section for Met Office (United Kingdom)
+8. In 白い熊 天気, go to Settings > Weather Sources and paste the API key in the section for Met Office (United Kingdom)
 9. The Met Office should now work as a source.
 </details>
 
@@ -1253,7 +1253,7 @@ This source aggregates data from Beijing Meteorological Service, ColorfulClouds 
 **Android** can provide on some devices the address lookup feature. It uses the native Geocoder APIs. However, a backend for this geocoder is necessary for this to work.
 Google Play Services usually provide this backend. Some OS with only a partial subset of Google Play Services features, such as GrapheneOS, don’t have a backend implementation.
 
-This source doesn’t provide timezone support, so Breezy Weather will fallback to device’s timezone.
+This source doesn’t provide timezone support, so 白い熊 天気 will fallback to device’s timezone.
 
 ### ATMO
 ATMO sources can be added as an **Air Quality** source for some regions of France.

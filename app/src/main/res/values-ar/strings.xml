@@ -783,7 +783,7 @@
     <string name="settings_main_background_title">خلفية تعتمد على حالة الطقس</string>
     <string name="settings_regional_preference">تفضيل إقليمي</string>
     <string name="about_update_check_eol">إصدار أندرويد هذا لم يعد مدعومًا</string>
-    <string name="content_provider_permission_label">قراءة بيانات Breezy Weather</string>
-    <string name="content_provider_permission_description">احصل على معلومات الطقس من Breezy Weather، بما في ذلك إحداثيات مواقعك، مثل موقعك الحالي أضفته</string>
+    <string name="content_provider_permission_label">قراءة بيانات 白い熊 天気</string>
+    <string name="content_provider_permission_description">احصل على معلومات الطقس من 白い熊 天気، بما في ذلك إحداثيات مواقعك، مثل موقعك الحالي أضفته</string>
     <string name="common_weather_text_mostly_cloudy">غائم غالبًا</string>
 </resources>

@@ -1,4 +1,4 @@
-Breezy Weather est une application météo gratuite et libre en Material 3 Expressive avec des visualisations bien pensées, prenant en charge les prévisions, les conditions météorologiques en temps réel, les prévisions immédiates, la qualité de l'air, le pollen, les alertes, à partir de plus de 50 sources météorologiques, telles que Météo-France, Atmo, ECCC, MeteoLux et Open-Meteo.
+白い熊 天気 est une application météo gratuite et libre en Material 3 Expressive avec des visualisations bien pensées, prenant en charge les prévisions, les conditions météorologiques en temps réel, les prévisions immédiates, la qualité de l'air, le pollen, les alertes, à partir de plus de 50 sources météorologiques, telles que Météo-France, Atmo, ECCC, MeteoLux et Open-Meteo.
 
 <b>Fonctionnalités</b>
 

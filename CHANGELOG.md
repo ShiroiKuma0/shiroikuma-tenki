@@ -88,8 +88,8 @@
 # Version 6.1.0 (2026-02-01)
 
 **New features**
-- Content provider: allows (with your permission) other apps to query your weather data. [Read the announcement](https://github.com/breezy-weather/breezy-weather/discussions/2089)
-- New broadcast: you can use `org.breezyweather.ACTION_UPDATE_NOTIFIER` (or `org.breezyweather.debug.ACTION_UPDATE_NOTIFIER` with the debug build) to be notified of updated locations (most common use case is coupled with the content provider)
+- Content provider: allows (with your permission) other apps to query your weather data. [Read the announcement](https://github.com/ShiroiKuma0/shiroikuma-tenki/discussions/2089)
+- New broadcast: you can use `shiroikuma.tenki.ACTION_UPDATE_NOTIFIER` (or `shiroikuma.tenki.debug.ACTION_UPDATE_NOTIFIER` with the debug build) to be notified of updated locations (most common use case is coupled with the content provider)
 
 **Improvements and fixes**
 - Fix crash on some devices when current weather is snow (@Cactric)
@@ -256,7 +256,7 @@ This version is still an experimental one, with a significant rewrite of the ref
 - Widgets - Improve line height on many widgets
 - Widgets - Weekly - Spread day/night temperatures on 2 lines if necessary
 - Widgets - Minor fixes
-- Wallpaper - Due to some people running outdated versions of Breezy Weather just to see some gimmicks on their wallpaper, we bring back wallpaper animations behind a dangerous disabled-by-default option. We STRONGLY advise against enabling them.
+- Wallpaper - Due to some people running outdated versions of 白い熊 天気 just to see some gimmicks on their wallpaper, we bring back wallpaper animations behind a dangerous disabled-by-default option. We STRONGLY advise against enabling them.
 
 **Weather sources**
 - [AccuWeather] Restrict pollen to USA, Canada and Europe as it’s only available there (@chunshek)
@@ -346,7 +346,7 @@ This version is still an experimental one, with a significant rewrite of the ref
 - Twilight dates (dawn and dusk)
 
 **Removed features**
-- Sun & Moon data from sources. Will now always be computed by Breezy Weather for consistency
+- Sun & Moon data from sources. Will now always be computed by 白い熊 天気 for consistency
 
 **Improvements and fixes**
 - Details page - Fix floating action button not updating in real time (@min7-i)

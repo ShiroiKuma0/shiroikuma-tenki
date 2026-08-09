@@ -676,9 +676,9 @@
     <string name="ephemeris_sun">Sole</string>
     <string name="ephemeris_moon">Luna</string>
     <string name="clock">Orologio</string>
-    <string name="content_provider_permission_description">ottenere informazioni meteo da Breezy Weather, comprese le coordinate delle tue posizioni, come la tua posizione attuale se l’hai aggiunta</string>
+    <string name="content_provider_permission_description">ottenere informazioni meteo da 白い熊 天気, comprese le coordinate delle tue posizioni, come la tua posizione attuale se l’hai aggiunta</string>
     <string name="common_weather_text_mostly_cloudy">Per lo più nuvoloso</string>
-    <string name="content_provider_permission_label">Leggere dati Breezy Weather</string>
+    <string name="content_provider_permission_label">Leggere dati 白い熊 天気</string>
     <string name="broadcast_source_breezy_weather_update_notifier">Notifica di aggiornamento posizione %s</string>
     <string name="action_add_as_location">Aggiungi come posizione</string>
     <string name="settings_appearance_dark_mode_custom">Modalità scura dalle %1$s alle %2$s</string>

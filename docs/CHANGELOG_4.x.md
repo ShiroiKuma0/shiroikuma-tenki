@@ -36,7 +36,7 @@
 - [Open-Meteo] Extend Air quality forecast to 7 days where available
 
 **Other improvements and fixes**
-- By default, Breezy Weather will no longer refresh in background if your battery is low. It used to be opt-in. It can still be disabled in settings.
+- By default, 白い熊 天気 will no longer refresh in background if your battery is low. It used to be opt-in. It can still be disabled in settings.
 - Possible improvements to the weather update in background for some devices
 
 **Translations**
@@ -531,7 +531,7 @@ Background updates logic was entirely rewritten in this version.
 
 # Version 4.0.0-alpha (2023-06-21)
 
-Initial version of Breezy Weather fork
+Initial version of 白い熊 天気 fork
 
 - New providers (Open-Meteo, MET Norway)
 - Additional data for other providers

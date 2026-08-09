@@ -1,4 +1,4 @@
-Breezy Weather estas funkcioriĉa, libera kaj malferma fonto Material 3 Expressive veteraplikaĵo kun bonaj pripensemaj bildigoj, apoganta prognozo, realtempaj veterkondiĉojn, nuncastadon, aerkvaliton, polenon, alarmojn, de pli ol 50 veterfontoj, kiel ekzemple Open-Meteo.
+白い熊 天気 estas funkcioriĉa, libera kaj malferma fonto Material 3 Expressive veteraplikaĵo kun bonaj pripensemaj bildigoj, apoganta prognozo, realtempaj veterkondiĉojn, nuncastadon, aerkvaliton, polenon, alarmojn, de pli ol 50 veterfontoj, kiel ekzemple Open-Meteo.
 
 <b>Funkcioj </b>
 

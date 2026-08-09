@@ -779,8 +779,8 @@
     <string name="common_weather_text_mostly_cloudy">Převážně zataženo</string>
     <string name="visibility_scale">Stupnice viditelnosti</string>
     <string name="cloud_cover_scale">Stupnice oblačnosti</string>
-    <string name="content_provider_permission_label">Číst data Breezy Weather</string>
-    <string name="content_provider_permission_description">získat informace o počasí z Breezy Weather, včetně souřadnic vašich umístění, jako je vaše aktuální umístění, pokud jste jej přidali</string>
+    <string name="content_provider_permission_label">Číst data 白い熊 天気</string>
+    <string name="content_provider_permission_description">získat informace o počasí z 白い熊 天気, včetně souřadnic vašich umístění, jako je vaše aktuální umístění, pokud jste jej přidali</string>
     <string name="broadcast_source_breezy_weather_update_notifier">Oznamování aktualizací umístění %s</string>
     <string name="action_add_as_location">Přidat jako umístění</string>
     <string name="settings_regional_preference">Regionální preference</string>

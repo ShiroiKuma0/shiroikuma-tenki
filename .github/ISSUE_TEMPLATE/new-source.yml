@@ -25,7 +25,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **[Contribution guide](https://github.com/breezy-weather/breezy-weather/blob/main/CONTRIBUTE.md)**
+        **[Contribution guide](https://github.com/ShiroiKuma0/shiroikuma-tenki/blob/main/CONTRIBUTE.md)**
 
   - type: input
     id: development
@@ -54,7 +54,7 @@ body:
       label: Acknowledgements
       description: Your issue will be closed if you don’t read this carefully.
       options:
-        - label: I have searched [the existing sources](https://github.com/breezy-weather/breezy-weather/blob/main/docs/SOURCES.md) and [the existing new source requests](https://github.com/breezy-weather/breezy-weather/issues?q=is%3Aissue+label%3A%22New+source%22+no%3Amilestone+-label%3ADuplicate) and this is a new source, **NOT** a duplicate or related to another open OR closed issue.
+        - label: I have searched [the existing sources](https://github.com/ShiroiKuma0/shiroikuma-tenki/blob/main/docs/SOURCES.md) and [the existing new source requests](https://github.com/ShiroiKuma0/shiroikuma-tenki/issues?q=is%3Aissue+label%3A%22New+source%22+no%3Amilestone+-label%3ADuplicate) and this is a new source, **NOT** a duplicate or related to another open OR closed issue.
           required: true
         - label: This source has a free-tier available (not a trial period), and if it is a main weather source, it includes free hourly forecast
           required: true

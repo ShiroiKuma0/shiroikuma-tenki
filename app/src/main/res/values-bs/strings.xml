@@ -755,8 +755,8 @@
     <string name="settings_unavailable_no_animations">Nedostupno, prvo uključite animacije u Android postavkama</string>
     <string name="settings_regional_preference">Regionalne preferencije</string>
     <string name="about_update_check_eol">Ova se Android verzija više nije podržana</string>
-    <string name="content_provider_permission_label">Pročitaj Breezy Weather podatke</string>
-    <string name="content_provider_permission_description">nabavi vremenske podatke od Breezy Weathera, uključujući koordinate vaših lokacija, kao što je vaša trenutna lokacija ako ste je dodali</string>
+    <string name="content_provider_permission_label">Pročitaj 白い熊 天気 podatke</string>
+    <string name="content_provider_permission_description">nabavi vremenske podatke od 白い熊 天気a, uključujući koordinate vaših lokacija, kao što je vaša trenutna lokacija ako ste je dodali</string>
     <string name="common_weather_text_mostly_cloudy">Pretežno oblačno</string>
     <string name="common_weather_text_sand_storm">Pješčana oluja</string>
     <string name="common_weather_text_mist">Sumaglica</string>

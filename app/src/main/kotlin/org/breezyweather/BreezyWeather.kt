@@ -192,6 +192,18 @@ class BreezyWeather : Application(), Configuration.Provider {
         }
 
     /*
+     * shiroikuma fork: an HTTP header value must be ASCII — OkHttp rejects anything outside
+     * 0x20..0x7e — and our brand ("白い熊 天気") is not. Strip the brand down to its ASCII part and
+     * fall back to the applicationId when nothing is left, so sources that require a User-Agent
+     * (Met.no, NWS, Nominatim, …) keep working instead of throwing on every request.
+     */
+    private val asciiBrandName: String
+        get() = getString(R.string.brand_name)
+            .filter { it.code in 0x20..0x7e }
+            .trim()
+            .ifEmpty { BuildConfig.APPLICATION_ID }
+
+    /*
      * Returns a User-Agent sources can use
      */
     val userAgent: String
@@ -200,7 +212,7 @@ class BreezyWeather : Application(), Configuration.Provider {
                 isSignedByBreezy ||
                 debugMode
             ) {
-                "${getString(R.string.brand_name)}/${BuildConfig.VERSION_NAME} ${BuildConfig.REPORT_ISSUE}"
+                "$asciiBrandName/${BuildConfig.VERSION_NAME} ${BuildConfig.REPORT_ISSUE}"
             } else {
                 // Do not return anything if someone is trying to impersonate Breezy Weather
                 // or we would be made responsible for their app calls

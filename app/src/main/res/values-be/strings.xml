@@ -772,8 +772,8 @@
     <string name="widget_live_wallpaper_animations_enable_warning2">Калі вы прымаеце рашэнне ўключыць іх, то бераце на сябе поўную адказнасць за любыя магчымыя праблемы, а таксама вам не будуць аказваць падтрымку.</string>
     <string name="settings_weather_source_non_freenet">%s (несвабодны сеткавы сэрвіс)</string>
     <string name="settings_appearance_dark_mode_custom">Цёмны рэжым з %1$s да %2$s</string>
-    <string name="content_provider_permission_label">Чытаць даныя Breezy Weather</string>
-    <string name="content_provider_permission_description">атрымліваць інфармацыю пра надвор’е ад Breezy Weather, у тым ліку каардынаты месцазнаходжанняў, уключаючы ваша бягучае месцазнаходжанне, калі яно дададзена</string>
+    <string name="content_provider_permission_label">Чытаць даныя 白い熊 天気</string>
+    <string name="content_provider_permission_description">атрымліваць інфармацыю пра надвор’е ад 白い熊 天気, у тым ліку каардынаты месцазнаходжанняў, уключаючы ваша бягучае месцазнаходжанне, калі яно дададзена</string>
     <string name="pressure_standard">Стандартны</string>
     <string name="message_please_wait_refresh">Калі ласка, пачакайце, пакуль аднаўленне не будзе завершана</string>
     <string name="settings_source_api_key_invalid">Значэнне не адпавядае чаканаму фармату</string>

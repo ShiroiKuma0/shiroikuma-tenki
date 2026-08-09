@@ -770,8 +770,8 @@
     <string name="action_change">Промени</string>
     <string name="message_incompatible_times_title">Некомпатибилна прогнозирана времена</string>
     <string name="message_incompatible_times_content">Промените прогнозу или извор квалитета ваздуха тако да се времена подударају.</string>
-    <string name="content_provider_permission_label">Прочитај податке о Breezy Weather-у</string>
-    <string name="content_provider_permission_description">добијајте информације о времену од Breezy Weather-а, укључујући координате ваших локација, као што је ваша тренутна локација, ако сте је додали</string>
+    <string name="content_provider_permission_label">Прочитај податке о 白い熊 天気-у</string>
+    <string name="content_provider_permission_description">добијајте информације о времену од 白い熊 天気-а, укључујући координате ваших локација, као што је ваша тренутна локација, ако сте је додали</string>
     <string name="common_weather_text_mostly_cloudy">Претежно облачно</string>
     <string name="action_pull_down_to_refresh">Повуците надоле да бисте освежили</string>
     <string name="message_source_non_free_network_title">Овај извор захтева Стандардну верзију апликације</string>

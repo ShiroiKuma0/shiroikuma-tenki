@@ -39,7 +39,7 @@ In Android Studio, this can be set up in the configuration of the `app` module, 
 
 1) Test your debug build.
 2) Run tests `./gradlew testBasicDebugUnitTest` and `./gradlew testDebugUnitTest`.
-3) Try to assemble a release `./gradlew assembleBasicRelease -Pbreezy`. /!\ Only the Breezy Weather organization can distribute releases with the `breezy` parameter. Forks must not include this parameter when building, and use their own branding.
+3) Try to assemble a release `./gradlew assembleBasicRelease -Pbreezy`. /!\ Only the 白い熊 天気 organization can distribute releases with the `breezy` parameter. Forks must not include this parameter when building, and use their own branding.
 4) Update versionCode and versionName in `app/build.gradle`.
 5) Write changelog in `CHANGELOG.md`.
 6) Commit all changes.
@@ -78,7 +78,7 @@ After merging a new source, the following things need to be done:
 
 # Decode crash logs from users
 
-1) Save crash log in a text file `stacktrace.txt` and remove things like `2023-08-14 21:28:58.229 12804-12804 View org.breezyweather.debug` if they are present.
+1) Save crash log in a text file `stacktrace.txt` and remove things like `2023-08-14 21:28:58.229 12804-12804 View shiroikuma.tenki.debug` if they are present.
 2) From the release page, download mapping-vX.Y.Z-standard.tar.gz or mapping-vX.Y.Z-freenet.tar.gz depending on the flavor used by the user.
 3) Unzip `mapping.txt`.
 4) `~/Android/Sdk/cmdline-tools/latest/bin/retrace mapping.txt stacktrace.txt`
@@ -110,8 +110,8 @@ You can find the newer checksum of the binary-only (-bin) ZIP on https://gradle.
 
 # Dropping support for an Android version
 
-1. In `org.breezyweather.background.updater.AppUpdateChecker`, uncomment the relevant lines to trigger a notification on the unsupported Android versions
-2. In `org.breezyweather.background.weather.WeatherUpdateJob`, uncomment the relevant lines to always enable “check for update” on these unsupported Android versions, to ensure that `freenet` users and users who disabled update check correctly receive the notification. No actual update check will be performed, so it’s safe to force it enabled.
+1. In `shiroikuma.tenki.background.updater.AppUpdateChecker`, uncomment the relevant lines to trigger a notification on the unsupported Android versions
+2. In `shiroikuma.tenki.background.weather.WeatherUpdateJob`, uncomment the relevant lines to always enable “check for update” on these unsupported Android versions, to ensure that `freenet` users and users who disabled update check correctly receive the notification. No actual update check will be performed, so it’s safe to force it enabled.
 
 
 # Adding a new Material Icon

@@ -771,7 +771,7 @@
     <string name="settings_appearance_dark_mode_locations_dark">همیشه تیره هنگامی که برنامه در حالت تیره است</string>
     <string name="settings_regional_preference">ترجیهات محلی</string>
     <string name="about_update_check_eol">این نسخه اندروید دیگر پشتیبانی نمی‌شود</string>
-    <string name="content_provider_permission_label">خواندن داده‌های Breezy Weather</string>
-    <string name="content_provider_permission_description">اطلاعات آب و هوا را از Breezy Weather دریافت کنید، از جمله مختصات مکان های خود، مانند مکان فعلی خود در صورت افزودن آن</string>
+    <string name="content_provider_permission_label">خواندن داده‌های 白い熊 天気</string>
+    <string name="content_provider_permission_description">اطلاعات آب و هوا را از 白い熊 天気 دریافت کنید، از جمله مختصات مکان های خود، مانند مکان فعلی خود در صورت افزودن آن</string>
     <string name="common_weather_text_mostly_cloudy">بیشتر ابری</string>
 </resources>

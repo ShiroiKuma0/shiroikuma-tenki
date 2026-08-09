@@ -773,8 +773,8 @@
     <string name="settings_weather_source_non_freenet">%s (мрежова услуга със затворен код)</string>
     <string name="settings_appearance_dark_mode_custom">Тъмен режим от %1$s до %2$s</string>
     <string name="settings_regional_preference">Регионални предпочитания</string>
-    <string name="content_provider_permission_label">Четене на данни от Breezy Weather</string>
-    <string name="content_provider_permission_description">получавайте информация за времето от Breezy Weather, включително координатите на вашите местоположения, като например текущото ви местоположение, ако сте го добавили</string>
+    <string name="content_provider_permission_label">Четене на данни от 白い熊 天気</string>
+    <string name="content_provider_permission_description">получавайте информация за времето от 白い熊 天気, включително координатите на вашите местоположения, като например текущото ви местоположение, ако сте го добавили</string>
     <string name="common_weather_text_mostly_cloudy">Предимно облачно</string>
     <string name="pressure_standard">Стандартен</string>
     <string name="settings_source_api_key_invalid">Стойността не е в очаквания формат</string>

@@ -767,8 +767,8 @@
     <string name="common_weather_text_mostly_cloudy">Többnyire felhős</string>
     <string name="visibility_scale">Látótávolság-skála</string>
     <string name="cloud_cover_scale">Felhőborítottsági skála</string>
-    <string name="content_provider_permission_label">Breezy Weather adatainak elolvasása</string>
-    <string name="content_provider_permission_description">időjárási információkat kaphat a Breezy Weather alkalmazásból, beleértve a helyek koordinátáit, például a jelenlegi helyéhez tartozót, ha azt hozzáadta</string>
+    <string name="content_provider_permission_label">白い熊 天気 adatainak elolvasása</string>
+    <string name="content_provider_permission_description">időjárási információkat kaphat a 白い熊 天気 alkalmazásból, beleértve a helyek koordinátáit, például a jelenlegi helyéhez tartozót, ha azt hozzáadta</string>
     <string name="broadcast_source_breezy_weather_update_notifier">Frissítési értesítő a helyhez: %s</string>
     <string name="action_add_as_location">Hozzáadás helyként</string>
     <string name="settings_regional_preference">Régióbeállítás</string>

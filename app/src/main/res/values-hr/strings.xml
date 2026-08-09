@@ -692,8 +692,8 @@
     <string name="precipitation_rain_total_night">Kiša noću</string>
     <string name="precipitation_snow_total_day">Snijeg danju</string>
     <string name="precipitation_snow_total_night">Snijeg noću</string>
-    <string name="content_provider_permission_label">Pročitaj Breezy Weather podatke</string>
-    <string name="content_provider_permission_description">nabavi vremenske podatke od Breezy Weathera, uključujući koordinate vaših lokacija, kao što je vaša trenutna lokacija ako ste je dodali</string>
+    <string name="content_provider_permission_label">Pročitaj 白い熊 天気 podatke</string>
+    <string name="content_provider_permission_description">nabavi vremenske podatke od 白い熊 天気a, uključujući koordinate vaših lokacija, kao što je vaša trenutna lokacija ako ste je dodali</string>
     <string name="common_weather_text_mostly_cloudy">Pretežno oblačno</string>
     <string name="temperature_normals_deviation">Odstupanje</string>
     <string name="temperature_normals_deviation_explanation_maximum">Odstupanje od prosječne maksimalne temperature za mjesec %s za ovu lokaciju</string>
