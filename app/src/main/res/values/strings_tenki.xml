@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  shiroikuma fork: strings that belong to the 白い熊 天気 UI page. Kept in their own file so a
+  rebase onto a new upstream release never has to merge them into upstream's strings.xml.
+-->
+<resources>
+    <string name="settings_tenki_ui" translatable="false">白い熊 天気 UI</string>
+    <string name="settings_tenki_ui_summary" translatable="false">Colours, fonts, sizes, borders, density — and Export / Import</string>
+    <string name="settings_tenki_ui_summary_no_backup_dir" translatable="false">No backup directory set</string>
+</resources>

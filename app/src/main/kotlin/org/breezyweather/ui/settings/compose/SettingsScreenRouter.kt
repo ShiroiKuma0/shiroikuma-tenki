@@ -18,6 +18,10 @@ package org.breezyweather.ui.settings.compose
 
 sealed class SettingsScreenRouter(val route: String) {
     object Root : SettingsScreenRouter("org.breezyweather.ui.settings.root")
+
+    /** shiroikuma fork: the 白い熊 天気 UI page. Also the long-press target of the settings cog. */
+    object TenkiUi : SettingsScreenRouter("org.breezyweather.ui.settings.tenki")
+
     object BackgroundUpdates : SettingsScreenRouter("org.breezyweather.ui.settings.background")
     object Location : SettingsScreenRouter("org.breezyweather.ui.settings.location")
     object WeatherProviders : SettingsScreenRouter("org.breezyweather.ui.settings.providers")

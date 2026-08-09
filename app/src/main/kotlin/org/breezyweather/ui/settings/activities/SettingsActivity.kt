@@ -57,6 +57,7 @@ import org.breezyweather.ui.settings.compose.RootSettingsView
 import org.breezyweather.ui.settings.compose.SettingsScreenRouter
 import org.breezyweather.ui.settings.compose.UnitSettingsScreen
 import org.breezyweather.ui.settings.compose.WeatherSourcesSettingsScreen
+import org.breezyweather.ui.tenki.TenkiUiScreen
 import org.breezyweather.ui.theme.compose.BreezyWeatherTheme
 import javax.inject.Inject
 
@@ -214,6 +215,10 @@ class SettingsActivity : BreezyActivity() {
                     onNavigateTo = { navController.navigate(it) },
                     onNavigateBack = { onBack() }
                 )
+            }
+            // shiroikuma fork: the 白い熊 天気 UI page
+            composable(SettingsScreenRouter.TenkiUi.route) {
+                TenkiUiScreen(onNavigateBack = { onBack() })
             }
             composable(SettingsScreenRouter.BackgroundUpdates.route) {
                 BackgroundSettingsScreen(

@@ -42,6 +42,33 @@ enough and the global **`git-versioning`** skill does **not** apply here.
 | Signing | gitignored `keystore.properties` → `~/.android-keystores/shiroikuma-tenki.jks` (alias `tenki`) | `app/build.gradle.kts` `signingConfigs` |
 | Fork links | our repo everywhere the app links out | `gradle.properties` → the `app.*` block |
 | De-branding | our name + our GitHub links everywhere user-visible | About / Help / Settings screens, `values*/strings.xml`, root docs |
+| 白い熊 天気 UI | the black-yellow theming page + Export/Import | `tenki/`, `ui/tenki/`, wired into `ui/theme/compose/Theme.kt` |
+| User-Agent | the brand's ASCII part (a header value must be ASCII) | `BreezyWeather.kt` → `asciiBrandName` |
+
+### The 白い熊 天気 UI page
+
+Our one feature so far, in the kxkb page grammar (see also the sister implementations in
+`~/git/shiroikuma-mise` and `~/git/shiroikuma-kojiki`, which this follows deliberately).
+
+| File | Role |
+| --- | --- |
+| `tenki/TenkiUiConfig.kt` | SharedPreferences store (`tenki_ui`) for every knob, seeded to the house black-yellow; `toJson`/`fromJson` for the backup |
+| `tenki/TenkiUiState.kt` | observable mirror + the derived `ColorScheme` / `Shapes` / `Typography`; process singleton, provided as `LocalTenkiUi` |
+| `tenki/TenkiFonts.kt` | built-in families + `.ttf`/`.otf` import into app storage; also the View-world `Typeface` |
+| `tenki/TenkiBackup.kt` | the category ZIP — `writeZip(categories, OutputStream, onProgress, isCancelled)` is the ONE export implementation; atomic `.part`-then-rename on the SAF path |
+| `ui/tenki/TenkiUiScreen.kt` | the page itself: section headings with word-width underlines, two-level indents, tight rows, a preview under every group |
+| `ui/tenki/TenkiDialogs.kt` | RGBA colour picker with recent-colour swatches, font picker rendering each font in its own glyphs, and the Export/Import panel |
+
+- **`BreezyWeatherTheme` is the single wrapping point** — all 39 call sites go through it, so
+  providing `LocalTenkiUi` and swapping the `ColorScheme`/`Typography`/`Shapes` there themes the
+  whole Compose app and repaints it live while a slider is dragged.
+- **Scope, honestly:** this paints **Compose**. Breezy still draws its main weather screen, cards
+  and widgets with XML views and its own `ThemeManager`, and those do not follow the knobs yet.
+  Bringing them across is the next stage of the work.
+- Every border/divider/roundness slider **reaches 0 meaning "draw nothing"**, never "the Material
+  default".
+- Entry points: Settings → the first item, and a **long press on the settings cog** in the
+  locations screen (`ManagementFragment`) → `IntentHelper.startTenkiUiSettingsActivity`.
 
 **Upstream is fork-friendly by design.** It gates its own branding behind a `-Pbreezy` Gradle
 property (`buildSrc/.../BuildConfig.kt` → `Config.isBreezy`): without it the build picks
