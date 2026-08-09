@@ -43,3 +43,10 @@ bin/
 /currentPosition.properties
 /captures
 /local.properties
+
+### shiroikuma-tenki fork ###
+# Release signing: the credentials and the key itself never enter git.
+/keystore.properties
+*.jks
+# Agent config is committed (CLAUDE.md, .claude/skills/); only the machine-local settings are not.
+/.claude/settings.local.json
