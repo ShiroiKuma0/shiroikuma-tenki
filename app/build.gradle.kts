@@ -5,6 +5,7 @@ import breezy.buildlogic.getCommitCount
 import breezy.buildlogic.getGitSha
 import breezy.buildlogic.registerLocalesConfigTask
 import com.android.build.api.dsl.ApplicationExtension
+import java.io.File
 import java.util.Properties
 
 plugins {
@@ -19,13 +20,45 @@ plugins {
 
 val supportedAbi = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
 
+// --- shiroikuma-tenki fork: per-build version tail (see gradle.properties + the build-apk skill) ---
+// N = BUILD_NUMBER from gradle.properties, bumped after every successful build by `buildFork`
+// and reset to 1 on every upstream sync. Zero-padded to three digits in the NAME only, so that
+// +002 sorts before +010; versionCode keeps the plain integer.
+val forkBuildNumber = (project.findProperty("BUILD_NUMBER") as String?)?.trim()?.toIntOrNull() ?: 1
+val paddedBuildNumber = forkBuildNumber.toString().padStart(3, '0')
+
+// Filled in from upstream's own versionCode/versionName inside defaultConfig below, so the base
+// flows in automatically on every rebase and is never edited by hand here.
+var forkVersionName = ""
+var forkVersionCode = 0
+
+// --- shiroikuma-tenki fork: release signing (gitignored; see the build-apk skill) ---
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
+}
+
 configure<ApplicationExtension> {
+    // Code namespace stays upstream's — only the installed applicationId differs, so rebases
+    // never turn into a mass rename.
     namespace = "org.breezyweather"
 
     defaultConfig {
-        applicationId = "org.breezyweather"
+        // shiroikuma fork: our own applicationId, so we install side-by-side with upstream.
+        applicationId = "shiroikuma.tenki"
         versionCode = 60201
         versionName = "6.2.1"
+
+        // --- shiroikuma fork: our version derives from upstream's two literals directly above ---
+        // versionName = "<upstream name>+<NNN>"       e.g. 6.2.1+001
+        // versionCode = <upstream code> * 10000 + N   e.g. 60201 * 10000 + 1 = 602010001
+        // Never hand-edit the two upstream literals: a rebase brings the new base in by itself.
+        forkVersionCode = versionCode!! * 10000 + forkBuildNumber
+        forkVersionName = "$versionName+$paddedBuildNumber"
+        versionCode = forkVersionCode
+        versionName = forkVersionName
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
@@ -50,6 +83,19 @@ configure<ApplicationExtension> {
         }
     }
 
+    // shiroikuma fork: upstream signs only in CI (r0adkll/sign-android-release). We sign locally
+    // from the gitignored keystore.properties; absent it, the release build stays unsigned.
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         named("debug") {
             applicationIdSuffix = ".debug"
@@ -61,6 +107,11 @@ configure<ApplicationExtension> {
             isDebuggable = false
             isCrunchPngs = false // No need to do that, we already optimized them
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+
+            // shiroikuma fork: sign the release with our own key
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -578,5 +629,54 @@ tasks {
 buildscript {
     dependencies {
         classpath(libs.kotlin.gradle)
+    }
+}
+
+// --- shiroikuma-tenki fork: archive naming + one-shot build task ---------------------------------
+// Placed at the end of the script on purpose: forkVersionName / forkVersionCode are assigned while
+// the `configure<ApplicationExtension>` block above evaluates, so they are only final down here.
+
+base {
+    archivesName = "shiroikuma-tenki_$forkVersionName"
+}
+
+tasks.register("buildFork") {
+    group = "build"
+    description = "Build the signed basic (standard) release APK, copy the arm64-v8a split to ~/tmp, " +
+        "and bump BUILD_NUMBER."
+    dependsOn("assembleBasicRelease")
+
+    // Configuration-cache-safe: capture every project-derived value HERE (configuration time).
+    // The doLast lambda must not touch `layout` / `rootProject` / other project services.
+    val apkName = "shiroikuma-tenki_${forkVersionName}_arm64-v8a.apk"
+    val builtVersionCode = forkVersionCode
+    val releaseApkDir = layout.buildDirectory.dir("outputs/apk/basic/release")
+    val userHome = providers.systemProperty("user.home")
+    val propsFile = rootProject.file("gradle.properties")
+    val currentBuildNumber = forkBuildNumber
+
+    doLast {
+        val outputDir = releaseApkDir.get().asFile
+        val targetDir = File(userHome.get(), "tmp")
+        targetDir.mkdirs()
+
+        // Upstream splits the release per ABI (plus a universal APK); we ship arm64-v8a.
+        val apk = outputDir.listFiles { _, name -> name.endsWith(".apk") && name.contains("arm64-v8a") }
+            ?.firstOrNull()
+            ?: throw GradleException("No arm64-v8a APK found in $outputDir")
+        val targetFile = File(targetDir, apkName)
+        apk.copyTo(targetFile, overwrite = true)
+        println("[1;36m>>> ${targetFile.absolutePath}[0m")
+        println("[1;36m>>> versionCode $builtVersionCode[0m")
+
+        // Auto-increment BUILD_NUMBER for the next build.
+        val nextBuildNumber = currentBuildNumber + 1
+        propsFile.writeText(
+            propsFile.readText().replace(
+                "BUILD_NUMBER=$currentBuildNumber",
+                "BUILD_NUMBER=$nextBuildNumber"
+            )
+        )
+        println("[1;36m>>> BUILD_NUMBER bumped to $nextBuildNumber[0m")
     }
 }

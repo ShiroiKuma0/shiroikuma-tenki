@@ -109,9 +109,11 @@
             android:name="org.breezyweather.SUN_MOON_FILTER"
             android:resource="@xml/icon_provider_sun_moon_filter" />
 
+        <!-- shiroikuma fork: the launcher label is the brand, in every locale (upstream's
+             app_name is translated per locale and would read "Weather" / "Météo" / …) -->
         <activity
             android:name=".ui.main.MainActivity"
-            android:label="@string/app_name"
+            android:label="@string/brand_name"
             android:theme="@style/BreezyWeatherTheme.Main"
             android:exported="true">
             <intent-filter>
