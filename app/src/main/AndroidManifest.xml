@@ -359,6 +359,28 @@
             android:name=".background.receiver.NotificationReceiver"
             android:exported="false" />
 
+        <!--
+          shiroikuma fork: the 保存復元 sister-app contract. 白い熊 自由作業盤 drives this app's
+          export headlessly through these three actions; the token is the gate, which is why the
+          receiver carries no android:permission (the caller cannot hold one). The receiver only
+          checks the gate and hands off — the export itself runs in the service below, because a
+          manifest receiver that overruns the broadcast window gets ANR'd mid-write.
+        -->
+        <receiver
+            android:name=".tenki.automation.StateExportReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="${applicationId}.action.EXPORT_STATE" />
+                <action android:name="${applicationId}.action.LIST_CATEGORIES" />
+                <action android:name="${applicationId}.action.CANCEL_EXPORT" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".tenki.automation.StateExportService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <!-- widget -->
         <receiver
             android:name=".background.receiver.widget.WidgetMaterialYouForecastProvider"

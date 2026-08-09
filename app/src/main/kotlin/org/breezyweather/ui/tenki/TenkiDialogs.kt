@@ -63,7 +63,6 @@ import org.breezyweather.tenki.LocalTenkiUi
 import org.breezyweather.tenki.TenkiBackup
 import org.breezyweather.tenki.TenkiFonts
 import org.breezyweather.tenki.TenkiUiState
-import java.io.ByteArrayOutputStream
 import android.graphics.Color as AndroidColor
 
 // ------------------------------------------------------------------ colour picker
@@ -475,23 +474,21 @@ fun TenkiExportImportPanel(onDismiss: () -> Unit, onFinishedAndClose: () -> Unit
 
                             else -> scope.launch {
                                 info = runCatching {
-                                    val bytes = ByteArrayOutputStream().also { out ->
-                                        TenkiBackup.writeZip(context, selected, out)
-                                    }.toByteArray()
-                                    val name = withContext(Dispatchers.IO) {
-                                        TenkiBackup.writeToTree(
-                                            context,
-                                            Uri.parse(ui.exportDir),
-                                            bytes
-                                        )
-                                    }
+                                    // The same call the headless automation service makes: one
+                                    // export implementation, atomic .part-then-rename on both.
+                                    val written = TenkiBackup.exportToTree(
+                                        context = context,
+                                        treeUri = Uri.parse(ui.exportDir),
+                                        categories = selected
+                                    )
                                     lastBackup = withContext(Dispatchers.IO) {
                                         TenkiBackup.newestBackup(context, Uri.parse(ui.exportDir))
                                     }
                                     InfoState(
                                         title = "Export finished",
-                                        message = "$name\n${bytes.size / 1024} kB · " +
-                                            "${selected.size} categories",
+                                        message = "${written.name}\n" +
+                                            "${TenkiBackup.humanSize(written.bytes)} · " +
+                                            "${written.categories.size} categories",
                                         success = true
                                     )
                                 }.getOrElse {
