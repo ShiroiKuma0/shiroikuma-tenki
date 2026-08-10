@@ -2,4 +2,9 @@
 <resources>
     <!-- App -->
     <string name="brand_name" translatable="false">白い熊 天気</string>
+
+    <!-- Icon packs: our two, then the one we inherited. -->
+    <string name="tenki_icon_provider_traced" translatable="false">白い熊 天気 traced</string>
+    <string name="tenki_icon_provider_full" translatable="false">白い熊 天気 full</string>
+    <string name="tenki_icon_provider_breezy" translatable="false">Breezy Weather</string>
 </resources>

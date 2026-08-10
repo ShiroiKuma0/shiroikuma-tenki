@@ -45,7 +45,9 @@ class DefaultResourceProvider : ResourceProvider() {
 
     init {
         mContext = BreezyWeather.instance
-        providerName = mContext.getString(R.string.brand_name)
+        // These are upstream's icons, kept so the set can be switched back to; the app's
+        // own set is TenkiResourceProvider's, which carries the brand name instead.
+        providerName = mContext.getString(R.string.tenki_icon_provider_breezy)
         providerIcon = mContext.applicationInfo.loadIcon(mContext.packageManager)
         val res = mContext.resources
         try {

@@ -19,6 +19,7 @@ package org.breezyweather.ui.theme.resource
 import android.content.Context
 import org.breezyweather.BreezyWeather
 import org.breezyweather.domain.settings.SettingsManager
+import org.breezyweather.tenki.TenkiResourceProvider
 import org.breezyweather.ui.theme.resource.providers.ChronusResourceProvider
 import org.breezyweather.ui.theme.resource.providers.DefaultResourceProvider
 import org.breezyweather.ui.theme.resource.providers.IconPackResourcesProvider
@@ -30,6 +31,9 @@ object ResourcesProviderFactory {
 
     fun getNewInstance(packageName: String?): ResourceProvider {
         val context: Context = BreezyWeather.instance
+        // Our own packs are served from our own resources, so they are answered before
+        // anything goes looking for an installed icon pack.
+        TenkiResourceProvider.Variant.of(packageName)?.let { return TenkiResourceProvider(it) }
         val defaultProvider = DefaultResourceProvider()
         if (packageName == null || DefaultResourceProvider.isDefaultIconProvider(packageName)) {
             return defaultProvider
@@ -51,6 +55,7 @@ object ResourcesProviderFactory {
     fun getProviderList(context: Context): List<ResourceProvider> {
         val providerList = mutableListOf<ResourceProvider>()
         val defaultProvider = DefaultResourceProvider()
+        TenkiResourceProvider.Variant.entries.forEach { providerList.add(TenkiResourceProvider(it)) }
         providerList.add(defaultProvider)
 
         // Breezy Weather + Geometric Weather icon providers

@@ -38,6 +38,7 @@ enough and the global **`git-versioning`** skill does **not** apply here.
 | App label / brand | `白い熊 天気` | `brand_name` in `app/src/res_fork/values/strings.xml` |
 | Launcher label | `@string/brand_name` (not upstream's per-locale `app_name`) | `app/src/main/AndroidManifest.xml` → `MainActivity` |
 | App icon | black-yellow traced four-blade pinwheel (yellow `#FFFF00` line-art on black), cut by `tools/icon/emit_launcher.py` | `app/src/res_fork/**` (`drawable/ic_launcher_{background,foreground}.xml`, `mipmap-*/ic_launcher*.webp`), `app/src/main/ic_launcher-playstore.png`, `design/shiroikuma-tenki-icon.svg` |
+| Weather icons | two black-yellow packs — **traced** (line-art, the default) and **full** (filled) — cut by `tools/icon/emit_weather_icons.py`; upstream's stays selectable as **Breezy Weather** | `app/src/res_fork/drawable/tenki_{traced,full}_*`, `app/src/res_fork/xml/tenki_icon_provider_*_filter.xml`, `tenki/TenkiResourceProvider.kt` |
 | Version tail | `versionName = "<upstream>+NNN"`, `versionCode = <upstream code>*10000+N` | `app/build.gradle.kts` fork blocks |
 | Signing | gitignored `keystore.properties` → `~/.android-keystores/shiroikuma-tenki.jks` (alias `tenki`) | `app/build.gradle.kts` `signingConfigs` |
 | Fork links | our repo everywhere the app links out | `gradle.properties` → the `app.*` block |
@@ -75,6 +76,48 @@ and real counts, never a percentage.
 All-Files-Access. So the contract's `path` extra is honoured only if the grant happens to exist, and
 otherwise the export lands in the SAF folder set on the UI page; with neither, the reply is
 `ERROR:no-directory` (or `ERROR:no-storage-access` when a `path` was asked for and cannot be used).
+
+### The weather-icon packs
+
+Three in-app icon packs now sit at the top of Settings → Appearance → Icon pack:
+**白い熊 天気 traced** (ours, line-art, the default), **白い熊 天気 full** (ours, filled) and
+**Breezy Weather** (upstream's, unchanged, there to switch back to).
+
+- `tools/icon/emit_weather_icons.py` is the **single source** — 130 drawables per pack and the
+  three name filters come out of one 256-unit geometry model, so a cloud drawn once shows up in
+  the animated icon, the widget minis and the launcher-shortcut badge, in both packs. **Never
+  hand-edit a `tenki_*` drawable**; change the script and re-run it. A run **sweeps** any
+  `tenki_{traced,full,}_{weather,shortcuts}_*` it did not write, so renaming a pack cleans up
+  after itself — that regex is deliberately narrow, to leave `tenki_dialog_background.xml` alone.
+- **traced vs full is one rule**: a path that closes (`Z`) — cloud, sun disc, moon, drop, hail
+  stone, haze dot, bolt — gets filled in the full pack. It is filled *and* stroked at the same
+  width, so its outer edge lands exactly where the traced one's does and the two packs register
+  pixel for pixel. Shapes with no interior (sun rays, snowflakes, fog bars, wind gusts) are
+  strokes in both, so fog and wind come out **identical** in the two packs. That is expected.
+- `tenki/TenkiResourceProvider.kt` serves both, one instance per `Variant`. It is **not** an
+  icon pack: the drawables are our own resources, told apart by `Variant.head`, and
+  `packageName` is the settings key (`shiroikuma.tenki.icons.{traced,full}`), not a real
+  package — hence the `getDrawableUri` override, so widget `android.resource://` URIs still
+  name the real app. `Variant.of` also answers the pre-split id `shiroikuma.tenki.icons`
+  (shipped in `+008`) with `TRACED`, so nobody's stored choice dangles.
+- The filters name resources **without** the pack head, which the provider puts back on — one
+  set of filters serves every pack. The animator filter is the exception: those are upstream's
+  resources, so they stay unprefixed.
+- Every logical name is mapped in `tenki_icon_provider_drawable_filter.xml`, including the
+  layers a mark does not have (they point at `tenki_missing`). **This is deliberate**: an
+  unmapped key falls through to itself, and for clear/partly-cloudy that name *is* a real
+  upstream drawable, so a gap would silently leak a Breezy icon into our set.
+- The **animators are upstream's**, borrowed by name through our animator filter, so the icons
+  still breathe, drift and fall. Our layer split matches what each animator moves: layer 1
+  shakes or drifts, layers 2 and 3 fall. Layer 1 is drawn **on top** — `AnimatableIconView`
+  adds its image views in reverse.
+- Line-art has no fill to hide an overlap behind, so the composites are laid out **disjoint**:
+  in partly-cloudy the sun sits clear of the cloud rather than behind it. Keep it that way.
+- The minis are named for the text beside them, not for their own colour: `light` → yellow,
+  `dark` → black, `grey` → yellow **over a black halo**, since that one lands on an unknown
+  widget ground. `mini_xml` is the notification small icon and the system re-tints it anyway.
+- `sunDrawable` / `moonDrawable` are upstream's code-drawn ones flattened to the house yellow
+  with a `SRC_IN` filter — the crescent and the rayed disc still tell them apart.
 
 ### Open calls 白い熊 has not settled yet
 
