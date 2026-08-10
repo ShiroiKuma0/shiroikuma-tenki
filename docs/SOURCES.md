@@ -30,6 +30,7 @@ Below, you can find details about the support and implementation status for feat
 | 🇨🇦 Canada                        | [ECCC](#environment-and-climate-change-canada)                                                    | Forecast, Current, Alerts, Normals, Address                                          |
 | 🇹🇩 Chad                          | [ClimWeb](#climweb)                                                                               | Alerts, Normals                                                                      |
 | 🇨🇳 China                         | [China](#china)                                                                                   | Forecast, Current, Air quality, Nowcasting, Alerts, Address                          |
+| 🇨🇿 Czechia                       | [ČHMÚ](#český-hydrometeorologický-ústav)                                                          | Current, Air quality, Alerts, Normals                                                |
 | 🇨🇩 Democratic Republic of Congo  | [ClimWeb](#climweb)                                                                               | Alerts                                                                               |
 | 🇩🇰 Denmark                       | [DMI](#danmarks-meteorologiske-institut)                                                          | Forecast, Alerts, Address                                                            |
 | 🇪🇪 Estonia                       | [Ilmateenistus](#ilmateenistus)                                                                   | Forecast, Address                                                                    |
@@ -1276,6 +1277,43 @@ ATMO sources can be added as an **Air Quality** source for some regions of Franc
 | Grass (Graminées)    | March to August (peak in June-July) |
 | Mugwort (Armoise)    | June to October                     |
 | Ragweed (Ambroisie)  | June to October (as early as April) |
+</details>
+
+### Český hydrometeorologický ústav
+**[Český hydrometeorologický ústav](https://www.chmi.cz/)** (ČHMÚ) is the national weather service of Czechia. It can be added as a **Current**, **Air quality**, **Alert** and **Temperature normals** source for Czechia. Its data is published as open data under the CC BY 4.0 licence.
+
+ČHMÚ publishes no numeric point forecast — its own forecasts are written as text, and its ALADIN model output is only available as GRIB2, which a phone cannot read. If you want a forecast computed by ČHMÚ, select **Open-Meteo** as your forecast source and pick one of the **ČHMÚ ALADIN** weather models: *Czechia 1 km* for the highest resolution, *Central Europe 2 km* for the wider domain, or *Seamless*, which chooses between them and extends the three days ALADIN runs for with ECMWF.
+
+| Feature                        | Detail                                                                        |
+|--------------------------------|-------------------------------------------------------------------------------|
+| 🗺️ **Coverage**               | 🇨🇿 Czechia                                                                   |
+| 📆 **Daily forecast**          | Not available                                                                 |
+| ⏱️ **Hourly forecast**         | Not available                                                                 |
+| ▶️ **Current observation**     | Available: the nearest station of the ČHMÚ network, reporting every 10 minutes |
+| 😶‍🌫️ **Air quality**         | Available: current observation from the national monitoring network            |
+| 🤧 **Pollen**                  | Not available                                                                 |
+| ☔ **Precipitation nowcasting** | Not available                                                                 |
+| ⚠️ **Alerts**                  | Available: the SIVS warnings and the drought bulletin, per ORP district       |
+| 📊 **Normals**                 | Available: 1991–2020                                                          |
+| 🧭 **Address lookup**          | Not available                                                                 |
+
+The current observation is also captioned with ČHMÚ's own regional text forecast, written by the duty forecaster and shown under the daily forecast — in Czech, since that is the only language it is written in.
+
+<details><summary><h4>Details of available data from ČHMÚ</h4></summary>
+
+| Data                      | Available    | Data              | Available    |
+|---------------------------|--------------|-------------------|--------------|
+| Weather Condition         | ❌            | Humidity          | ✅ (Current)  |
+| Temperature               | ✅ (Current)  | Dew Point         | ☑️ (Current) |
+| Precipitation             | ❌            | UV Index          | ❌            |
+| Precipitation Probability | ❌            | Sunshine Duration | ❌            |
+| Precipitation Duration    | ❌            | Cloud Cover       | ☑️ (Current) |
+| Wind                      | ✅ (Current)  | Visibility        | ❌            |
+| Pressure                  | ☑️ (Current) | Ceiling           | ❌            |
+
+☑️ marks what comes from the hourly synoptic stream, which only the three dozen professional stations report. Where none is within 50 km you get temperature, humidity and wind but no pressure, dew point or cloud cover. Pressure is taken solely from the sea-level reading those stations publish; the station-level pressure the ten-minute network reports is deliberately ignored, because 白い熊 天気 displays pressure reduced to sea level.
+
+Air quality prefers background stations over the kerbside and industrial ones, so the reading reflects the air the town is breathing rather than a traffic canyon. All six pollutants are reported in µg/m³; carbon monoxide is measured at only a dozen stations.
 </details>
 
 ### ClimWeb
