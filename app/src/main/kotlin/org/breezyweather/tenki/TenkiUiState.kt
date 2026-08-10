@@ -99,6 +99,9 @@ class TenkiUiState(context: Context) {
     var indentStep by mutableIntStateOf(config.indentStep)
         private set
 
+    var headerIntensity by mutableIntStateOf(config.headerIntensity)
+        private set
+
     var exportDir by mutableStateOf(config.exportDir)
         private set
 
@@ -243,6 +246,11 @@ class TenkiUiState(context: Context) {
         indentStep = v
     }
 
+    fun updateHeaderIntensity(v: Int) {
+        config.headerIntensity = v
+        headerIntensity = v
+    }
+
     fun updateExportDir(uri: String) {
         config.exportDir = uri
         exportDir = uri
@@ -286,6 +294,7 @@ class TenkiUiState(context: Context) {
         rowPadding = config.rowPadding
         groupSpacing = config.groupSpacing
         indentStep = config.indentStep
+        headerIntensity = config.headerIntensity
         exportDir = config.exportDir
         recentColors = config.recentColors()
         fontRevision++
