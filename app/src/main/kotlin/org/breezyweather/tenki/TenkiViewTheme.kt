@@ -14,6 +14,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.widget.ImageViewCompat
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 
@@ -96,6 +97,38 @@ object TenkiViewTheme {
             chipStrokeWidth = dp(context, if (ui.borderWidth > 0) ui.borderWidth else 1).toFloat()
             // The tick would be black-on-yellow noise: the reversal already says "selected".
             isCheckedIconVisible = false
+            rippleColor = ColorStateList.valueOf(ui.accentColor)
+        }
+    }
+
+    /**
+     * A trend card's tab button — the Conditions / Air quality / Wind row. These are
+     * `MaterialButton`s in a `MaterialButtonGroup`, not chips, and they flip between checked and
+     * unchecked without rebinding, so the colours have to be **state lists** rather than flat values.
+     *
+     * Unchecked: black with a yellow outline and yellow text. Checked: reversed — yellow ground,
+     * black text — which is the only state difference a two-colour palette can carry.
+     */
+    fun paintTabButton(context: Context, button: MaterialButton?) {
+        val ui = state(context)
+        if (!ui.enabled || button == null) return
+
+        val checkedState = intArrayOf(android.R.attr.state_checked)
+        val anyState = intArrayOf()
+        val grounds = ColorStateList(
+            arrayOf(checkedState, anyState),
+            intArrayOf(ui.accentColor, ui.background)
+        )
+        val marks = ColorStateList(
+            arrayOf(checkedState, anyState),
+            intArrayOf(ui.background, ui.textColor)
+        )
+        button.apply {
+            backgroundTintList = grounds
+            setTextColor(marks)
+            iconTint = marks
+            strokeColor = ColorStateList.valueOf(ui.borderColor)
+            strokeWidth = dp(context, if (ui.borderWidth > 0) ui.borderWidth else 1)
             rippleColor = ColorStateList.valueOf(ui.accentColor)
         }
     }

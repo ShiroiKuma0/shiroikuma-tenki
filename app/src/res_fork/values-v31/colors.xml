@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  shiroikuma fork: the house palette again, for API 31+.
+
+  Upstream redefines the WHOLE md_theme_* set in values-v31 (and -night-v31), pointing it at
+  Android's Material You system colours. A qualified resource beats an unqualified one, so on every
+  phone running Android 12 or newer those dynamic colours won — which is exactly why the toolbar
+  stayed white and the chips stayed blue while everything unqualified had already turned yellow.
+  Same values as res_fork/values/colors.xml: the house look is one look, on every API level.
+-->
+<resources>
+    <color name="md_theme_primary">#FFFF00</color>
+    <color name="md_theme_onPrimary">#000000</color>
+    <color name="md_theme_primaryContainer">#000000</color>
+    <color name="md_theme_onPrimaryContainer">#FFFF00</color>
+    <color name="md_theme_primaryInverse">#FFFF00</color>
+    <color name="md_theme_inversePrimary">#FFFF00</color>
+
+    <color name="md_theme_secondary">#FFFF00</color>
+    <color name="md_theme_onSecondary">#000000</color>
+    <color name="md_theme_secondaryContainer">#000000</color>
+    <color name="md_theme_onSecondaryContainer">#FFFF00</color>
+
+    <color name="md_theme_tertiary">#FFFF00</color>
+    <color name="md_theme_onTertiary">#000000</color>
+    <color name="md_theme_tertiaryContainer">#000000</color>
+    <color name="md_theme_onTertiaryContainer">#FFFF00</color>
+
+    <color name="md_theme_error">#FF3B30</color>
+    <color name="md_theme_onError">#000000</color>
+    <color name="md_theme_errorContainer">#000000</color>
+    <color name="md_theme_onErrorContainer">#FF3B30</color>
+
+    <color name="md_theme_background">#000000</color>
+    <color name="md_theme_onBackground">#FFFF00</color>
+    <color name="md_theme_surface">#000000</color>
+    <color name="md_theme_onSurface">#FFFF00</color>
+    <color name="md_theme_surfaceVariant">#000000</color>
+    <color name="md_theme_onSurfaceVariant">#B3B300</color>
+    <color name="md_theme_outline">#FFFF00</color>
+
+    <!--
+      The "inverse" pair. Upstream uses colorSurfaceInverse as a FOREGROUND almost everywhere — it
+      is the bright text colour on the weather cards (daily/hourly titles, wind, astro, visibility) —
+      and only the snackbar uses it as a background. So it has to be the yellow, or every card title
+      goes black on black; the snackbar is painted from the knobs in code instead (TenkiViewTheme).
+    -->
+    <color name="md_theme_inverseSurface">#FFFF00</color>
+    <color name="md_theme_inverseOnSurface">#000000</color>
+
+    <color name="md_theme_shadow">#000000</color>
+
+    <!-- Breezy's own text roles, used directly by the View layouts. -->
+    <color name="colorTextTitle">#FFFF00</color>
+    <color name="colorTextContent">#B3B300</color>
+    <color name="colorTextSubtitle">#B3B300</color>
+    <color name="colorMainCardBackground">#000000</color>
+    <color name="colorSplashScreen">#000000</color>
+</resources>
