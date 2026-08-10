@@ -45,9 +45,14 @@
     <color name="md_theme_onSurfaceVariant">#B3B300</color>
     <color name="md_theme_outline">#FFFF00</color>
 
-    <!-- The snackbar and other "inverse" surfaces: stay black-on-yellow-text, never a light slab. -->
-    <color name="md_theme_inverseSurface">#000000</color>
-    <color name="md_theme_inverseOnSurface">#FFFF00</color>
+    <!--
+      The "inverse" pair. Upstream uses colorSurfaceInverse as a FOREGROUND almost everywhere — it
+      is the bright text colour on the weather cards (daily/hourly titles, wind, astro, visibility) —
+      and only the snackbar uses it as a background. So it has to be the yellow, or every card title
+      goes black on black; the snackbar is painted from the knobs in code instead (TenkiViewTheme).
+    -->
+    <color name="md_theme_inverseSurface">#FFFF00</color>
+    <color name="md_theme_inverseOnSurface">#000000</color>
 
     <color name="md_theme_shadow">#000000</color>
 

@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.breezyweather.R
+import org.breezyweather.tenki.LocalTenkiUi
 import org.breezyweather.ui.tenki.tenkiBorderStroke
 import kotlin.math.ln
 
@@ -70,6 +71,13 @@ fun getWidgetSurfaceColor(
     surface: Color = MaterialTheme.colorScheme.surface,
 ): Color {
     if (elevation == 0.dp) {
+        return surface
+    }
+
+    // shiroikuma fork: Material lightens an elevated surface by compositing the surface tint over
+    // it. On a black ground that reads as a washed grey, which is exactly what 白い熊 does not want
+    // — the card is black, and its border is what lifts it off the page.
+    if (LocalTenkiUi.current.enabled) {
         return surface
     }
 

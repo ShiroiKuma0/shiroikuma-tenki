@@ -25,6 +25,7 @@ import breezyweather.domain.weather.model.Wind
 import org.breezyweather.R
 import org.breezyweather.common.extensions.formatMeasure
 import org.breezyweather.common.extensions.getBeaufortScaleStrength
+import org.breezyweather.tenki.TenkiViewTheme
 import org.breezyweather.unit.formatting.UnitWidth
 import org.breezyweather.unit.speed.Speed.Companion.centimetersPerSecond
 
@@ -39,6 +40,10 @@ fun Wind.validate(): Wind {
 @ColorInt
 fun Wind.getColor(context: Context): Int {
     if (speed == null) return Color.TRANSPARENT
+    // shiroikuma fork: the wind arrows and their markers are the accent, not a green-to-red scale.
+    // The Beaufort strength is already written next to every arrow as a number, so nothing is lost
+    // by dropping the colour coding here — unlike air quality or UV, where the colour IS the value.
+    if (TenkiViewTheme.isEnabled(context)) return TenkiViewTheme.state(context).accentColor
     return when (speed!!.inBeaufort) {
         in 0..<4 -> ContextCompat.getColor(context, R.color.colorLevel_1)
         in 4..<6 -> ContextCompat.getColor(context, R.color.colorLevel_2)

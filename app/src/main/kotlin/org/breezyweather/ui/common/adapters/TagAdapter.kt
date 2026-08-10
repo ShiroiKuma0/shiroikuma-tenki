@@ -22,6 +22,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import org.breezyweather.R
+import org.breezyweather.tenki.TenkiViewTheme
 
 class TagAdapter @JvmOverloads constructor(
     private val tagList: MutableList<Tag>,
@@ -54,6 +55,8 @@ class TagAdapter @JvmOverloads constructor(
             tagView.apply {
                 text = tag.name
                 isChecked = checked
+                // shiroikuma fork: yellow-outlined pill, reversed to yellow-on-black when selected.
+                TenkiViewTheme.paintChip(context, this, checked)
             }
         }
     }
