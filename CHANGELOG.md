@@ -10,6 +10,77 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+013 — 2026-08-10
+
+Built on upstream **v6.2.1**. Adds Czechia's national weather service, which upstream had never
+evaluated — `docs/COVERAGE.md` listed the agency and left the status column empty.
+
+### New weather source — ČHMÚ (Czechia)
+
+Český hydrometeorologický ústav, as a **Current**, **Air quality**, **Alert** and **Temperature
+normals** source for Czech locations. All of it is open data under CC BY 4.0, keyless, so the source
+is free-net and works in both flavors.
+
+- **Warnings** — the SIVS bulletin *and* the separate drought bulletin, both CAP 1.2, filtered to the
+  location's ORP district.
+  - ČHMÚ packs every warning into one document as its own `<info>`, twice over in Czech and English,
+    and emits an explicit "no warning in force" block for every hazard it is *not* warning about.
+    Only `Moderate` and above is kept — exactly SIVS levels yellow, orange and red — which drops the
+    negatives without matching on Czech prose.
+  - The alert id is hashed from the event rather than taken from the CAP identifier, because ČHMÚ
+    mints a new identifier every re-issue, which would otherwise make every warning look new on
+    every refresh.
+  - Each warning carries ČHMÚ's synoptic `situation` paragraph appended to its description.
+- **ORP boundaries, bundled and answered offline** — the bulletins geocode by `CISORP` with no
+  polygon, so the 206 districts ship as a simplified GeoJSON read once per location, never on a
+  refresh.
+  - `tools/chmi/build_orp_geojson.py` cuts it from ČÚZK RÚIAN. The land register numbers ORPs
+    differently from the statistical office, and it is the statistical office's number ČHMÚ uses, so
+    the mapping is derived by Czech alphabetical rank within each kraj — where `ch` is one letter and
+    sorts after `h` — and then **proved against ČHMÚ's own bulletin**: the 206 derived codes must
+    equal the set ČHMÚ geocodes with, and every spelled-out area must agree with its geocode list.
+    The script writes nothing if either check fails.
+  - That check caught two irregularities on its first run: Prague is `1100`, not `1101`, and
+    Moravskoslezský is prefixed `81` though its NUTS 3 code is CZ080.
+  - Simplified to about 80 m, the boundaries place 99.6% of ČHMÚ's own 758 station coordinates in the
+    same district as the unsimplified geometry.
+- **Current observations** — the nearest station reporting ten-minute temperature, around 300 of
+  them, giving temperature, humidity and wind (with ČHMÚ's variable-direction flag).
+  - Deepened with **sea-level pressure, dew point and cloud cover** from the hourly synoptic stream
+    wherever one of the three dozen professional stations is within 50 km. Where the ten-minute
+    station is itself professional it answers for both, so the dew point comes off the same
+    thermometer as the temperature.
+  - Pressure is taken **only** from the reading ČHMÚ already reduces to sea level; the station-level
+    pressure the ten-minute network reports is ignored on purpose.
+  - Visibility and present weather are published as ČHMÚ code numbers with no code list, so they are
+    left out rather than guessed at.
+  - The daily card is captioned with ČHMÚ's **regional text forecast**, written by the duty
+    forecaster. Filenames carry their issue time and the directory has no index, so candidates are
+    built from the publishing schedule and tried newest first.
+- **Air quality** — all six pollutants Breezy Weather tracks, in µg/m³, from the national monitoring
+  network. The nearest station's registration ids are resolved once, so a refresh costs an 18 KB file
+  rather than the 1.5 MB catalogue. **Background stations are preferred** over the kerbside and
+  industrial ones, so the reading is the air the town breathes rather than a traffic canyon.
+- **Temperature normals** — 1991–2020, with ČHMÚ's mean daily maximum and mean daily minimum mapping
+  straight onto the daytime and nighttime pair.
+- **No forecast, deliberately.** ČHMÚ's own point forecasts are prose and its ALADIN output is GRIB2,
+  neither of which a phone can use.
+
+### Open-Meteo
+
+- **ČHMÚ ALADIN** added to the weather-model picker, in all three variants — Czechia at 1 km, Central
+  Europe at 2.3 km, and seamless, which chooses between them and carries on past the three days
+  ALADIN runs for with ECMWF. This is the only route to a Czech forecast computed by the Czech
+  service.
+
+### Documentation
+
+- `docs/SOURCES.md` gains a ČHMÚ section with its feature table and the reasoning behind what is
+  omitted; `docs/COVERAGE.md` fills in the Czechia row; the store descriptions list ČHMÚ in every
+  language.
+
+---
+
 ## 白い熊 天気 6.2.1+009 — 2026-08-10
 
 Built on upstream **v6.2.1**. First published release of the fork, so this is everything built on top
