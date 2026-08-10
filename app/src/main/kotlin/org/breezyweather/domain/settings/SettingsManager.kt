@@ -30,6 +30,7 @@ import org.breezyweather.common.options.appearance.BackgroundAnimationMode
 import org.breezyweather.common.options.appearance.CardDisplay
 import org.breezyweather.common.options.appearance.DailyTrendDisplay
 import org.breezyweather.common.options.appearance.HourlyTrendDisplay
+import org.breezyweather.tenki.TenkiResourceProvider
 import org.breezyweather.unit.distance.DistanceUnit
 import org.breezyweather.unit.precipitation.PrecipitationUnit
 import org.breezyweather.unit.pressure.PressureUnit
@@ -273,7 +274,9 @@ class SettingsManager private constructor(
                 .apply()
             notifySettingsChanged()
         }
-        get() = config.getString("iconProvider", BreezyWeather.instance.packageName) ?: ""
+        // Our traced pack is what a fresh install starts on; the full one and the Breezy
+        // Weather set are both there to switch to.
+        get() = config.getString("iconProvider", TenkiResourceProvider.Variant.TRACED.id) ?: ""
 
     var cardDisplayList: List<CardDisplay>
         set(value) {

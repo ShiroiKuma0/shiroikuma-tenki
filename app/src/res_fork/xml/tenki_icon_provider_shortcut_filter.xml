@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <item name="shortcuts_clear_day" value="shortcuts_clear_day" />
+    <item name="shortcuts_clear_night" value="shortcuts_clear_night" />
+
+    <item name="shortcuts_partly_cloudy_day" value="shortcuts_partly_cloudy_day" />
+    <item name="shortcuts_partly_cloudy_night" value="shortcuts_partly_cloudy_night" />
+
+    <item name="shortcuts_cloudy_day" value="shortcuts_cloudy" />
+    <item name="shortcuts_cloudy_night" value="shortcuts_cloudy" />
+
+    <item name="shortcuts_rain_day" value="shortcuts_rain" />
+    <item name="shortcuts_rain_night" value="shortcuts_rain" />
+
+    <item name="shortcuts_snow_day" value="shortcuts_snow" />
+    <item name="shortcuts_snow_night" value="shortcuts_snow" />
+
+    <item name="shortcuts_wind_day" value="shortcuts_wind" />
+    <item name="shortcuts_wind_night" value="shortcuts_wind" />
+
+    <item name="shortcuts_fog_day" value="shortcuts_fog" />
+    <item name="shortcuts_fog_night" value="shortcuts_fog" />
+
+    <item name="shortcuts_haze_day" value="shortcuts_haze" />
+    <item name="shortcuts_haze_night" value="shortcuts_haze" />
+
+    <item name="shortcuts_sleet_day" value="shortcuts_sleet" />
+    <item name="shortcuts_sleet_night" value="shortcuts_sleet" />
+
+    <item name="shortcuts_hail_day" value="shortcuts_hail" />
+    <item name="shortcuts_hail_night" value="shortcuts_hail" />
+
+    <item name="shortcuts_thunder_day" value="shortcuts_thunder" />
+    <item name="shortcuts_thunder_night" value="shortcuts_thunder" />
+
+    <item name="shortcuts_thunderstorm_day" value="shortcuts_thunderstorm" />
+    <item name="shortcuts_thunderstorm_night" value="shortcuts_thunderstorm" />
+
+</resources>
