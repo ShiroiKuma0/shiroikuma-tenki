@@ -9,12 +9,12 @@
 A fork of [Breezy Weather](https://github.com/breezy-weather/breezy-weather) — forecast, observations,
 nowcasting, air quality, pollen and alerts from more than 50 weather sources — with **major
 additions**: a live theming page that repaints the app as you drag a slider, a black-yellow repaint
-that reaches every surface upstream draws, two hand-cut weather-icon packs, and headless backup
-automation for the 保存復元 batch.
+that reaches every surface upstream draws, two hand-cut weather-icon packs, Czechia's national
+weather service, and headless backup automation for the 保存復元 batch.
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 Latest release: [`6.2.1+009`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
+**📥 Latest release: [`6.2.1+013`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
 
@@ -88,6 +88,34 @@ The animators are upstream's, borrowed by name, and the layer split matches what
 the icons still breathe, drift and fall. Line-art has no fill to hide an overlap behind, so the
 composites are laid out disjoint: in partly-cloudy the sun sits clear of the cloud rather than behind
 it, which upstream can get away with and line-art cannot.
+
+---
+
+## 🇨🇿 Czechia, from the Czech weather service
+
+Upstream's coverage table lists Czechia's agency and nothing else — nobody had worked out what ČHMÚ
+publishes. It turns out to be a lot, and the fork now reads four things from it: **current
+observations**, **air quality**, **warnings** and **temperature normals**, all of it open data under
+CC BY 4.0.
+
+The warnings are the interesting part. ČHMÚ geocodes them by ORP district and ships **no polygon**,
+so knowing which of the 206 districts you are standing in is the whole problem. The boundaries are
+bundled and answered offline, once per location — but the codes ČHMÚ uses are the statistical
+office's, not the land register's, and nothing publishes the mapping between them. So it is derived,
+by Czech alphabetical rank within each region (where `ch` is one letter and sorts after `h`), and
+then **proved against ČHMÚ's own bulletin** before a single byte is written. That check paid for
+itself immediately: Prague is 1100 rather than 1101, and Moravskoslezský is prefixed 81 though its
+NUTS 3 code says 080.
+
+Current conditions come from the nearest station of the observing network, deepened with sea-level
+pressure, dew point and cloud cover wherever one of the three dozen professional stations is close
+enough — and captioned with the duty forecaster's own regional text forecast. Air quality prefers
+background stations over the kerbside ones, so you get the air the town is breathing rather than a
+traffic canyon.
+
+ČHMÚ publishes no numeric point forecast — its own are prose, and its ALADIN model is GRIB2 — so the
+model reaches the app the only way it can: **ČHMÚ ALADIN** is now selectable in the Open-Meteo source,
+at 1 km over Czechia.
 
 ---
 
