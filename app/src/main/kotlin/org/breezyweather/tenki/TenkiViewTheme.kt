@@ -15,6 +15,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.widget.ImageViewCompat
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.chip.Chip
 
 /**
  * A good part of this app is still XML views — the locations list, the snackbar, the weather cards —
@@ -58,6 +59,44 @@ object TenkiViewTheme {
         bodies.forEach { it?.setTextColor(ui.textDimColor) }
         icons.forEach { icon ->
             icon?.let { ImageViewCompat.setImageTintList(it, ColorStateList.valueOf(ui.iconColor)) }
+        }
+    }
+
+    /**
+     * A weather card on the main screen. Material tints a card's surface by its elevation, which on
+     * black comes out a washed grey — so the elevation goes to 0 and the ground is set outright,
+     * leaving pure black with the house outline.
+     */
+    fun paintMainCard(context: Context, card: MaterialCardView?) {
+        val ui = state(context)
+        if (!ui.enabled || card == null) return
+        card.apply {
+            elevation = 0f
+            setCardBackgroundColor(ui.surface)
+            strokeColor = ui.borderColor
+            strokeWidth = dp(context, ui.borderWidth)
+            radius = dp(context, ui.cornerRadius).toFloat()
+        }
+    }
+
+    /**
+     * A tag chip — the Conditions / Air quality / Wind row over a trend card.
+     *
+     * Unselected: black with a yellow outline and yellow text. Selected: reversed, yellow ground
+     * with black text, which is the only state difference that survives a two-colour palette.
+     */
+    fun paintChip(context: Context, chip: Chip?, checked: Boolean) {
+        val ui = state(context)
+        if (!ui.enabled || chip == null) return
+        chip.apply {
+            chipBackgroundColor =
+                ColorStateList.valueOf(if (checked) ui.accentColor else ui.background)
+            setTextColor(if (checked) ui.background else ui.textColor)
+            chipStrokeColor = ColorStateList.valueOf(ui.borderColor)
+            chipStrokeWidth = dp(context, if (ui.borderWidth > 0) ui.borderWidth else 1).toFloat()
+            // The tick would be black-on-yellow noise: the reversal already says "selected".
+            isCheckedIconVisible = false
+            rippleColor = ColorStateList.valueOf(ui.accentColor)
         }
     }
 

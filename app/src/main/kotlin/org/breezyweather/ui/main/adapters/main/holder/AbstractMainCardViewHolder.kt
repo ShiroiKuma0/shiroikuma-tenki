@@ -26,6 +26,7 @@ import com.google.android.material.card.MaterialCardView
 import org.breezyweather.R
 import org.breezyweather.common.activities.BreezyActivity
 import org.breezyweather.common.extensions.dpToPx
+import org.breezyweather.tenki.TenkiViewTheme
 import org.breezyweather.ui.theme.resource.providers.ResourceProvider
 
 @SuppressLint("ObjectAnimatorBinding")
@@ -48,6 +49,9 @@ abstract class AbstractMainCardViewHolder(
             (itemView as MaterialCardView).apply {
                 elevation = context.dpToPx(2f)
             }
+            // shiroikuma fork: black ground and the house outline instead of Material's
+            // elevation tint, which on black renders as a washed grey.
+            TenkiViewTheme.paintMainCard(context, itemView as MaterialCardView)
         }
         val params = itemView.layoutParams as MarginLayoutParams
         params.setMargins(
