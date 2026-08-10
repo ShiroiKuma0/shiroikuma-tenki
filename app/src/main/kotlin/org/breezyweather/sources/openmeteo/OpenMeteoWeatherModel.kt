@@ -25,7 +25,7 @@ import org.breezyweather.common.utils.UnitUtils
  * List from:
  * https://open-meteo.com/en/docs/
  *
- * Up-to-date as of 2025-10-10
+ * Up-to-date as of 2026-08-10
  */
 enum class OpenMeteoWeatherModel(
     override val id: String,
@@ -88,6 +88,10 @@ enum class OpenMeteoWeatherModel(
     METEOSWISS_ICON_SEAMLESS("meteoswiss_icon_seamless"),
     METEOSWISS_ICON_CH1("meteoswiss_icon_ch1"),
     METEOSWISS_ICON_CH2("meteoswiss_icon_ch2"),
+
+    CHMI_ALADIN_SEAMLESS("chmi_aladin_seamless"),
+    CHMI_ALADIN_CENTRAL_EUROPE("chmi_aladin_central_europe_2km"),
+    CHMI_ALADIN_CZ("chmi_aladin_cz_1km"),
     ;
 
     companion object {

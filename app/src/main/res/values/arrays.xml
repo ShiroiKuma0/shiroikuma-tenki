@@ -323,6 +323,9 @@
         <item>MeteoSwiss ICON Seamless</item>
         <item>MeteoSwiss ICON CH1</item>
         <item>MeteoSwiss ICON CH2</item>
+        <item>ČHMÚ ALADIN Seamless</item>
+        <item>ČHMÚ ALADIN Central Europe 2 km</item>
+        <item>ČHMÚ ALADIN Czechia 1 km</item>
     </string-array>
     <string-array name="open_meteo_weather_models_values">
         <item>best_match</item>
@@ -370,6 +373,9 @@
         <item>meteoswiss_icon_seamless</item>
         <item>meteoswiss_icon_ch1</item>
         <item>meteoswiss_icon_ch2</item>
+        <item>chmi_aladin_seamless</item>
+        <item>chmi_aladin_central_europe_2km</item>
+        <item>chmi_aladin_cz_1km</item>
     </string-array>
 
     <!-- Beaufort scale levels -->
