@@ -24,6 +24,7 @@ import org.breezyweather.common.extensions.uiModeManager
 import org.breezyweather.common.options.DarkMode
 import org.breezyweather.domain.location.model.isDaylight
 import org.breezyweather.domain.settings.SettingsManager
+import org.breezyweather.tenki.TenkiWeatherThemeDelegate
 import org.breezyweather.ui.theme.weatherView.WeatherThemeDelegate
 import org.breezyweather.ui.theme.weatherView.materialWeatherView.MaterialWeatherThemeDelegate
 import java.time.LocalTime
@@ -42,7 +43,12 @@ class ThemeManager private constructor(
                 synchronized(ThemeManager::class) {
                     if (instance == null) {
                         instance = ThemeManager(
-                            weatherThemeDelegate = MaterialWeatherThemeDelegate()
+                            // shiroikuma fork: the house header — black behind the temperature,
+                            // yellow on top of it — with upstream's animated gradient kept behind
+                            // the wrapper for when the 白い熊 天気 UI is switched off.
+                            weatherThemeDelegate = TenkiWeatherThemeDelegate(
+                                MaterialWeatherThemeDelegate()
+                            )
                         )
                     }
                 }

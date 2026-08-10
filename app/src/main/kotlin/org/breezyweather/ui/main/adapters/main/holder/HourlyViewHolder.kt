@@ -29,6 +29,7 @@ import org.breezyweather.R
 import org.breezyweather.common.activities.BreezyActivity
 import org.breezyweather.common.extensions.getThemeColor
 import org.breezyweather.domain.settings.SettingsManager
+import org.breezyweather.tenki.TenkiViewTheme
 import org.breezyweather.ui.common.adapters.ButtonAdapter
 import org.breezyweather.ui.common.widgets.trend.TrendLayoutManager
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerView
@@ -108,6 +109,8 @@ class HourlyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
                 .filter { it is MaterialButton && it.tag == MaterialButtonGroup.OVERFLOW_BUTTON_TAG }
                 .forEach {
                     it.contentDescription = context.getString(R.string.action_more)
+                    // shiroikuma fork: the overflow ⋮ follows the same palette.
+                    TenkiViewTheme.paintTabButton(context, it as? MaterialButton)
                 }
             buttonList.forEachIndexed { index, button ->
                 buttonGroup.addView(
@@ -129,6 +132,8 @@ class HourlyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
                                 }
                             isChecked = true
                         }
+                        // shiroikuma fork: yellow-outlined pill, reversed when selected.
+                        TenkiViewTheme.paintTabButton(context, this)
                     }
                 )
             }
