@@ -58,6 +58,7 @@ import org.breezyweather.sources.breezytz.BreezyTimeZoneService
 import org.breezyweather.sources.breezyupdatenotifier.BreezyUpdateNotifierService
 import org.breezyweather.sources.brightsky.BrightSkyService
 import org.breezyweather.sources.china.ChinaService
+import org.breezyweather.sources.chmi.ChmiService
 import org.breezyweather.sources.climweb.AnamBfService
 import org.breezyweather.sources.climweb.AnametService
 import org.breezyweather.sources.climweb.DccmsService
@@ -144,6 +145,7 @@ class SourceManager @Inject constructor(
     breezyUpdateNotifierService: BreezyUpdateNotifierService,
     brightSkyService: BrightSkyService,
     chinaService: ChinaService,
+    chmiService: ChmiService,
     cwaService: CwaService,
     dccmsService: DccmsService,
     debugService: DebugService,
@@ -253,6 +255,7 @@ class SourceManager @Inject constructor(
         bmkgService,
         brightSkyService,
         chinaService,
+        chmiService,
         cwaService,
         dccmsService,
         dmiService,
