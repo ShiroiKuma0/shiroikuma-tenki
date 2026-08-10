@@ -1,3 +1,157 @@
+# Changelog
+
+**白い熊 天気** is 白い熊's fork of
+[Breezy Weather](https://github.com/breezy-weather/breezy-weather). This file carries **both**
+histories: our fork releases first, then upstream's own changelog below, unchanged.
+
+Fork releases are named `<upstream version>+NNN` and each says which upstream release it is built on.
+Our block sits above upstream's so their new versions land further down the file and a rebase never
+has to merge the two histories by hand.
+
+---
+
+## 白い熊 天気 6.2.1+009 — 2026-08-10
+
+Built on upstream **v6.2.1**. First published release of the fork, so this is everything built on top
+of stock.
+
+### Major features
+
+- **The 白い熊 天気 UI page** — one page carrying every knob that shapes the app's look: colours,
+  fonts, sizes, roundness, border and divider widths, indent step, row padding, group spacing. Each
+  write lands in preferences *and* in Compose state, so dragging a slider repaints the app underneath
+  you; the page is themed by the values it edits, which makes the app its own preview. Reachable from
+  Settings (first item) or by long-pressing the settings cog on the locations screen.
+  - Colours from an RGBA picker over a live mix preview, with a one-click row of the colours already
+    in use.
+  - Fonts from a picker that renders every candidate — including `.ttf`/`.otf` files imported into
+    app storage — in its own glyphs.
+  - Every border, divider and roundness slider reaches **0 meaning "draw nothing"**, never "the
+    Material default".
+  - A master switch hands the app back to upstream's Material theme.
+- **Export / Import** — a settable backup folder (red until set, yellow once it is), the newest
+  archive found there, and a category checklist: UI, app settings, weather source configuration (API
+  keys, hence its own tick), locations, imported fonts. Archives are named
+  `shiroikuma-tenki_<yyyy-MM-dd_HH-mm-ss>.zip`, the shape every sister app uses. The SAF write is
+  **atomic** — streamed to a `.part` document and renamed only once the archive is complete, deleted
+  on any failure or cancel. There is exactly one export implementation.
+- **Two hand-cut weather-icon packs** — the twelve weather codes re-drawn in the house yellow from
+  one 256-unit geometry model: **traced** (stroke-only line-art, the default) and **full** (the same
+  silhouettes, filled). A filled shape is stroked as well at the same width, so the two packs
+  register pixel for pixel. Upstream's set stays selectable as **Breezy Weather**.
+  - 130 drawables per pack: the animated icon and its layers, the widget/notification minis in light,
+    grey and dark, the notification small icon, the launcher-shortcut badge and adaptive foreground.
+  - Upstream's animators are borrowed by name and the layer split matches what each one moves, so the
+    icons still breathe, drift and fall.
+  - Composites are laid out **disjoint** — line-art has no fill to hide an overlap behind, so in
+    partly-cloudy the sun sits clear of the cloud rather than behind it.
+  - The "grey" mini carries a black halo under the yellow, for the unknown widget ground it lands on.
+  - The astro card's sun and moon are flattened to the house yellow; the crescent and the rayed disc
+    still tell them apart.
+  - All emitted by `tools/icon/emit_weather_icons.py`, the only source, which sweeps whatever it no
+    longer writes.
+
+### UI & theming
+
+- **`BreezyWeatherTheme` is the single wrapping point** — all 39 call sites go through it, so
+  providing `LocalTenkiUi` and swapping the `ColorScheme` / `Typography` / `Shapes` there themes the
+  whole Compose app and repaints it live.
+- **The palette is overridden in all four places upstream defines it** — `values`, `values-night`,
+  `values-v31` and `values-night-v31`. The `-v31` pair points at Android's Material You *system*
+  colours and beats an unqualified override on Android 12+, which is why a partial override left the
+  toolbar white and the chips blue. The built APK carries no dynamic-colour variant left.
+- **The View world is painted by hand from the same knobs**, since `BreezyWeatherTheme` cannot reach
+  an XML view: the locations card, the main weather cards, the trend tab buttons, the chips, the
+  snackbar.
+- **Yellow borders everywhere** — drop-in `AlertDialog` / `TextButton` / `Button` / `OutlinedButton` /
+  `FilledTonalButton` carrying the house border, buttons as full pills. 20 screens opted in by
+  changing one import; no call site moved. `AlertDialogNoPadding` borders its own surface, and
+  View-world dialogs get a black-and-yellow background through `materialAlertDialogTheme`.
+- **Card list items carry the border too**, which is what makes every settings and About row read as
+  pressable. On the UI page every tappable row sits in a bordered box, the indent kept *outside* it so
+  the nesting still reads at a glance.
+- **Pure black cards** — elevation 0 with the ground set outright. Material lightens an elevated
+  surface by compositing the surface tint over it; that tint was the grey. Compose's
+  `getWidgetSurfaceColor` skips the tint too, so Compose and View cards are the same black.
+- **Tag chips** are yellow-outlined pills, black with yellow text; the selected one **reverses** to a
+  yellow ground with black text. The check icon is dropped — the reversal already says which is on.
+- **Wind arrows and their markers take the accent** instead of the Beaufort green-to-red scale, since
+  the strength is printed as a number beside every arrow. Air quality and UV keep upstream's scales
+  **on purpose**: there the colour *is* the reading.
+- **The animated header is recoloured, not deleted.** A hardware layer with a duotone colour filter
+  maps each pixel's brightness onto the Background → Accent ramp at composite time, so upstream's
+  drifting cloudscape, rain and meteor shower come out black-to-yellow with their shape and motion
+  intact — every weather implementor at once, without touching upstream's drawing code. Alpha is left
+  alone, so transparent parts stay transparent.
+- **"Weather scene brightness"** — a new Header group on the UI page, 50 % by default. **0** takes the
+  flat view instead, so nobody pays for an animation they cannot see.
+- **The + button** on the locations screen is black with a yellow mark and a yellow outline.
+- `colorSurfaceInverse` is treated as a **foreground**: upstream uses it as the bright text colour on
+  the weather cards and only the snackbar uses it as a ground, so here it is the yellow, and the
+  snackbar is repainted in code.
+
+### Integrations
+
+- **The 保存復元 sister-app backup-automation contract** — 白い熊 自由作業盤 can drive this app's
+  export headlessly as part of the one-run batch.
+  - `TenkiAutomationAuth`: master switch **default OFF**, a 24-byte `SecureRandom` token generated
+    lazily, compared constant-time, kept in its own preferences file so it can never travel inside a
+    backup.
+  - `StateExportReceiver` (exported, token-gated), three actions: `LIST_CATEGORIES` answers instantly
+    with id/label lines (fonts off by default); `EXPORT_STATE` validates `items` and hands off;
+    `CANCEL_EXPORT` signals the run and replies nothing — a cancel with nothing running is a silent
+    no-op.
+  - The export runs in a **foreground `dataSync` service** with a partial wakelock, because
+    `goAsync()` does not extend the broadcast window and overrunning it gets the process ANR'd
+    mid-write.
+  - Exactly one terminal reply per request, guarded by an `AtomicBoolean`; a process-local running
+    flag released in a `finally` and never persisted; progress broadcasts carry the category id and
+    **real counts**, never a percentage.
+  - **`MANAGE_EXTERNAL_STORAGE` is deliberately not held** — a weather app has no business with
+    All-Files-Access. The contract's `path` extra is honoured only if that grant happens to exist;
+    otherwise the export lands in the SAF folder set on the UI page, and with neither the reply is
+    `ERROR:no-directory` / `ERROR:no-storage-access`.
+
+### Identity & de-branding
+
+- **Launcher icon**: upstream's four-blade pinwheel redrawn as stroke-only line-art, pure `#FFFF00` on
+  black. `tools/icon/emit_launcher.py` cuts every asset from one geometry model — the adaptive
+  background and foreground (which doubles as the monochrome layer), the legacy webp set at five
+  densities plus the round variants, and the 512 px store icon. The placeholder foreground left
+  `drawable-v24`: the vector needs no v24 feature and `minSdk` is 23.
+- **App label** `白い熊 天気`, and `MainActivity`'s launcher label follows the brand rather than
+  upstream's per-locale `app_name` ("Weather" / "Météo" / …).
+- **Every user-visible "Breezy Weather" in all 43 translated locales** is now 白い熊 天気 — the
+  data-sharing permission label and description, the location-permission dialog, the freenet
+  disclaimer.
+- README, INSTALL, PRIVACY, HELP, CONTRIBUTE, `docs/`, the store metadata and the issue templates all
+  carry our name and our repo.
+- **Upstream's CI workflows are dropped.** After the link rewrite their `github.repository ==` guard
+  would have named *our* repo while still running `-Pbreezy` — the one build flag the licence forbids
+  us to ship.
+- **User-Agent fix the rename made necessary**: it is built from the brand name, and an HTTP header
+  value must be ASCII, so a Japanese brand made OkHttp throw on every request to Met.no, NWS or
+  Nominatim. It now carries the brand's ASCII part, falling back to the `applicationId`.
+
+### Packaging & build
+
+- `applicationId` `shiroikuma.tenki`; the code namespace stays `org.breezyweather`, so rebasing onto a
+  new upstream release never turns into a mass rename.
+- **Upstream's own fork path is used rather than fought**: the build never passes `-Pbreezy`, so it
+  takes `app/src/res_fork/` for the brand assets, the `app.*` links from `gradle.properties`, and
+  `config-fork/` for AboutLibraries. Upstream's licence forbids redistributing a modified APK with the
+  brand config enabled, and `LICENSE_ADDITIONAL` requires modified versions to be marked as different
+  from the original — which is what this fork does.
+- **Versioning**: `versionName = "<upstream>+NNN"` (counter zero-padded to three digits),
+  `versionCode = <upstream code> * 10000 + N`, both derived from upstream's own two literals so a
+  rebase brings the new base in by itself. `BUILD_NUMBER` resets to 1 on every upstream sync.
+- **Tracked against upstream release tags, not the branch tip** — every base is a state upstream
+  itself called finished.
+- Release signing from a gitignored `keystore.properties`; `buildFork` assembles the signed `basic`
+  release, copies the arm64-v8a split to `~/tmp/`, and bumps the build counter.
+
+---
+
 # Old changelogs
 
 - [Changelog for v5.x](docs/CHANGELOG_5.x.md)

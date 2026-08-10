@@ -174,6 +174,23 @@ from `config-fork/`. **Never pass `-Pbreezy`** — upstream's licence forbids re
 APKs with the brand config enabled, and `LICENSE_ADDITIONAL` requires modified versions to be marked
 as different from the original.
 
+### CHANGELOG.md is unified — never fork it, never overwrite upstream's
+
+`CHANGELOG.md` carries **both** histories in one file: our releases at the very top, then upstream's
+own changelog below, byte for byte as they wrote it. There is no separate fork changelog.
+
+- **Our block sits above upstream's `# Old changelogs` preamble.** That placement is load-bearing:
+  upstream inserts each new release directly *under* that preamble, so keeping ours strictly above it
+  means the two never touch and a rebase merges the file cleanly instead of conflicting every sync.
+  If `/upstream-new-version` ever does conflict here, the resolution is "keep both blocks, ours still
+  on top" — never drop or re-order upstream's entries.
+- **Editing upstream's text is a bug.** After adding a release the diff must be a pure insertion:
+  `git diff CHANGELOG.md | grep -c '^-[^-]'` → `0`.
+- Fork entries are `## 白い熊 天気 <tag> — <YYYY-MM-DD>`, newest first, each naming the upstream
+  release it is built on, and are **per-release deltas** — only `6.2.1+009`, the first, lists
+  everything.
+- The same text goes in the GitHub release notes. The **global `/publish-version` skill** does both.
+
 ### Versioning & APK naming
 
 - The upstream base lives in `app/build.gradle.kts` `defaultConfig` as upstream's own
