@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  shiroikuma fork: the house black-yellow, for the View world — the dark-mode copy.
+
+  Same values as res_fork/values/colors.xml on purpose: the house look is one look, not a pair.
+  It has to exist twice because resource merging matches on the qualifier first — without a
+  values-night of our own, upstream's night colours would win on a phone in dark mode.
+
+  `BreezyWeatherTheme` (styles.xml) points every Material attribute at these `md_theme_*` colours,
+  and a good part of this app is still XML views that the Compose theme cannot reach — the weather
+  cards, the search screen, menus, the locations list. Overriding the colours here, in our own
+  source set, turns all of it black-yellow without touching a single upstream file, so a rebase has
+  nothing to merge.
+
+  These are the DEFAULTS. What the 白い熊 天気 UI page edits at runtime is applied on top, per view,
+  by TenkiViewTheme — a static resource cannot follow a slider.
+
+  Pure yellow #FFFF00 for everything that reads as text, border or accent; black behind it. The
+  dimmed yellow (#B3B300) is the secondary/summary tone, matching TenkiUiConfig's YELLOW_DIM.
+-->
+<resources>
+    <color name="md_theme_primary">#FFFF00</color>
+    <color name="md_theme_onPrimary">#000000</color>
+    <color name="md_theme_primaryContainer">#000000</color>
+    <color name="md_theme_onPrimaryContainer">#FFFF00</color>
+    <color name="md_theme_primaryInverse">#FFFF00</color>
+    <color name="md_theme_inversePrimary">#FFFF00</color>
+
+    <color name="md_theme_secondary">#FFFF00</color>
+    <color name="md_theme_onSecondary">#000000</color>
+    <color name="md_theme_secondaryContainer">#000000</color>
+    <color name="md_theme_onSecondaryContainer">#FFFF00</color>
+
+    <color name="md_theme_tertiary">#FFFF00</color>
+    <color name="md_theme_onTertiary">#000000</color>
+    <color name="md_theme_tertiaryContainer">#000000</color>
+    <color name="md_theme_onTertiaryContainer">#FFFF00</color>
+
+    <color name="md_theme_error">#FF3B30</color>
+    <color name="md_theme_onError">#000000</color>
+    <color name="md_theme_errorContainer">#000000</color>
+    <color name="md_theme_onErrorContainer">#FF3B30</color>
+
+    <color name="md_theme_background">#000000</color>
+    <color name="md_theme_onBackground">#FFFF00</color>
+    <color name="md_theme_surface">#000000</color>
+    <color name="md_theme_onSurface">#FFFF00</color>
+    <color name="md_theme_surfaceVariant">#000000</color>
+    <color name="md_theme_onSurfaceVariant">#B3B300</color>
+    <color name="md_theme_outline">#FFFF00</color>
+
+    <!-- The snackbar and other "inverse" surfaces: stay black-on-yellow-text, never a light slab. -->
+    <color name="md_theme_inverseSurface">#000000</color>
+    <color name="md_theme_inverseOnSurface">#FFFF00</color>
+
+    <color name="md_theme_shadow">#000000</color>
+
+    <!-- Breezy's own text roles, used directly by the View layouts. -->
+    <color name="colorTextTitle">#FFFF00</color>
+    <color name="colorTextContent">#B3B300</color>
+    <color name="colorTextSubtitle">#B3B300</color>
+    <color name="colorMainCardBackground">#000000</color>
+    <color name="colorSplashScreen">#000000</color>
+</resources>

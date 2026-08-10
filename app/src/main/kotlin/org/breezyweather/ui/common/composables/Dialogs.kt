@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Icon
@@ -32,7 +31,6 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -50,6 +48,9 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.window.DialogProperties
 import org.breezyweather.R
+import org.breezyweather.ui.tenki.AlertDialog
+import org.breezyweather.ui.tenki.TextButton
+import org.breezyweather.ui.tenki.tenkiOutline
 import kotlin.math.max
 
 @Composable
@@ -221,7 +222,8 @@ internal fun AlertDialogNoPaddingContent(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier,
+        // shiroikuma fork: the house outline, so this dialog reads like every other one.
+        modifier = modifier.tenkiOutline(shape),
         shape = shape,
         color = containerColor,
         tonalElevation = tonalElevation

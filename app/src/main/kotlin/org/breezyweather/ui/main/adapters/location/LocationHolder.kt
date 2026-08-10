@@ -24,11 +24,13 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 import org.breezyweather.R
 import org.breezyweather.common.extensions.DEFAULT_CARD_LIST_ITEM_ELEVATION_DP
 import org.breezyweather.common.extensions.getThemeColor
 import org.breezyweather.databinding.ItemLocationCardBinding
 import org.breezyweather.domain.location.model.isDaylight
+import org.breezyweather.tenki.TenkiViewTheme
 import org.breezyweather.ui.theme.resource.providers.ResourceProvider
 
 class LocationHolder(
@@ -123,6 +125,18 @@ class LocationHolder(
             )
             mBinding.title2.text = model.body
         }
+
+        // shiroikuma fork: the location card is a View, so the Compose theme never reaches it —
+        // paint it from the same knobs by hand. Black ground, yellow text and icons, and the house
+        // outline on the card itself, which is also what says the row is tappable.
+        TenkiViewTheme.paintLocationCard(
+            context = context,
+            card = mBinding.root as? MaterialCardView,
+            item = mBinding.item,
+            titles = listOf(mBinding.title1),
+            bodies = listOf(mBinding.title2),
+            icons = listOf(mBinding.sortButton)
+        )
 
         mBinding.container.setOnClickListener { mClickListener(model.location.formattedId) }
         // TODO

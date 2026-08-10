@@ -48,18 +48,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.MyLocation
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -120,6 +118,10 @@ import org.breezyweather.ui.main.MainActivityViewModel
 import org.breezyweather.ui.main.adapters.location.LocationAdapter
 import org.breezyweather.ui.main.widgets.LocationItemTouchCallback
 import org.breezyweather.ui.main.widgets.LocationItemTouchCallback.TouchReactor
+import org.breezyweather.ui.tenki.Button
+import org.breezyweather.ui.tenki.OutlinedButton
+import org.breezyweather.ui.tenki.TextButton
+import org.breezyweather.ui.tenki.tenkiOutline
 import org.breezyweather.ui.theme.compose.BreezyWeatherTheme
 import org.breezyweather.ui.theme.compose.themeRipple
 import org.breezyweather.ui.theme.resource.ResourcesProviderFactory
@@ -237,7 +239,10 @@ open class ManagementFragment : MainModuleFragment(), TouchReactor {
                     Column {
                         if (BreezyWeather.instance.debugMode) {
                             FloatingActionButton(
-                                containerColor = MaterialTheme.colorScheme.tertiary,
+                                // shiroikuma fork: black ground, yellow mark, yellow outline
+                                containerColor = MaterialTheme.colorScheme.background,
+                                contentColor = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.tenkiOutline(FloatingActionButtonDefaults.shape),
                                 onClick = {
                                     viewModel.openChooseDebugLocationDialog()
                                 }
@@ -251,7 +256,10 @@ open class ManagementFragment : MainModuleFragment(), TouchReactor {
                         }
                         if (validLocationListState.value.firstOrNull { it.isCurrentPosition } == null) {
                             FloatingActionButton(
-                                containerColor = MaterialTheme.colorScheme.tertiary,
+                                // shiroikuma fork: black ground, yellow mark, yellow outline
+                                containerColor = MaterialTheme.colorScheme.background,
+                                contentColor = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.tenkiOutline(FloatingActionButtonDefaults.shape),
                                 onClick = {
                                     viewModel.openChooseWeatherSourcesDialog(
                                         Location(isCurrentPosition = true)
@@ -267,7 +275,10 @@ open class ManagementFragment : MainModuleFragment(), TouchReactor {
                             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.normal_margin)))
                         }
                         FloatingActionButton(
-                            containerColor = MaterialTheme.colorScheme.tertiary,
+                            // shiroikuma fork: black ground, yellow mark, yellow outline
+                            containerColor = MaterialTheme.colorScheme.background,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.tenkiOutline(FloatingActionButtonDefaults.shape),
                             onClick = {
                                 callback?.onSearchBarClicked()
                             }

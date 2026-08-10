@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +36,7 @@ import org.breezyweather.BuildConfig
 import org.breezyweather.R
 import org.breezyweather.ui.common.composables.AlertDialogNoPadding
 import org.breezyweather.ui.main.MainActivity
+import org.breezyweather.ui.tenki.Button
 import org.breezyweather.ui.theme.ThemeManager
 import org.breezyweather.ui.theme.compose.BreezyWeatherTheme
 

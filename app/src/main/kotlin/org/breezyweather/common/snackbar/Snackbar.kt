@@ -46,6 +46,7 @@ import androidx.core.view.updatePadding
 import com.google.android.material.behavior.SwipeDismissBehavior
 import org.breezyweather.R
 import org.breezyweather.common.extensions.doOnApplyWindowInsets
+import org.breezyweather.tenki.TenkiViewTheme
 
 class Snackbar private constructor(
     private val mParent: ViewGroup,
@@ -110,6 +111,11 @@ class Snackbar private constructor(
                 right = insets.right
             )
         }
+
+        // shiroikuma fork: the flash is a View, so the Compose theme never reaches it. Upstream
+        // paints it with the *inverse* surface — a light grey slab with black text on our black
+        // ground. Repaint it from the knobs: black ground, yellow text, yellow outline.
+        TenkiViewTheme.paintSnackbar(mContext, mView)
     }
 
     fun setAction(@StringRes resId: Int, listener: View.OnClickListener?): Snackbar {
