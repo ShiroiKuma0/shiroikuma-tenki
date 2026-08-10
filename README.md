@@ -7,12 +7,14 @@
 **A feature-rich weather app in the house black-yellow.**
 
 A fork of [Breezy Weather](https://github.com/breezy-weather/breezy-weather) — forecast, observations,
-nowcasting, air quality, pollen and alerts from more than 50 weather sources — renamed, re-iconed and
-being brought into line with the rest of the house.
+nowcasting, air quality, pollen and alerts from more than 50 weather sources — with **major
+additions**: a live theming page that repaints the app as you drag a slider, a black-yellow repaint
+that reaches every surface upstream draws, two hand-cut weather-icon packs, and headless backup
+automation for the 保存復元 batch.
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 [All releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)**
+**📥 Latest release: [`6.2.1+009`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
 
@@ -38,6 +40,54 @@ yellow once it is — the newest archive found there, and a category checklist (
 weather source configuration, locations, imported fonts). Exports are written atomically, `.part`
 first and renamed only when the archive is complete, as `shiroikuma-tenki_<yyyy-MM-dd_HH-mm-ss>.zip`,
 the same filename shape every sister app uses.
+
+---
+
+## 🌗 Black-yellow, all the way down
+
+The repaint reaches past Compose. `BreezyWeatherTheme` is the single wrapping point every screen
+goes through, so swapping the `ColorScheme`, `Shapes` and `Typography` there themes the whole Compose
+app at once — but an XML view cannot be reached that way, so the locations card, the main weather
+cards, the trend tab buttons, the chips and the snackbar are painted by hand from the *same* knobs.
+
+Upstream defines its `md_theme_*` palette four times over — `values`, `values-night`, and again in
+`values-v31` / `values-night-v31`, where it points at Android's Material You **system** colours. On
+any phone running Android 12 or newer the qualified pair wins, so an override that only touches
+`values` does nothing at all. All four are overridden here, and the built APK carries no
+dynamic-colour variant left to beat us.
+
+Cards sit at elevation 0 with their ground set outright, because Material lightens an elevated
+surface by compositing a tint over it — that tint was the grey. Tag chips are yellow-outlined pills
+that **reverse** to a yellow ground when selected, which is the only state difference a two-colour
+palette can carry. Wind arrows take the accent rather than the Beaufort green-to-red scale, since the
+number is printed beside every one of them. Air quality and UV keep upstream's scales on purpose:
+there the colour **is** the reading.
+
+The animated header is upstream's own weather scene — drifting cloudscape, rain, meteor shower —
+recoloured rather than deleted. A hardware layer with a duotone filter maps every pixel's brightness
+onto the Background → Accent ramp at composite time, so what upstream drew blue-to-white comes out
+black-to-yellow with its shape and motion intact, for every weather implementor at once. How far a
+bright pixel travels is a slider; 0 drops the scene entirely and takes the flat view instead.
+
+---
+
+## ⛅ Three weather-icon packs
+
+The twelve weather codes, re-drawn in the house yellow, in two packs cut from one geometry model:
+**traced** is stroke-only line-art like the launcher mark, **full** fills the same silhouettes.
+Filling is one rule — a path that closes gets a fill — and a filled shape is stroked as well at the
+same width, so its outer edge lands exactly where the traced one's does and the two packs register
+pixel for pixel. Upstream's set stays, listed as **Breezy Weather**, so the whole change is one tap
+away from being undone.
+
+Each pack is complete: the animated icon and its layers, the widget and notification minis in light,
+grey and dark, the notification small icon, and the launcher-shortcut badge and adaptive foreground —
+130 drawables apiece, all emitted by `tools/icon/emit_weather_icons.py`, which is the only source.
+
+The animators are upstream's, borrowed by name, and the layer split matches what each one moves, so
+the icons still breathe, drift and fall. Line-art has no fill to hide an overlap behind, so the
+composites are laid out disjoint: in partly-cloudy the sun sits clear of the cloud rather than behind
+it, which upstream can get away with and line-art cannot.
 
 ---
 
