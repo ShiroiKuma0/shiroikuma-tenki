@@ -176,6 +176,21 @@ class TenkiUiConfig(context: Context) {
         get() = int(KEY_INDENT, 18)
         set(v) = putInt(KEY_INDENT, v)
 
+    // ---------------------------------------------------------------- header
+
+    /**
+     * How far the animated header is pushed from the ground colour towards the accent, 0..100 %.
+     *
+     * Upstream draws a live weather scene behind the temperature — a blue-to-white cloudscape, rain,
+     * a meteor shower. We keep the scene and re-ink it: every pixel's brightness is mapped onto a
+     * background → accent ramp, so the clouds read as the house yellow instead of white. 0 turns the
+     * animation off altogether and leaves a flat ground, which is also the cheapest on battery; 100
+     * takes the brightest cloud all the way to pure accent, which will fight the text sitting on it.
+     */
+    var headerIntensity: Int
+        get() = int(KEY_HEADER_INTENSITY, 50)
+        set(v) = putInt(KEY_HEADER_INTENSITY, v)
+
     // ------------------------------------------------------ export directory
 
     /** SAF tree uri of the backup folder, "" when never set. */
@@ -290,6 +305,8 @@ class TenkiUiConfig(context: Context) {
         private const val KEY_ROW_PAD = "density_row_padding"
         private const val KEY_GROUP_SPACING = "density_group_spacing"
         private const val KEY_INDENT = "density_indent"
+
+        private const val KEY_HEADER_INTENSITY = "header_intensity"
 
         private const val KEY_EXPORT_DIR = "export_dir"
         private const val KEY_RECENT = "recent_colors"

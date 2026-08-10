@@ -171,6 +171,20 @@ fun TenkiUiScreen(onNavigateBack: () -> Unit) {
             SliderRow(ui, "Roundness", ui.iconRoundness, 0..100, "%") { ui.updateIconRoundness(it) }
             IconPreview(ui)
 
+            // ------------------------------------------------------------- header
+            SectionHeader(ui, "Header")
+            SliderRow(ui, "Weather scene brightness", ui.headerIntensity, 0..100, "%") {
+                ui.updateHeaderIntensity(it)
+            }
+            RowNote(
+                ui,
+                "Upstream draws a live scene behind the temperature — clouds, rain, a meteor " +
+                    "shower. It is kept and re-inked: brightness picks a point between the " +
+                    "Background and Accent colours, so the clouds read yellow instead of white. " +
+                    "0 turns the animation off and leaves a flat ground; high values make the " +
+                    "clouds compete with the text on top of them."
+            )
+
             // ------------------------------------------------------------ density
             SectionHeader(ui, "Density")
             SliderRow(ui, "Row padding", ui.rowPadding, 0..24, "dp") { ui.updateRowPadding(it) }
