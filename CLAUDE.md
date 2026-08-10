@@ -58,6 +58,9 @@ Our one feature so far, in the kxkb page grammar (see also the sister implementa
 | `tenki/TenkiBackup.kt` | the category ZIP — `writeZip(categories, OutputStream, onProgress, isCancelled)` is the ONE export implementation; atomic `.part`-then-rename on the SAF path |
 | `ui/tenki/TenkiUiScreen.kt` | the page itself: section headings with word-width underlines, two-level indents, tight rows, a preview under every group |
 | `ui/tenki/TenkiDialogs.kt` | RGBA colour picker with recent-colour swatches, font picker rendering each font in its own glyphs, and the Export/Import panel |
+| `ui/tenki/TenkiSurfaces.kt` | drop-in `AlertDialog` / `TextButton` / `Button` / `OutlinedButton` / `FilledTonalButton` carrying the house border; a file opts in by **changing one import**, plus `Modifier.tenkiOutline()` / `tenkiBorderStroke()` |
+| `tenki/TenkiViewTheme.kt` | the same knobs applied to the **View** world: location card, main weather cards, trend tab buttons, chips, snackbar |
+| `tenki/TenkiWeatherTheme.kt` | `TenkiWeatherThemeDelegate` (wraps upstream's) + the header's own weather view |
 | `tenki/automation/` | the 保存復元 sister-app contract — `TenkiAutomationAuth` (token, switch default OFF), `StateExportReceiver` (exported, 3 actions), `StateExportService` (foreground `dataSync`) |
 
 **The 保存復元 contract** (定義: `~/git/shiroikuma-jiyusagyoban/sister-app-contract-backup-automation-hand-off.md`)
@@ -73,12 +76,48 @@ All-Files-Access. So the contract's `path` extra is honoured only if the grant h
 otherwise the export lands in the SAF folder set on the UI page; with neither, the reply is
 `ERROR:no-directory` (or `ERROR:no-storage-access` when a `path` was asked for and cannot be used).
 
+### Open calls 白い熊 has not settled yet
+
+Do not decide these unilaterally; raise them when the topic comes up.
+
+| Question | Where it stands |
+| --- | --- |
+| Add `MANAGE_EXTERNAL_STORAGE` so 保存復元's `path` extra works like the other sister apps? | Declined for now — the export goes to the SAF folder set on the UI page instead |
+| The "get icon packs" link still points at `breezy-weather/breezy-weather-icon-packs` | Left as-is: a functional resource, not branding |
+| Air-quality / UV colour scales | Left semantic (the colour is the reading); flagged to 白い熊, not vetoed |
+
 - **`BreezyWeatherTheme` is the single wrapping point** — all 39 call sites go through it, so
   providing `LocalTenkiUi` and swapping the `ColorScheme`/`Typography`/`Shapes` there themes the
   whole Compose app and repaints it live while a slider is dragged.
-- **Scope, honestly:** this paints **Compose**. Breezy still draws its main weather screen, cards
-  and widgets with XML views and its own `ThemeManager`, and those do not follow the knobs yet.
-  Bringing them across is the next stage of the work.
+- **⚠ THE PALETTE LIVES IN FOUR FILES, NOT ONE.** Upstream defines the whole `md_theme_*` set in
+  `values/`, `values-night/` **and again in `values-v31/` + `values-night-v31/`**, where it points at
+  Android's Material You *system* colours. A qualified resource beats an unqualified one, so on any
+  phone running Android 12+ the `-v31` pair wins and an override that only touches `values/` does
+  **nothing** — visibly: unqualified things (day labels, card titles) turn yellow while the toolbar,
+  chips and icons stay Material blue-and-white. Our copies live in
+  `app/src/res_fork/values{,-night,-v31,-night-v31}/colors.xml`, all four identical. Verify a
+  suspicion with
+  `~/android-sdk/build-tools/36.0.0/aapt2 dump resources <apk> | grep -A4 color/md_theme_primary`
+  — if you see a `(v31)` line pointing at `@0x0106…`, the system palette is still winning.
+  (Cost one build to find, 2026-08-10.)
+- **The View world does not follow the Compose theme** — `BreezyWeatherTheme` cannot reach an XML
+  view. Anything drawn in XML is painted by hand from the same knobs in `TenkiViewTheme`, called
+  from the holder that binds it (`LocationHolder`, `AbstractMainCardViewHolder`, `DailyViewHolder` /
+  `HourlyViewHolder` for the tab buttons, `Snackbar`'s `init`). When a new View surface comes out
+  Material-coloured, add a `paintX` there rather than fighting the theme.
+- **`colorSurfaceInverse` is a FOREGROUND here.** Upstream uses it as the bright text colour on the
+  weather cards (daily/hourly titles, wind, astro, visibility) and only the snackbar uses it as a
+  ground — so in our palette it is the **yellow**, and the snackbar is repainted in code instead.
+  Setting it to black makes every card title black-on-black.
+- **The header is not a colour resource.** The gradient behind the temperature is upstream's
+  animated `MaterialWeatherView`, computed inside the animator. It is reached only through
+  `TenkiWeatherThemeDelegate`, which `ThemeManager` wraps around `MaterialWeatherThemeDelegate`.
+  `getOnBackgroundColor` from that delegate is what decides the toolbar title, the navigation icon,
+  the system bars and the trend labels.
+- **Scope, honestly:** the weather icons come from the icon-pack provider and keep their own
+  colours, and the air-quality / UV scales are left semantic on purpose — there the colour **is**
+  the reading. Wind is the exception: its arrows take the accent, because the Beaufort number is
+  printed beside every one of them.
 - Every border/divider/roundness slider **reaches 0 meaning "draw nothing"**, never "the Material
   default".
 - Entry points: Settings → the first item, and a **long press on the settings cog** in the
