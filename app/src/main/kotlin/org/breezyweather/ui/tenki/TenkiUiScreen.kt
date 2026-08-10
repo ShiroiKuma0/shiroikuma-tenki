@@ -221,19 +221,11 @@ private fun AutomationRows(ui: TenkiUiState) {
         "Lets 白い熊 自由作業盤 trigger this app's export through the token-gated intent."
     )
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                context.getSystemService(ClipboardManager::class.java)
-                    ?.setPrimaryClip(ClipData.newPlainText("token", token))
-                Toast.makeText(context, "Token copied", Toast.LENGTH_SHORT).show()
-            }
-            .padding(
-                start = rowIndent(ui, false),
-                end = 16.dp,
-                top = ui.rowPadding.dp,
-                bottom = ui.rowPadding.dp
-            ),
+        modifier = pressableRow(ui, false) {
+            context.getSystemService(ClipboardManager::class.java)
+                ?.setPrimaryClip(ClipData.newPlainText("token", token))
+            Toast.makeText(context, "Token copied", Toast.LENGTH_SHORT).show()
+        },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
@@ -325,6 +317,34 @@ private const val BASE_INDENT = 12
 private fun rowIndent(ui: TenkiUiState, level2: Boolean) =
     (BASE_INDENT + ui.indentStep * (if (level2) 3 else 2)).dp
 
+/**
+ * Every tappable row sits in a bordered box. On a black ground with yellow text, an unboxed row
+ * looks exactly like a label — the box is the only thing that says "this can be pressed". The
+ * indent stays OUTSIDE the box, so the nesting still reads at a glance.
+ */
+@Composable
+private fun pressableRow(ui: TenkiUiState, level2: Boolean, onClick: () -> Unit): Modifier {
+    val shape = RoundedCornerShape(ui.cornerRadius.dp)
+    return Modifier
+        .fillMaxWidth()
+        .padding(
+            start = rowIndent(ui, level2),
+            end = 16.dp,
+            top = (ui.rowPadding / 2).dp,
+            bottom = (ui.rowPadding / 2).dp
+        )
+        .clip(shape)
+        .then(
+            if (ui.borderWidth > 0) {
+                Modifier.border(ui.borderWidth.dp, Color(ui.borderColor), shape)
+            } else {
+                Modifier
+            }
+        )
+        .clickable(onClick = onClick)
+        .padding(horizontal = 10.dp, vertical = (ui.rowPadding + 2).dp)
+}
+
 @Composable
 private fun RowTitle(ui: TenkiUiState, title: String, summary: String?, warn: Boolean = false) {
     Text(text = title, color = Color(ui.textColor), fontSize = ui.fontSize.sp)
@@ -361,17 +381,7 @@ private fun NavigationRow(
     level2: Boolean = false,
     onClick: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(
-                start = rowIndent(ui, level2),
-                end = 16.dp,
-                top = ui.rowPadding.dp,
-                bottom = ui.rowPadding.dp
-            )
-    ) {
+    Column(modifier = pressableRow(ui, level2, onClick)) {
         RowTitle(ui, title, summary, summaryIsWarning)
     }
 }
@@ -385,15 +395,7 @@ private fun ToggleRow(
     onChange: (Boolean) -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onChange(!checked) }
-            .padding(
-                start = rowIndent(ui, level2),
-                end = 16.dp,
-                top = ui.rowPadding.dp,
-                bottom = ui.rowPadding.dp
-            ),
+        modifier = pressableRow(ui, level2) { onChange(!checked) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) { RowTitle(ui, title, null) }
@@ -467,15 +469,7 @@ private fun ColorRow(ui: TenkiUiState, title: String, slot: ColorSlot, level2: B
     val color = ui.colorOf(slot)
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { showPicker = true }
-            .padding(
-                start = rowIndent(ui, level2),
-                end = 16.dp,
-                top = ui.rowPadding.dp,
-                bottom = ui.rowPadding.dp
-            ),
+        modifier = pressableRow(ui, level2) { showPicker = true },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
@@ -514,15 +508,7 @@ private fun FontRow(ui: TenkiUiState) {
     val context = LocalContext.current
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { showPicker = true }
-            .padding(
-                start = rowIndent(ui, false),
-                end = 16.dp,
-                top = ui.rowPadding.dp,
-                bottom = ui.rowPadding.dp
-            ),
+        modifier = pressableRow(ui, false) { showPicker = true },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {

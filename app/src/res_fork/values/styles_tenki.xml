@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  shiroikuma fork: the View-world dialog theme. Four dialogs in this app are still built with
+  MaterialAlertDialogBuilder (the icon-pack previews and the widget config), so they get their look
+  from a theme attribute rather than from Compose. Pointing `materialAlertDialogTheme` at this
+  overlay gives them the same black ground and yellow border as everything else.
+-->
+<resources>
+    <style name="TenkiAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:background">@drawable/tenki_dialog_background</item>
+        <item name="backgroundInsetStart">@dimen/normal_margin</item>
+        <item name="backgroundInsetEnd">@dimen/normal_margin</item>
+    </style>
+</resources>

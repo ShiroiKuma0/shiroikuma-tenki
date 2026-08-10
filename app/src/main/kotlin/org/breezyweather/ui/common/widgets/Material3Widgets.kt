@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.breezyweather.R
+import org.breezyweather.ui.tenki.tenkiBorderStroke
 import kotlin.math.ln
 
 // helper.
@@ -227,5 +228,8 @@ fun Material3ExpressiveCardListItem(
         containerColor = getWidgetSurfaceColor(elevation, surface),
         contentColor = onSurface
     ),
+    // shiroikuma fork: the house outline. Every settings/about row is tappable, and on a black
+    // ground an unbordered card is invisible — the border is what says "this is a thing you press".
+    border = tenkiBorderStroke(),
     content = content
 )

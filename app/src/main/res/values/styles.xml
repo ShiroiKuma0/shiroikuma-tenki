@@ -47,6 +47,10 @@
          Related issue: https://issuetracker.google.com/issues/214408199 -->
         <item name="android:windowLayoutInDisplayCutoutMode" tools:ignore="NewApi">default</item>
 
+        <!-- shiroikuma fork: the black-yellow ground and border for the View-world dialogs
+             (see res_fork/values/styles_tenki.xml) -->
+        <item name="materialAlertDialogTheme">@style/TenkiAlertDialog</item>
+
         <item name="colorControlHighlight">@color/colorRipple_regular</item>
         <item name="colorTitleText">@color/colorTextTitle</item>
         <item name="colorBodyText">@color/colorTextContent</item>
