@@ -10,6 +10,66 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+034 — 2026-08-14
+
+Built on upstream **v6.2.1**. Two things: a location can draw **several forecast sources at once**,
+and the trend charts are rebuilt as meteograms.
+
+### Several forecast sources per location
+
+- **The Forecast row takes a list.** "Weather sources" → Forecast opens a multi-select panel:
+  checkboxes over the usual grouped source list, plus an ordered section with drag handles and a
+  remove button. The last remaining source cannot be unchecked. Current, normals and the rest keep
+  their single-select rows.
+- **The first source stays the location's identity.** It is what `formattedId` is built from, so the
+  duplicate-location check, the widgets and the notification are unaffected; dragging a different
+  source to the top is what changes it, exactly as picking a different source did before.
+- **Every selected source is fetched.** `RefreshHelper` groups the extra sources alongside the
+  primary one — a source already used for another feature gains FORECAST and stays a single call —
+  and runs each through the same completion the primary gets, including the back-fill that keeps
+  today alive late in the day. Air quality and pollen are folded into every source's arrays, so all
+  chart tabs work whichever source drew the bars.
+- **A source added mid-window fetches immediately.** The cache-validity check is keyed per feature,
+  not per source, which would otherwise have made a newly added source wait for the primary's
+  forecast cache to expire.
+- **Cached per source** — migration 26 rebuilds `dailys` and `hourlys` with the source in their
+  unique key, so two sources can hold the same date. Existing rows keep `source = ''` and read back
+  as the primary, so the charts draw from cache on the first launch after the upgrade.
+- **One chart per source**, stacked in the arranged order inside the existing card: title, subtitle
+  and tab row stay single, and one tab selection drives every chart. The source name only appears
+  when more than one is selected. The footer credits them all.
+
+### Meteogram trend charts
+
+- **Filled, and coloured by temperature.** The area under the curve is drawn in the colour of the
+  temperature at each point, from a single scale now shared with the details screen
+  (`TemperatureColorScale`) — cold starts below 16°.
+- **No grid, no axis, no "Normal" rules.** Alternating bands delimit hours and days instead, running
+  the full height of the column including the labels and icons, with a thicker divider at midnight
+  and a dashed marker at now. A few hours of history are knocked back to the left of it.
+- **Each source scales to its own data**, not to the monthly normals, which used to stretch every
+  axis to 14–26° whatever the forecast was.
+- **The hourly window is what fits the screen.** Columns share the host's width, so the opening
+  window fills it exactly and the visible peak reaches the top; everything beyond scrolls, riding the
+  pane edge with its reading intact rather than being clipped away.
+- **Daily is one continuous trace.** The high and low curves are merged: it rises through each day
+  and falls through each night, eased so the extremes round over into peaks and troughs.
+- **Rain along the foot of both**, at hourly resolution, as narrow bars tiling edge to edge. Sources
+  that report no probability — MET Norway, for one — fall back to millimetres with their own ceiling.
+  It is drawn under the readings, so a wet night never buries the figures.
+- **Readings on plates**, anchored to the curve's extreme across their own width so they never clip
+  the line, lifted in lightness so a hot reading stays red and legible on black. Hourly labels are
+  two rows, the meridiem under the numeral.
+- **Settable** — graph heights, and the hourly window's hours back and ahead, are sliders on the
+  白い熊 天気 page.
+
+### Fixes
+
+- The trend charts' polylines are smooth curves rather than straight segments.
+- `TenkiWeatherThemeDelegate.getThemeColors` returned the background for indices 1 and 2, which are
+  the charts' line colours — every temperature curve was being drawn black on black.
+- The hourly card is above the daily one by default.
+
 ## 白い熊 天気 6.2.1+013 — 2026-08-10
 
 Built on upstream **v6.2.1**. Adds Czechia's national weather service, which upstream had never
