@@ -8,15 +8,46 @@
 
 A fork of [Breezy Weather](https://github.com/breezy-weather/breezy-weather) — forecast, observations,
 nowcasting, air quality, pollen and alerts from more than 50 weather sources — with **major
-additions**: a live theming page that repaints the app as you drag a slider, a black-yellow repaint
-that reaches every surface upstream draws, two hand-cut weather-icon packs, Czechia's national
-weather service, and headless backup automation for the 保存復元 batch.
+additions**: several forecast sources stacked side by side for the same place, meteogram-style trend
+charts, a live theming page that repaints the app as you drag a slider, a black-yellow repaint that
+reaches every surface upstream draws, two hand-cut weather-icon packs, Czechia's national weather
+service, and headless backup automation for the 保存復元 batch.
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 Latest release: [`6.2.1+013`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
+**📥 Latest release: [`6.2.1+034`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
+
+---
+
+## 📊 Several forecasts, one screen
+
+Upstream lets a location pick **one** forecast source. Here the Forecast row opens a multi-select
+panel with drag-to-reorder, and the hourly and daily cards draw **one chart per source**, stacked in
+the order you arranged, under a single title and one shared tab row — switch to precipitation and
+every source switches with you, so you are always comparing like with like.
+
+Each source is fetched and cached in its own right, so a second opinion survives a cold start rather
+than appearing only after a refresh. The first source in the list stays the location's identity: it
+feeds the header, the widgets and the notification exactly as before.
+
+---
+
+## 📈 Meteogram trend charts
+
+The trend cards are redrawn along meteogram lines. The area under the curve is **filled with the
+colour of the temperature at that point** — one scale, shared with the details screen, that turns
+cold below 16°. No gridlines, no axis, no reference rules: hours and days are delimited by alternating
+bands instead, with a divider at midnight and a dashed marker at now.
+
+The hourly chart opens on a window of your choosing — so many hours behind, so many ahead — sized so
+those columns fill the screen exactly and the visible peak reaches the top, with the rest of the
+forecast scrolling off to the right. The daily chart merges the day and night curves into a single
+trace that rises through each day and falls through each night. Rain sits along the foot of both at
+hourly resolution, and falls back to millimetres for sources that report no probability.
+
+Graph heights and the hourly window are sliders on the 白い熊 天気 page.
 
 ---
 
