@@ -57,12 +57,14 @@
             app:layout_constraintTop_toBottomOf="@+id/daily_block_subtitle"
             app:layout_constraintStart_toStartOf="@+id/daily_block_title_icon" />
 
-        <org.breezyweather.ui.common.widgets.trend.TrendRecyclerView
-            android:id="@+id/daily_block_trendRecyclerView"
+        <!-- shiroikuma fork: one container_main_daily_trend_source per selected forecast source,
+             stacked in the arranged order. Title, subtitle and the tab row above stay single. -->
+        <LinearLayout
+            android:id="@+id/daily_block_source_container"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/daily_trend_item_height"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:layout_marginTop="@dimen/small_margin"
-            tools:ignore="UnusedAttribute"
             app:layout_constraintTop_toBottomOf="@+id/daily_block_button_group"
             app:layout_constraintStart_toStartOf="parent" />
 

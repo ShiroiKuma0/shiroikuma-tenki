@@ -49,6 +49,13 @@ data class Location(
     val weather: Weather? = null,
 
     val forecastSource: String = "openmeteo",
+
+    /**
+     * shiroikuma fork: the full ordered list of forecast sources, the first one being [forecastSource].
+     * Empty means "only [forecastSource]", which is what every location built before this feature says.
+     * Read it through [orderedForecastSources], never directly.
+     */
+    val forecastSources: List<String> = emptyList(),
     val currentSource: String? = null,
     val airQualitySource: String? = null,
     val pollenSource: String? = null,
@@ -82,6 +89,23 @@ data class Location(
         // Sorry people living exactly at 0,0
         get() = latitude != 0.0 || longitude != 0.0
 
+    /**
+     * shiroikuma fork: every forecast source to draw, in the order the user arranged them.
+     *
+     * Self-healing on purpose: [forecastSource] is the identity source baked into [formattedId], so it
+     * always has to be in there. A location that predates the feature, or a `copy(forecastSource = …)`
+     * that did not touch [forecastSources], still comes out with a sensible list.
+     */
+    val orderedForecastSources: List<String>
+        get() {
+            val ordered = forecastSources.filter { it.isNotEmpty() }.distinct()
+            return when {
+                ordered.isEmpty() -> listOf(forecastSource)
+                forecastSource in ordered -> ordered
+                else -> listOf(forecastSource) + ordered
+            }
+        }
+
     val isTimeZoneInvalid: Boolean
         get() = timeZone.id == "GMT"
 
@@ -104,6 +128,7 @@ data class Location(
         parcel.writeString(city)
         parcel.writeString(district)
         parcel.writeString(forecastSource)
+        parcel.writeStringList(forecastSources)
         parcel.writeString(currentSource)
         parcel.writeString(airQualitySource)
         parcel.writeString(pollenSource)
@@ -136,6 +161,7 @@ data class Location(
         city = parcel.readString()!!,
         district = parcel.readString(),
         forecastSource = parcel.readString()!!,
+        forecastSources = parcel.createStringArrayList() ?: emptyList(),
         currentSource = parcel.readString(),
         airQualitySource = parcel.readString(),
         pollenSource = parcel.readString(),
@@ -164,6 +190,10 @@ data class Location(
         }
 
         if (forecastSource != other.forecastSource) {
+            return false
+        }
+
+        if (orderedForecastSources != other.orderedForecastSources) {
             return false
         }
 

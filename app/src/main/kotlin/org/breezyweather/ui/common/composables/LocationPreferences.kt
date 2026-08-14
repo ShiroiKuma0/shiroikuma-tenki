@@ -361,7 +361,9 @@ fun SecondarySourcesPreference(
     val dialogLinkOpenState = remember { mutableStateOf(false) }
     val hasChangedReverseGeocodingSource = remember { mutableStateOf(false) }
     val hasChangedASource = remember { mutableStateOf(false) }
-    val forecastSource = remember { mutableStateOf(location.forecastSource) }
+    // shiroikuma fork: forecast takes several sources, drawn stacked in this order.
+    // The first is the location's identity source, so it drives the duplicate check below.
+    val forecastSources = remember { mutableStateOf(location.orderedForecastSources) }
     val isLocationDuplicate = remember { mutableStateOf(false) }
     val currentSource = remember { mutableStateOf(location.currentSource ?: "") }
     val airQualitySource = remember { mutableStateOf(location.airQualitySource ?: "") }
@@ -375,7 +377,7 @@ fun SecondarySourcesPreference(
         sourceManager,
         context,
         location,
-        forecastSource.value,
+        forecastSources.value.first(),
         SourceFeature.FORECAST
     )
 
@@ -511,49 +513,23 @@ fun SecondarySourcesPreference(
                         )
                     }
                 }
-                SourceViewWithContinents(
+                // shiroikuma fork: several forecast sources, arranged. A selected source that is no
+                // longer compatible is not injected into the list here the way the single-source
+                // rows do it — the dialog names it "(unavailable)" in its ordered section, where it
+                // can be removed.
+                MultiSourceViewWithContinents(
                     title = stringResource(SourceFeature.FORECAST.resourceName),
-                    selectedKey = forecastSource.value,
-                    sourceList = buildMap {
-                        if (
-                            forecastSource.value.isNotEmpty() &&
-                            !compatibleForecastSources.values.any { l ->
-                                l.any { it.first == forecastSource.value }
-                            }
-                        ) {
-                            put(
-                                null,
-                                buildList {
-                                    add(
-                                        Triple(
-                                            forecastSource.value,
-                                            stringResource(
-                                                R.string.settings_weather_source_unavailable,
-                                                forecastSource.value
-                                            ),
-                                            false
-                                        )
-                                    )
-                                }.toImmutableList()
-                            )
+                    selectedKeys = forecastSources.value.toImmutableList(),
+                    sourceList = compatibleForecastSources
+                ) { sources ->
+                    if (sources.isNotEmpty()) {
+                        if (locationExists != null) {
+                            isLocationDuplicate.value = sources.first() != location.forecastSource &&
+                                locationExists(location.copy(forecastSource = sources.first()))
                         }
-                        putAll(compatibleForecastSources)
-                    }.toImmutableMap(),
-                    withState = false
-                ) { sourceId ->
-                    if (locationExists != null) {
-                        if (sourceId != location.forecastSource) {
-                            isLocationDuplicate.value = locationExists(
-                                location.copy(
-                                    forecastSource = sourceId
-                                )
-                            )
-                        } else {
-                            isLocationDuplicate.value = false
-                        }
+                        forecastSources.value = sources
+                        hasChangedASource.value = true
                     }
-                    forecastSource.value = sourceId
-                    hasChangedASource.value = true
                 }
                 if (isLocationDuplicate.value) {
                     Text(
@@ -848,7 +824,8 @@ fun SecondarySourcesPreference(
                         val newLocation = location.copy(
                             // Reset cityId as they differ from one reverse geocoding source to another
                             cityId = if (hasChangedReverseGeocodingSource.value) "" else location.cityId,
-                            forecastSource = forecastSource.value,
+                            forecastSource = forecastSources.value.first(),
+                            forecastSources = forecastSources.value,
                             currentSource = currentSource.value,
                             airQualitySource = airQualitySource.value,
                             pollenSource = pollenSource.value,

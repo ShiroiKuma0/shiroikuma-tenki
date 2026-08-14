@@ -53,7 +53,7 @@ class HourlyCloudCoverAdapter(
         @SuppressLint("SetTextI18n, InflateParams", "DefaultLocale")
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder(activity.getString(R.string.tag_cloud_cover))
-            super.onBindView(activity, location, talkBackBuilder, position)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
             val hourly = location.weather!!.nextHourlyForecast[position]
 
             hourly.cloudCover?.let { cloudCover ->

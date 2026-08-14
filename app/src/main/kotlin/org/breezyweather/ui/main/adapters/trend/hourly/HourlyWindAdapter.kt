@@ -57,7 +57,7 @@ class HourlyWindAdapter(
         @SuppressLint("SetTextI18n, InflateParams")
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder()
-            super.onBindView(activity, location, talkBackBuilder, position)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
             val hourly = location.weather!!.nextHourlyForecast[position]
 
             if (hourly.wind?.isValid == true) {

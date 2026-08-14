@@ -50,3 +50,5 @@ bin/
 *.jks
 # Agent config is committed (CLAUDE.md, .claude/skills/); only the machine-local settings are not.
 /.claude/settings.local.json
+# Agent working files: generator scripts, intermediate data, throwaway exports.
+/.scratch/

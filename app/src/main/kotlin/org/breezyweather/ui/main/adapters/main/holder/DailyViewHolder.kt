@@ -20,6 +20,7 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.children
@@ -28,12 +29,14 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonGroup
 import org.breezyweather.R
 import org.breezyweather.common.activities.BreezyActivity
+import org.breezyweather.common.extensions.dpToPx
 import org.breezyweather.common.extensions.getThemeColor
 import org.breezyweather.domain.settings.SettingsManager
 import org.breezyweather.tenki.TenkiViewTheme
 import org.breezyweather.ui.common.adapters.ButtonAdapter
 import org.breezyweather.ui.common.widgets.trend.TrendLayoutManager
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerView
+import org.breezyweather.ui.main.MainActivity
 import org.breezyweather.ui.main.adapters.trend.DailyTrendAdapter
 import org.breezyweather.ui.main.widgets.TrendRecyclerViewScrollBar
 import org.breezyweather.ui.theme.ThemeManager
@@ -44,13 +47,17 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
 ) {
     private val subtitle: TextView = itemView.findViewById(R.id.daily_block_subtitle)
     private val buttonGroup: MaterialButtonGroup = itemView.findViewById(R.id.daily_block_button_group)
-    private val trendRecyclerView: TrendRecyclerView = itemView.findViewById(R.id.daily_block_trendRecyclerView)
-    private val scrollBar = TrendRecyclerViewScrollBar()
 
-    init {
-        trendRecyclerView.setHasFixedSize(true)
-        trendRecyclerView.addItemDecoration(scrollBar)
-    }
+    // shiroikuma fork: one chart per selected forecast source, rebuilt on every bind
+    private val sourceContainer: LinearLayout = itemView.findViewById(R.id.daily_block_source_container)
+    private val charts = mutableListOf<SourceChart>()
+
+    private class SourceChart(
+        val adapter: DailyTrendAdapter,
+        val recyclerView: TrendRecyclerView,
+        val scrollBar: TrendRecyclerViewScrollBar,
+        val location: Location,
+    )
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onBindView(
@@ -73,9 +80,42 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
             subtitle.text = weather.current?.dailyForecast
         }
 
-        val trendAdapter = DailyTrendAdapter(activity, trendRecyclerView).apply {
-            bindData(location)
+        // shiroikuma fork: build a chart per source, stacked in the arranged order. With a single
+        // source this is one unlabelled chart — the card as it always was.
+        val blocks = location.forecastSourceBlocks((activity as? MainActivity)?.sourceManager, activity)
+        sourceContainer.removeAllViews()
+        charts.clear()
+
+        blocks.forEach { block ->
+            val sourceView = LayoutInflater.from(context)
+                .inflate(R.layout.container_main_daily_trend_source, sourceContainer, false)
+            val nameView: TextView = sourceView.findViewById(R.id.daily_source_name)
+            val recyclerView: TrendRecyclerView = sourceView.findViewById(R.id.daily_source_trendRecyclerView)
+
+            // Nothing to tell apart when there is only one, so the label stays out of the way
+            nameView.visibility = if (blocks.size > 1) View.VISIBLE else View.GONE
+            nameView.text = block.name
+
+            // shiroikuma fork: the graph's height is a setting, not a fixed dimen
+            recyclerView.layoutParams = recyclerView.layoutParams.apply {
+                height = context.dpToPx(TenkiViewTheme.state(context).dailyChartHeight.toFloat()).toInt()
+            }
+
+            val scrollBar = TrendRecyclerViewScrollBar()
+            recyclerView.setHasFixedSize(true)
+            recyclerView.addItemDecoration(scrollBar)
+            charts.add(
+                SourceChart(
+                    adapter = DailyTrendAdapter(activity, recyclerView).apply { bindData(block.location) },
+                    recyclerView = recyclerView,
+                    scrollBar = scrollBar,
+                    location = block.location
+                )
+            )
+            sourceContainer.addView(sourceView)
         }
+
+        val trendAdapter = charts.firstOrNull()?.adapter ?: return
         val buttonList: MutableList<ButtonAdapter.Button> = trendAdapter.adapters.map {
             object : ButtonAdapter.Button {
                 override val name = it.getDisplayName(activity)
@@ -84,7 +124,9 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
         selectedTab?.let { tab ->
             buttonList.indexOfFirst { it.name == tab }.let {
                 if (it >= 0) {
-                    trendAdapter.selectedIndex = it
+                    // One tab selection drives every source, so the charts always compare like
+                    // with like. The adapters share a tab order, being built from the same data.
+                    charts.forEach { chart -> chart.adapter.selectedIndex = it }
                 } else {
                     setSelectedTab(null) // Reset
                 }
@@ -125,7 +167,8 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
                         isCheckable = true
                         isChecked = index == trendAdapter.selectedIndex
                         setOnClickListener {
-                            trendAdapter.selectedIndex = index
+                            // Every source's chart follows the one tab selection
+                            charts.forEach { chart -> chart.adapter.selectedIndex = index }
                             setSelectedTab(button.name)
                             buttonGroup.children
                                 .filter { it is MaterialButton && it.tag != MaterialButtonGroup.OVERFLOW_BUTTON_TAG }
@@ -140,27 +183,26 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
                 )
             }
         }
-        trendRecyclerView.layoutManager = TrendLayoutManager(context)
-        trendRecyclerView.setLineColor(
-            context.getThemeColor(com.google.android.material.R.attr.colorOutline)
+        val lineColor = context.getThemeColor(com.google.android.material.R.attr.colorOutline)
+        val textColor = ContextCompat.getColor(
+            context,
+            if (ThemeManager.isLightTheme(context, location)) {
+                R.color.colorTextGrey
+            } else {
+                R.color.colorTextGrey2nd
+            }
         )
-        trendRecyclerView.setTextColor(
-            ContextCompat.getColor(
-                context,
-                if (ThemeManager.isLightTheme(context, location)) {
-                    R.color.colorTextGrey
-                } else {
-                    R.color.colorTextGrey2nd
-                }
-            )
-        )
-        trendRecyclerView.adapter = trendAdapter
-        trendRecyclerView.setKeyLineVisibility(
-            SettingsManager.getInstance(context).isTrendHorizontalLinesEnabled
-        )
-        weather.todayIndex?.let { todayIndex ->
-            trendRecyclerView.scrollToPosition(todayIndex)
+        val keyLinesEnabled = SettingsManager.getInstance(context).isTrendHorizontalLinesEnabled
+
+        charts.forEach { chart ->
+            chart.recyclerView.layoutManager = TrendLayoutManager(context)
+            chart.recyclerView.setLineColor(lineColor)
+            chart.recyclerView.setTextColor(textColor)
+            chart.recyclerView.adapter = chart.adapter
+            chart.recyclerView.setKeyLineVisibility(keyLinesEnabled)
+            // Each source has its own today, so each chart scrolls to its own
+            chart.location.weather?.todayIndex?.let { chart.recyclerView.scrollToPosition(it) }
+            chart.scrollBar.resetColor(activity)
         }
-        scrollBar.resetColor(activity)
     }
 }

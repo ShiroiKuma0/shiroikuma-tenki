@@ -30,8 +30,19 @@
     <dimen name="progress_view_size">36dp</dimen>
     <dimen name="trend_item_width">67dp</dimen>
     <dimen name="trend_item_height_min">144dp</dimen>
-    <dimen name="daily_trend_item_height">298dp</dimen>
-    <dimen name="hourly_trend_item_height">206dp</dimen>
+    <!-- shiroikuma fork: taller than upstream's 298dp/206dp. The chart's vertical budget is shared
+         with the icons and labels above and below it, so at upstream's heights the band between the
+         day highs and the night lows was squeezed flat. The hourly one also has to house the
+         precipitation line's band at its foot. -->
+    <!-- Taller than the hourly card by the extra chrome a day column carries — two icons and two
+         label rows — so the PLOTTING areas of the two come out the same height. -->
+    <dimen name="daily_trend_item_height">480dp</dimen>
+    <!-- Same as the daily one: rain overlays the foot of the temperature area rather than taking
+         a zone of its own, so no extra height is needed for it. -->
+    <dimen name="hourly_trend_item_height">410dp</dimen>
+    <!-- shiroikuma fork: the hourly chart packs 5 hours of history plus 12 ahead onto one screen,
+         so its columns are far narrower than the daily card's 67dp. -->
+    <dimen name="hourly_trend_item_width">23dp</dimen>
     <dimen name="nowcasting_chart_height">150dp</dimen>
     <dimen name="action_bar_height">64dp</dimen>
 

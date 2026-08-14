@@ -88,6 +88,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
+import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.launch
 import org.breezyweather.R
 import org.breezyweather.common.extensions.currentLocale
@@ -104,6 +105,7 @@ import org.breezyweather.common.extensions.toDate
 import org.breezyweather.common.options.appearance.DetailScreen
 import org.breezyweather.domain.settings.SettingsManager
 import org.breezyweather.ui.common.charts.BreezyLineChart
+import org.breezyweather.ui.common.charts.TemperatureColorScale
 import org.breezyweather.ui.common.charts.TimeTopAxisItemPlacer
 import org.breezyweather.ui.common.widgets.AnimatableIconView
 import org.breezyweather.ui.theme.resource.ResourceHelper
@@ -848,23 +850,13 @@ private fun TemperatureChart(
             value.toTemperature(temperatureUnit)
                 .formatMeasure(context, temperatureUnit, valueWidth = UnitWidth.NARROW, unitWidth = UnitWidth.NARROW)
         },
-        colors = remember {
+        // shiroikuma fork: the scale itself lives in TemperatureColorScale, shared with the main
+        // screen's trend charts so the two cannot drift apart.
+        colors = remember(temperatureUnit) {
             persistentListOf(
-                persistentMapOf(
-                    47.celsius.toDouble(temperatureUnit).toFloat() to Color(71, 14, 0),
-                    30.celsius.toDouble(temperatureUnit).toFloat() to Color(232, 83, 25),
-                    21.celsius.toDouble(temperatureUnit).toFloat() to Color(243, 183, 4),
-                    10.celsius.toDouble(temperatureUnit).toFloat() to Color(128, 147, 24),
-                    1.celsius.toDouble(temperatureUnit).toFloat() to Color(68, 125, 99),
-                    0.celsius.toDouble(temperatureUnit).toFloat() to Color(93, 133, 198),
-                    -4.celsius.toDouble(temperatureUnit).toFloat() to Color(100, 166, 189),
-                    -8.celsius.toDouble(temperatureUnit).toFloat() to Color(106, 191, 181),
-                    -15.celsius.toDouble(temperatureUnit).toFloat() to Color(157, 219, 217),
-                    -25.celsius.toDouble(temperatureUnit).toFloat() to Color(143, 89, 169),
-                    -40.celsius.toDouble(temperatureUnit).toFloat() to Color(162, 70, 145),
-                    -55.celsius.toDouble(temperatureUnit).toFloat() to Color(202, 172, 195),
-                    -70.celsius.toDouble(temperatureUnit).toFloat() to Color(115, 70, 105)
-                ),
+                TemperatureColorScale.stopsCelsius.associate { (celsius, color) ->
+                    celsius.celsius.toDouble(temperatureUnit).toFloat() to Color(color)
+                }.toPersistentMap(),
                 persistentMapOf(
                     50f to Color(128, 128, 128, 160),
                     0f to Color(128, 128, 128, 160)

@@ -185,6 +185,28 @@ fun TenkiUiScreen(onNavigateBack: () -> Unit) {
                     "clouds compete with the text on top of them."
             )
 
+            // ------------------------------------------------------- forecast graphs
+            SectionHeader(ui, "Forecast graphs")
+            SliderRow(ui, "Hourly graph height", ui.hourlyChartHeight, 200..700, "dp", step = 10) {
+                ui.updateHourlyChartHeight(it)
+            }
+            SliderRow(ui, "Daily graph height", ui.dailyChartHeight, 200..700, "dp", step = 10) {
+                ui.updateDailyChartHeight(it)
+            }
+            SliderRow(ui, "Hours of history", ui.hourlyHoursBack, 0..12, "h") {
+                ui.updateHourlyHoursBack(it)
+            }
+            SliderRow(ui, "Hours ahead", ui.hourlyHoursAhead, 3..24, "h") {
+                ui.updateHourlyHoursAhead(it)
+            }
+            RowNote(
+                ui,
+                "History and hours ahead set the window the hourly graph OPENS with: those " +
+                    "columns share the screen between them, and the temperature scale is fitted " +
+                    "to exactly those hours, so the peak you can see reaches the top. The rest " +
+                    "of the forecast stays there, off to the right, and scrolls."
+            )
+
             // ------------------------------------------------------------ density
             SectionHeader(ui, "Density")
             SliderRow(ui, "Row padding", ui.rowPadding, 0..24, "dp") { ui.updateRowPadding(it) }

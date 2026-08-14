@@ -24,6 +24,7 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import androidx.annotation.ColorInt
 import androidx.annotation.IntDef
+import androidx.core.graphics.ColorUtils
 import org.breezyweather.R
 import org.breezyweather.common.extensions.dpToPx
 import org.breezyweather.common.extensions.fontScaleToApply
@@ -42,6 +43,7 @@ class DailyTrendItemView @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : AbsTrendItemView(context, attrs, defStyleAttr, defStyleRes) {
     private var mChartItem: AbsChartItemView? = null
+    private val mBandPaint = Paint().apply { isAntiAlias = false }
     private val mWeekTextPaint = Paint().apply {
         isAntiAlias = true
         textAlign = Paint.Align.CENTER
@@ -161,7 +163,18 @@ class DailyTrendItemView @JvmOverloads constructor(
         )
     }
 
+    /**
+     * shiroikuma fork: shade this day's column across the WHOLE item — the day and date labels and
+     * the icons above and below the chart included — so the day split is legible without a rule.
+     */
+    var bandShaded: Boolean = false
+
     override fun onDraw(canvas: Canvas) {
+        if (bandShaded) {
+            mBandPaint.color = ColorUtils.setAlphaComponent(Color.WHITE, BAND_ALPHA)
+            canvas.drawRect(0f, 0f, measuredWidth.toFloat(), measuredHeight.toFloat(), mBandPaint)
+        }
+
         // week text.
         mWeekText?.let {
             mWeekTextPaint.color = mContentColor
@@ -253,5 +266,8 @@ class DailyTrendItemView @JvmOverloads constructor(
         private const val ICON_SIZE_DIP = 32
         private const val TEXT_MARGIN_DIP = 2
         private const val ICON_MARGIN_DIP = 8
+
+        /** shiroikuma fork: the alternating day band, matching the hourly card's. */
+        private const val BAND_ALPHA = 42
     }
 }

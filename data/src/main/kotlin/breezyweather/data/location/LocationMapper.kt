@@ -19,6 +19,18 @@ package breezyweather.data.location
 import breezyweather.domain.location.model.Location
 import java.util.TimeZone
 
+/**
+ * shiroikuma fork: the arranged forecast source list travels as one comma-separated column.
+ * Source ids are slugs ("openmeteo", "accu", "chmu"), so a comma never appears inside one.
+ */
+internal fun String?.toSourceList(): List<String> = this
+    ?.split(',')
+    ?.map { it.trim() }
+    ?.filter { it.isNotEmpty() }
+    ?: emptyList()
+
+internal fun List<String>.toSourceColumn(): String = filter { it.isNotEmpty() }.joinToString(",")
+
 object LocationMapper {
 
     fun mapLocation(
@@ -40,6 +52,7 @@ object LocationMapper {
         city: String,
         district: String?,
         weatherSource: String,
+        forecastSources: String?,
         currentSource: String?,
         airQualitySource: String?,
         pollenSource: String?,
@@ -70,6 +83,7 @@ object LocationMapper {
         city = city,
         district = district,
         forecastSource = weatherSource,
+        forecastSources = forecastSources.toSourceList(),
         currentSource = currentSource,
         airQualitySource = airQualitySource,
         pollenSource = pollenSource,

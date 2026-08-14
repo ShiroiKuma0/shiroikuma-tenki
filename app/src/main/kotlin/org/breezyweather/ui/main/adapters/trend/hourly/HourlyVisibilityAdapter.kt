@@ -59,7 +59,7 @@ class HourlyVisibilityAdapter(
 
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder(activity.getString(R.string.tag_visibility))
-            super.onBindView(activity, location, talkBackBuilder, position)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
             val weather = location.weather!!
             val hourly = weather.nextHourlyForecast[position]
             hourly.visibility?.let {

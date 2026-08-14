@@ -162,9 +162,13 @@ class TenkiWeatherThemeDelegate(
             return delegate.getThemeColors(context, weatherKind, daylight)
         }
         val ui = TenkiViewTheme.state(context)
-        // [0] is the accent the refresh spinner and the trend charts pick up; [1]/[2] are the
-        // header's own gradient stops, which here are simply the ground.
-        return intArrayOf(ui.accentColor, ui.background, ui.background)
+        // [0] is the refresh spinner. [1] and [2] are the trend charts' day and night line
+        // colours — NOT header gradient stops, whatever an earlier comment here claimed: the
+        // header gradient is computed inside the animator and never reads this array. Returning
+        // the ground for them painted every temperature curve black on black.
+        // Both are the accent rather than two shades: the hourly chart picks [2] for BOTH its
+        // lines on a dark theme, so splitting day and night here would only half-apply.
+        return intArrayOf(ui.accentColor, ui.accentColor, ui.accentColor)
     }
 
     override fun isLightBackground(context: Context, weatherKind: Int, daylight: Boolean): Boolean =

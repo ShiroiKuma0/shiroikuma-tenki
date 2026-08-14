@@ -140,6 +140,7 @@ object WeatherMapper {
     )
 
     fun mapDaily(
+        source: String,
         date: Long,
         daytimeWeatherText: String?,
         daytimeweatherSummary: String?,
@@ -246,7 +247,7 @@ object WeatherMapper {
         visibilityAverage: Distance?,
         visibilityMin: Distance?,
         visibilityMax: Distance?,
-    ): Daily = Daily(
+    ): Pair<String, Daily> = source to Daily(
         Date(date),
         HalfDay(
             daytimeWeatherText,
@@ -390,6 +391,7 @@ object WeatherMapper {
     )
 
     fun mapHourly(
+        source: String,
         date: Long,
         daylight: Boolean,
         weatherText: String?,
@@ -424,7 +426,7 @@ object WeatherMapper {
         pressure: Pressure?,
         cloudCover: Ratio?,
         visibility: Distance?,
-    ): Hourly = Hourly(
+    ): Pair<String, Hourly> = source to Hourly(
         Date(date),
         daylight,
         weatherText,

@@ -100,6 +100,12 @@ class TenkiUiState(context: Context) {
         private set
 
     var headerIntensity by mutableIntStateOf(config.headerIntensity)
+
+    // shiroikuma fork: the trend charts' geometry
+    var hourlyChartHeight by mutableIntStateOf(config.hourlyChartHeight)
+    var dailyChartHeight by mutableIntStateOf(config.dailyChartHeight)
+    var hourlyHoursBack by mutableIntStateOf(config.hourlyHoursBack)
+    var hourlyHoursAhead by mutableIntStateOf(config.hourlyHoursAhead)
         private set
 
     var exportDir by mutableStateOf(config.exportDir)
@@ -251,6 +257,26 @@ class TenkiUiState(context: Context) {
         headerIntensity = v
     }
 
+    fun updateHourlyChartHeight(v: Int) {
+        config.hourlyChartHeight = v
+        hourlyChartHeight = v
+    }
+
+    fun updateDailyChartHeight(v: Int) {
+        config.dailyChartHeight = v
+        dailyChartHeight = v
+    }
+
+    fun updateHourlyHoursBack(v: Int) {
+        config.hourlyHoursBack = v
+        hourlyHoursBack = v
+    }
+
+    fun updateHourlyHoursAhead(v: Int) {
+        config.hourlyHoursAhead = v
+        hourlyHoursAhead = v
+    }
+
     fun updateExportDir(uri: String) {
         config.exportDir = uri
         exportDir = uri
@@ -295,6 +321,10 @@ class TenkiUiState(context: Context) {
         groupSpacing = config.groupSpacing
         indentStep = config.indentStep
         headerIntensity = config.headerIntensity
+        hourlyChartHeight = config.hourlyChartHeight
+        dailyChartHeight = config.dailyChartHeight
+        hourlyHoursBack = config.hourlyHoursBack
+        hourlyHoursAhead = config.hourlyHoursAhead
         exportDir = config.exportDir
         recentColors = config.recentColors()
         fontRevision++

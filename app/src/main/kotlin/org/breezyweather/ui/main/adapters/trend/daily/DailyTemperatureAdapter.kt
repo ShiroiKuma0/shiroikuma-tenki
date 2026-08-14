@@ -22,14 +22,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.Size
+import androidx.core.content.ContextCompat
 import breezyweather.domain.location.model.Location
 import org.breezyweather.R
 import org.breezyweather.common.activities.BreezyActivity
 import org.breezyweather.common.extensions.formatMeasure
 import org.breezyweather.common.extensions.formatPercent
 import org.breezyweather.common.extensions.getCalendarMonth
+import org.breezyweather.common.extensions.getIsoFormattedDate
 import org.breezyweather.common.extensions.getThemeColor
 import org.breezyweather.common.options.appearance.DetailScreen
+import org.breezyweather.ui.common.charts.TemperatureColorScale
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerView
 import org.breezyweather.ui.common.widgets.trend.chart.PolylineAndHistogramView
 import org.breezyweather.ui.theme.ThemeManager
@@ -37,6 +40,7 @@ import org.breezyweather.ui.theme.resource.ResourceHelper
 import org.breezyweather.ui.theme.resource.providers.ResourceProvider
 import org.breezyweather.ui.theme.weatherView.WeatherViewController
 import org.breezyweather.unit.formatting.UnitWidth
+import org.breezyweather.unit.precipitation.Precipitation.Companion.millimeters
 import org.breezyweather.unit.temperature.TemperatureUnit
 import java.util.Date
 import kotlin.math.max
@@ -56,6 +60,48 @@ class DailyTemperatureAdapter(
     private val mNighttimeTemperatures: Array<Float?>
     private var mHighestTemperature: Float? = null
     private var mLowestTemperature: Float? = null
+
+    /**
+     * shiroikuma fork: each day's rain at HOURLY resolution, keyed by the day's ISO date.
+     *
+     * The daily forecast carries one probability per half-day, which drew as blocks a day wide.
+     * The hourly list has the shape the rain actually has, so the bars follow the shower rather
+     * than the calendar.
+     */
+    private val mHourlyPrecipitationByDay: Map<String, FloatArray>
+
+    /**
+     * What a full-height bar means: 100 for a probability, or the wettest hour of the week when the
+     * source reports amounts instead. Null when there is no rain to draw at all.
+     *
+     * Not every source reports a probability — MET Norway gives Prague an amount and nothing else,
+     * which is why its chart came out dry while its icons showed rain.
+     */
+    private val mPrecipitationCeiling: Float?
+    private val mPrecipitationIsAmount: Boolean
+
+    init {
+        val byDay = location.weather!!.hourlyForecast.groupBy { it.date.getIsoFormattedDate(location) }
+        val probabilities = byDay.mapValues { (_, hours) ->
+            FloatArray(hours.size) { hours[it].precipitationProbability?.total?.inPercent?.toFloat() ?: 0f }
+        }
+        if (probabilities.values.any { day -> day.any { it > 0f } }) {
+            mHourlyPrecipitationByDay = probabilities
+            mPrecipitationCeiling = 100f
+            mPrecipitationIsAmount = false
+        } else {
+            val amounts = byDay.mapValues { (_, hours) ->
+                FloatArray(hours.size) { hours[it].precipitation?.total?.inMillimeters?.toFloat() ?: 0f }
+            }
+            val wettest = amounts.values.flatMap { it.asIterable() }.maxOrNull() ?: 0f
+            mHourlyPrecipitationByDay = amounts
+            mPrecipitationIsAmount = true
+            // A floor under the ceiling, so a single drizzly hour does not fill the whole band
+            mPrecipitationCeiling = if (wettest > 0f) max(wettest, MIN_AMOUNT_CEILING_MM) else null
+        }
+    }
+
+    private val mHasPrecipitation: Boolean get() = mPrecipitationCeiling != null
 
     inner class ViewHolder(itemView: View) : AbsDailyTrendAdapter.ViewHolder(itemView) {
         private val mPolylineAndHistogramView = PolylineAndHistogramView(itemView.context)
@@ -117,9 +163,25 @@ class DailyTemperatureAdapter(
             val nighttimePrecipitationProbability = daily.night?.precipitationProbability?.total
             val p = listOfNotNull(daytimePrecipitationProbability, nighttimePrecipitationProbability)
                 .takeIf { it.isNotEmpty() }?.maxBy { it.value }
-            mPolylineAndHistogramView.setData(
-                buildTemperatureArrayForItem(mDaytimeTemperatures, position),
-                buildTemperatureArrayForItem(mNighttimeTemperatures, position),
+            // shiroikuma fork: one trace per day instead of two curves — the boundary shared with
+            // yesterday's night, today's high, tonight's low, and the boundary shared with
+            // tomorrow's high. Consecutive days join at those boundaries into a single line that
+            // rises through each day and falls through each night.
+            val dayValue = mDaytimeTemperatures.getOrNull(position * 2)
+            val nightValue = mNighttimeTemperatures.getOrNull(position * 2)
+            val previousNight = mNighttimeTemperatures.getOrNull(position * 2 - 2)
+            val nextDay = mDaytimeTemperatures.getOrNull(position * 2 + 2)
+            mPolylineAndHistogramView.setDualPolylineData(
+                arrayOf(
+                    if (previousNight != null && dayValue != null) {
+                        (previousNight + dayValue) / 2f
+                    } else {
+                        dayValue
+                    },
+                    dayValue,
+                    nightValue,
+                    if (nextDay != null && nightValue != null) (nightValue + nextDay) / 2f else nightValue
+                ),
                 daily.day?.temperature?.temperature?.formatMeasure(
                     activity,
                     temperatureUnit,
@@ -133,11 +195,26 @@ class DailyTemperatureAdapter(
                     unitWidth = UnitWidth.NARROW
                 ),
                 mHighestTemperature,
-                mLowestTemperature,
-                p?.takeIf { it.value > 0 && showPrecipitationProbability }?.inPercent?.toFloat(),
-                p?.takeIf { it.value > 0 && showPrecipitationProbability }?.formatPercent(activity, UnitWidth.NARROW),
-                100f,
-                0f
+                mLowestTemperature
+            )
+            // shiroikuma fork: one bar per hour of this day, and the day's own figure at the foot.
+            val hours = mHourlyPrecipitationByDay[daily.date.getIsoFormattedDate(location)]
+            mPolylineAndHistogramView.setPrecipitationBars(
+                hours?.takeIf { showPrecipitationProbability },
+                if (mPrecipitationIsAmount) {
+                    // The day's total, since a probability is not on offer from this source
+                    listOfNotNull(daily.day?.precipitation?.total, daily.night?.precipitation?.total)
+                        .takeIf { it.isNotEmpty() }
+                        ?.sumOf { it.inMillimeters }
+                        ?.takeIf { it > 0.0 }
+                        ?.millimeters
+                        ?.formatMeasure(activity, valueWidth = UnitWidth.NARROW, unitWidth = UnitWidth.NARROW)
+                } else {
+                    p?.takeIf { it.value > 0 && showPrecipitationProbability }
+                        ?.formatPercent(activity, UnitWidth.NARROW)
+                },
+                if (showPrecipitationProbability) mPrecipitationCeiling else null,
+                ContextCompat.getColor(activity, R.color.precipitationProbabilityLine)
             )
             val themeColors = ThemeManager
                 .getInstance(itemView.context)
@@ -153,9 +230,29 @@ class DailyTemperatureAdapter(
                 themeColors[2],
                 activity.getThemeColor(com.google.android.material.R.attr.colorOutline)
             )
+            // shiroikuma fork: the curves are painted by temperature, the same scale the details
+            // screen uses. Values here are deci-Celsius, which is what Temperature.value stores.
+            mPolylineAndHistogramView.setPolylineGradientStops(TemperatureColorScale.stopsInDeciCelsius)
+            mPolylineAndHistogramView.setPolylineTextSizeDip(DAILY_READING_SIZE_DIP)
+            // shiroikuma fork: banded days instead of a rule through the chart. No solid fill here:
+            // the daily card draws a high AND a low curve, and filling under the high one would
+            // bury the low one.
+            // shiroikuma fork: the band belongs to the whole column — labels and icons included —
+            // so the item view draws it rather than the chart.
+            dailyItem.bandShaded = position % 2 == 0
+            mPolylineAndHistogramView.setChartChrome(
+                solidFill = true,
+                banded = false,
+                dayDivider = false,
+                isNow = false
+            )
+            // shiroikuma fork: the wash under the curve is tinted by the warm end of the range, so
+            // it reads with the curve above it instead of against it. Both arguments get the same
+            // colour because setShadowColors picks one of them by theme and fades it to transparent.
+            val wash = mHighestTemperature?.let { TemperatureColorScale.colorAt(it) }
             mPolylineAndHistogramView.setShadowColors(
-                themeColors[1],
-                themeColors[2],
+                wash ?: themeColors[1],
+                wash ?: themeColors[2],
                 lightTheme
             )
             mPolylineAndHistogramView.setTextColors(
@@ -235,10 +332,8 @@ class DailyTemperatureAdapter(
                 i += 2
             }
         }
-        weather.normals.getOrElse(Date().getCalendarMonth(location)) { null }?.let { normals ->
-            mHighestTemperature = normals.daytimeTemperature?.value?.toFloat()
-            mLowestTemperature = normals.nighttimeTemperature?.value?.toFloat()
-        }
+        // shiroikuma fork: the range fits THIS source's own data rather than the monthly normals,
+        // so a source whose forecast diverges is not squashed onto someone else's scale.
         weather.dailyForecast.forEach { daily ->
             daily.day?.temperature?.temperature?.value?.let {
                 if (mHighestTemperature == null || it > mHighestTemperature!!) {
@@ -257,6 +352,27 @@ class DailyTemperatureAdapter(
                 }
             }
         }
+
+        // shiroikuma fork: room BELOW the coldest night for its reading, which sits under the
+        // trough. Nothing is reserved above the warmest day: the peak runs to the top of the pane
+        // like the hourly chart's, and its plate tucks under the top edge rather than being kept
+        // clear by headroom that would otherwise sit there empty all week.
+        val high = mHighestTemperature
+        val low = mLowestTemperature
+        if (high != null && low != null && high > low) {
+            mLowestTemperature = low - (high - low) * RANGE_PADDING_BOTTOM
+        }
+    }
+
+    companion object {
+        /** Share of the range left free BELOW the coldest night, for the reading under its trough. */
+        private const val RANGE_PADDING_BOTTOM = 0.18f
+
+        /** The lightest week that still fills the band, so a drizzle does not read as a downpour. */
+        private const val MIN_AMOUNT_CEILING_MM = 3f
+
+        /** A day column is wide enough to carry two readings at this size. */
+        private const val DAILY_READING_SIZE_DIP = 33f
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -276,38 +392,9 @@ class DailyTemperatureAdapter(
     override fun getDisplayName(context: Context) = context.getString(R.string.tag_temperature)
 
     override fun bindBackgroundForHost(host: TrendRecyclerView) {
-        val normals = location.weather?.normals?.getOrElse(Date().getCalendarMonth(location)) { null }
-        if (normals?.daytimeTemperature == null || normals.nighttimeTemperature == null) {
-            host.setData(null, 0f, 0f)
-        } else {
-            val keyLineList = mutableListOf<TrendRecyclerView.KeyLine>()
-            keyLineList.add(
-                TrendRecyclerView.KeyLine(
-                    normals.daytimeTemperature!!.value.toFloat(),
-                    normals.daytimeTemperature!!.formatMeasure(
-                        activity,
-                        temperatureUnit,
-                        valueWidth = UnitWidth.NARROW,
-                        unitWidth = UnitWidth.NARROW
-                    ),
-                    activity.getString(R.string.temperature_normal_short),
-                    TrendRecyclerView.KeyLine.ContentPosition.ABOVE_LINE
-                )
-            )
-            keyLineList.add(
-                TrendRecyclerView.KeyLine(
-                    normals.nighttimeTemperature!!.value.toFloat(),
-                    normals.nighttimeTemperature!!.formatMeasure(
-                        activity,
-                        temperatureUnit,
-                        valueWidth = UnitWidth.NARROW,
-                        unitWidth = UnitWidth.NARROW
-                    ),
-                    activity.getString(R.string.temperature_normal_short),
-                    TrendRecyclerView.KeyLine.ContentPosition.BELOW_LINE
-                )
-            )
-            host.setData(keyLineList, mHighestTemperature!!, mLowestTemperature!!)
-        }
+        // shiroikuma fork: no key lines and no left-hand scale, matching the hourly chart.
+        // TrendRecyclerView draws the "Normal" rules and the temperature labels together, so
+        // passing null removes both.
+        host.setData(null, 0f, 0f)
     }
 }

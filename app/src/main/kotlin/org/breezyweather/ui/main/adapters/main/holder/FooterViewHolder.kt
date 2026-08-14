@@ -162,24 +162,26 @@ class FooterViewHolder(
         }
 
         if (dialogOpenState.value) {
-            val sources = mapOf(
-                SourceFeature.FORECAST to location.forecastSource,
-                SourceFeature.CURRENT to location.currentSource,
-                SourceFeature.AIR_QUALITY to location.airQualitySource,
-                SourceFeature.POLLEN to location.pollenSource,
-                SourceFeature.MINUTELY to location.minutelySource,
-                SourceFeature.ALERT to location.alertSource,
-                SourceFeature.NORMALS to location.normalsSource,
-                SourceFeature.REVERSE_GEOCODING to location.reverseGeocodingSource
-            ).filter { !it.value.isNullOrEmpty() }.mapNotNull {
-                (context as MainActivity).sourceManager.getFeatureSource(it.value!!)?.let { source ->
-                    if (source.supportedFeatures.containsKey(it.key)) {
-                        it.key to source
+            // shiroikuma fork: a list rather than a map, since forecast now credits every selected
+            // source — in the order they are drawn on the screen above.
+            val sources = buildList<Pair<SourceFeature, String?>> {
+                location.orderedForecastSources.forEach { add(SourceFeature.FORECAST to it) }
+                add(SourceFeature.CURRENT to location.currentSource)
+                add(SourceFeature.AIR_QUALITY to location.airQualitySource)
+                add(SourceFeature.POLLEN to location.pollenSource)
+                add(SourceFeature.MINUTELY to location.minutelySource)
+                add(SourceFeature.ALERT to location.alertSource)
+                add(SourceFeature.NORMALS to location.normalsSource)
+                add(SourceFeature.REVERSE_GEOCODING to location.reverseGeocodingSource)
+            }.filter { !it.second.isNullOrEmpty() }.mapNotNull {
+                (context as MainActivity).sourceManager.getFeatureSource(it.second!!)?.let { source ->
+                    if (source.supportedFeatures.containsKey(it.first)) {
+                        it.first to source
                     } else {
                         null
                     }
                 }
-            }.toMap()
+            }
 
             AlertDialogNoPadding(
                 onDismissRequest = {
