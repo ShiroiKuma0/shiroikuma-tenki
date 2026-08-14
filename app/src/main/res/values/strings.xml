@@ -704,6 +704,11 @@
     <string name="settings_weather_sources_default_source">Default source for new locations</string>
     <string name="settings_weather_source_non_freenet">%s (non-free network service)</string>
     <string name="settings_weather_source_unavailable">%s (unavailable)</string>
+    <!-- shiroikuma fork: picking several forecast sources and stacking their charts -->
+    <string name="settings_weather_sources_selected">Shown in this order</string>
+    <string name="settings_weather_sources_available">Add a source</string>
+    <string name="settings_weather_sources_reorder">Reorder %s</string>
+    <string name="settings_weather_sources_primary">%s (main source)</string>
     <string name="settings_weather_source_not_configured">%s (not configured)</string>
     <string name="settings_weather_source_no_longer_exists">%s (no longer exists)</string>
     <string name="settings_weather_source_none">None</string>

@@ -59,9 +59,11 @@ class SettingsManager private constructor(
             return instance!!
         }
 
+        // shiroikuma fork: hourly before daily — what is happening in the next few hours matters
+        // more than the week ahead. Upstream lists daily first.
         const val DEFAULT_CARD_DISPLAY = "nowcast" +
-            "&daily_forecast" +
             "&hourly_forecast" +
+            "&daily_forecast" +
             "&precipitation" +
             "&wind" +
             "&air_quality" +

@@ -57,7 +57,7 @@ class HourlyUVAdapter(
         @SuppressLint("SetTextI18n, InflateParams", "DefaultLocale")
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder(activity.getString(R.string.tag_uv))
-            super.onBindView(activity, location, talkBackBuilder, position)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
             val hourly = location.weather!!.nextHourlyForecast[position]
 
             val index = hourly.uV?.index

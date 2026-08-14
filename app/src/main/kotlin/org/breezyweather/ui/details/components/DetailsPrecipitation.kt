@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -614,14 +615,15 @@ internal fun PrecipitationProbabilityChart(
         theDay = daily.date,
         maxY = maxY,
         endAxisValueFormatter = { _, value, _ -> value.percent.formatPercent(context) },
-        colors = remember {
-            persistentListOf(
-                persistentMapOf(
-                    // TODO
-                    100f to Color(60, 116, 160),
-                    0f to Color(60, 116, 160)
+        colors = colorResource(R.color.precipitationProbabilityLine).let { line ->
+            remember(line) {
+                persistentListOf(
+                    persistentMapOf(
+                        100f to line,
+                        0f to line
+                    )
                 )
-            )
+            }
         },
         endAxisItemPlacer = remember { VerticalAxis.ItemPlacer.step({ 20.0 }) }, // Every 20 %
         markerVisibilityListener = markerVisibilityListener

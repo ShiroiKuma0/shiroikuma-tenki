@@ -20,6 +20,7 @@ import android.content.Context
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import breezyweather.domain.location.model.Location
+import breezyweather.domain.weather.model.Hourly
 import org.breezyweather.R
 import org.breezyweather.common.activities.BreezyActivity
 import org.breezyweather.common.extensions.getHour
@@ -40,15 +41,22 @@ abstract class AbsHourlyTrendAdapter(
     open class ViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val hourlyItem: HourlyTrendItemView = itemView.findViewById(R.id.item_trend_hourly)
 
+        /**
+         * @param hourlyList shiroikuma fork: which window of hours this adapter is plotting.
+         *   Defaults to upstream's "from the current hour", so the tabs that have not been
+         *   rebuilt keep their existing behaviour; the temperature tab passes a window that
+         *   reaches back a few hours, and the labels have to follow the same list or they
+         *   would be indexed against the wrong hours.
+         */
         fun onBindView(
             activity: BreezyActivity,
             location: Location,
             talkBackBuilder: StringBuilder,
             position: Int,
+            hourlyList: List<Hourly> = location.weather!!.nextHourlyForecast,
         ) {
             val context = itemView.context
-            val weather = location.weather!!
-            val hourly = weather.nextHourlyForecast[position]
+            val hourly = hourlyList[position]
             talkBackBuilder
                 .append(context.getString(org.breezyweather.unit.R.string.locale_separator))
                 .append(hourly.date.getHour(location, activity))
@@ -79,4 +87,9 @@ abstract class AbsHourlyTrendAdapter(
     abstract fun isValid(location: Location): Boolean
     abstract fun getDisplayName(context: Context): String
     abstract fun bindBackgroundForHost(host: TrendRecyclerView)
+
+    companion object {
+        /** shiroikuma fork: label and ice one column in this many — they are only 23dp wide. */
+        const val HOUR_LABEL_EVERY = 3
+    }
 }

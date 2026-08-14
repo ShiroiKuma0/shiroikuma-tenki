@@ -24,6 +24,7 @@ import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import androidx.annotation.ColorInt
 import androidx.annotation.IntDef
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.withTranslation
 import org.breezyweather.R
 import org.breezyweather.common.extensions.dpToPx
@@ -48,6 +49,8 @@ class HourlyTrendItemView @JvmOverloads constructor(
         textAlign = Paint.Align.CENTER
     }
     private var mHourText: String? = null
+    private val mBandPaint = Paint().apply { isAntiAlias = false }
+    private var mHourTextSize = 0f
 
     @IntDef(INVISIBLE, GONE)
     internal annotation class IconVisibility
@@ -74,26 +77,40 @@ class HourlyTrendItemView @JvmOverloads constructor(
         mHourTextPaint.apply {
             typeface = getContext().getTypefaceFromTextAppearance(R.style.title_text)
             textSize = getContext().resources.getDimensionPixelSize(R.dimen.title_text_size).toFloat()
+            mHourTextSize = textSize
         }
         setTextColor(Color.BLACK)
         mIconSize = getContext().dpToPx(ICON_SIZE_DIP.toFloat()).toInt()
     }
 
+    /**
+     * shiroikuma fork: how many columns share the host's width — the opening window from the
+     * settings page. Everything beyond it scrolls off to the right. Sizing by the TOTAL count
+     * instead would shrink the columns as the forecast got longer.
+     */
+    var visibleColumns: Int = 0
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = context.resources
-            .getDimensionPixelSize(R.dimen.trend_item_width)
-            .times(context.fontScaleToApply)
-            .roundToInt()
+        val hostWidth = (parent as? android.view.View)?.measuredWidth ?: 0
+        val width = if (hostWidth > 0 && visibleColumns > 0) {
+            hostWidth / visibleColumns
+        } else {
+            context.resources
+                .getDimensionPixelSize(R.dimen.hourly_trend_item_width)
+                .times(context.fontScaleToApply)
+                .roundToInt()
+        }
         val height = MeasureSpec.getSize(heightMeasureSpec)
         var y = 0f
         val textMargin = context.dpToPx(TEXT_MARGIN_DIP.toFloat())
         val iconMargin = context.dpToPx(ICON_MARGIN_DIP.toFloat())
 
-        // hour text.
+        // hour text — two rows, the meridiem under the numeral
         val fontMetrics = mHourTextPaint.fontMetrics
         y += textMargin
         mHourTextBaseLine = y - fontMetrics.top
         y += fontMetrics.bottom - fontMetrics.top
+        y += mHourTextSize * MERIDIEM_SCALE
         y += textMargin
 
         // hourly icon.
@@ -135,11 +152,46 @@ class HourlyTrendItemView @JvmOverloads constructor(
         )
     }
 
+    /**
+     * shiroikuma fork: shade this column, and how far down. The band is drawn HERE rather than in
+     * the chart view so it runs the full height of the item — past the hour label and the icon —
+     * which is what makes the hour split legible without a rule through the chart.
+     */
+    var bandShaded: Boolean = false
+
+    /** Knock this column back as past. Drawn after the children, so it covers the chart's fill. */
+    var dimmed: Boolean = false
+
+    /**
+     * shiroikuma fork: midnight. Drawn down this column's leading edge, over the chart and the full
+     * height of the item, in the same accent as the hour labels — a day boundary is worth more than
+     * the hairline the chart used to give it.
+     */
+    var dayDivider: Boolean = false
+
     override fun onDraw(canvas: Canvas) {
-        // hour text.
-        mHourText?.let {
+        if (bandShaded) {
+            mBandPaint.color = ColorUtils.setAlphaComponent(Color.WHITE, BAND_ALPHA)
+            canvas.drawRect(0f, 0f, measuredWidth.toFloat(), chartBottom.toFloat(), mBandPaint)
+        }
+
+        // hour text — the numeral on one line, the meridiem under it at 60 %, so a narrow column
+        // holds "7 AM" without clipping either half.
+        mHourText?.let { text ->
             mHourTextPaint.color = mContentColor
-            canvas.drawText(it, measuredWidth / 2f, mHourTextBaseLine, mHourTextPaint)
+            val parts = text.split(' ', limit = 2)
+            mHourTextPaint.textSize = mHourTextSize
+            canvas.drawText(parts[0], measuredWidth / 2f, mHourTextBaseLine, mHourTextPaint)
+            if (parts.size > 1) {
+                mHourTextPaint.textSize = mHourTextSize * MERIDIEM_SCALE
+                canvas.drawText(
+                    parts[1],
+                    measuredWidth / 2f,
+                    mHourTextBaseLine + mHourTextSize * MERIDIEM_SCALE,
+                    mHourTextPaint
+                )
+                mHourTextPaint.textSize = mHourTextSize
+            }
         }
 
         // day icon.
@@ -147,6 +199,24 @@ class HourlyTrendItemView @JvmOverloads constructor(
             canvas.withTranslation(mIconLeft, mIconTop) {
                 it.draw(canvas)
             }
+        }
+    }
+
+    override fun dispatchDraw(canvas: Canvas) {
+        super.dispatchDraw(canvas)
+        if (dimmed) {
+            mBandPaint.color = ColorUtils.setAlphaComponent(Color.BLACK, DIM_ALPHA)
+            canvas.drawRect(0f, 0f, measuredWidth.toFloat(), chartBottom.toFloat(), mBandPaint)
+        }
+        if (dayDivider) {
+            mBandPaint.color = mContentColor
+            canvas.drawRect(
+                0f,
+                0f,
+                context.dpToPx(DAY_DIVIDER_WIDTH_DIP),
+                chartBottom.toFloat(),
+                mBandPaint
+            )
         }
     }
 
@@ -189,5 +259,15 @@ class HourlyTrendItemView @JvmOverloads constructor(
         private const val ICON_SIZE_DIP = 32
         private const val TEXT_MARGIN_DIP = 2
         private const val ICON_MARGIN_DIP = 8
+
+        // shiroikuma fork: the meridiem row's size relative to the numeral above it, and the
+        // banding drawn across the whole column.
+        private const val MERIDIEM_SCALE = 0.6f
+        private const val BAND_ALPHA = 42
+        private const val DIM_ALPHA = 140
+        private const val DAY_DIVIDER_WIDTH_DIP = 3f
+
+        /** How many columns fit the screen — 3 hours behind, now, and 8 ahead. */
+        const val VISIBLE_COLUMNS = 12
     }
 }

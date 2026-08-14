@@ -61,7 +61,7 @@ class HourlyAirQualityAdapter(
             position: Int,
         ) {
             val talkBackBuilder = StringBuilder(activity.getString(R.string.tag_aqi))
-            super.onBindView(activity, location, talkBackBuilder, position)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
             val hourly = location.weather!!.nextHourlyForecast[position]
 
             val index = hourly.airQuality?.getIndex()

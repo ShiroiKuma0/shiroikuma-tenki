@@ -30,7 +30,10 @@ import breezyweather.data.weather.WeatherRepository
 import breezyweather.domain.location.model.Location
 import breezyweather.domain.location.model.LocationAddressInfo
 import breezyweather.domain.source.SourceFeature
+import breezyweather.domain.weather.model.AirQuality
+import breezyweather.domain.weather.model.AlternateForecast
 import breezyweather.domain.weather.model.Base
+import breezyweather.domain.weather.model.Pollen
 import breezyweather.domain.weather.model.Weather
 import breezyweather.domain.weather.reference.Month
 import breezyweather.domain.weather.reference.WeatherCode
@@ -550,6 +553,16 @@ class RefreshHelper @Inject constructor(
                         }
                     }
                 }
+
+                // shiroikuma fork: the extra forecast sources are fetched alongside the primary one.
+                // A source already listed for another feature just gains FORECAST, so it stays one call.
+                orderedForecastSources.filter { it != forecastSource }.forEach { source ->
+                    featuresBySources.getOrPut(source) { mutableListOf() }.let {
+                        if (SourceFeature.FORECAST !in it) {
+                            it.add(SourceFeature.FORECAST)
+                        }
+                    }
+                }
             }
 
             // Always update refresh time displayed to the user, even if just re-using cached data
@@ -589,9 +602,10 @@ class RefreshHelper @Inject constructor(
             }
 
             val errors = CopyOnWriteArrayList<RefreshError>()
+            // shiroikuma fork: hoisted out of the block below, the alternate forecasts read it too
+            val sourceCalls = mutableMapOf<String, WeatherWrapper?>()
             val weatherWrapper = if (featuresBySources.isNotEmpty()) {
                 val semaphore = Semaphore(5)
-                val sourceCalls = mutableMapOf<String, WeatherWrapper?>()
                 coroutineScope {
                     featuresBySources
                         .map { entry ->
@@ -665,6 +679,19 @@ class RefreshHelper @Inject constructor(
                                             .filter {
                                                 service !is HttpSource ||
                                                     ignoreCaching ||
+                                                    // shiroikuma fork: the validity check is keyed
+                                                    // per feature, not per source, so an alternate
+                                                    // just added would sit out until the primary's
+                                                    // forecast cache expired. It has nothing cached
+                                                    // to be valid, so let it through.
+                                                    (
+                                                        it == SourceFeature.FORECAST &&
+                                                            entry.key != location.forecastSource &&
+                                                            location.weather
+                                                                ?.alternateForecasts
+                                                                ?.get(entry.key)
+                                                                ?.isEmpty != false
+                                                        ) ||
                                                     !isWeatherDataStillValid(
                                                         location,
                                                         it,
@@ -970,6 +997,26 @@ class RefreshHelper @Inject constructor(
                 it.date.time >= yesterdayMidnight.time + 23.hours.inWholeMilliseconds
             }
 
+            // shiroikuma fork: every extra forecast source, run through the same completion the
+            // primary one just got, so their charts read identically rather than half-filled.
+            val alternateForecasts = location.orderedForecastSources
+                .filter { it != location.forecastSource }
+                .associateWith { source ->
+                    completeAlternateForecast(
+                        location = location,
+                        wrapper = sourceCalls.getOrElse(source) { null },
+                        previous = location.weather?.alternateForecasts?.get(source),
+                        hasFailed = errors.any {
+                            it.feature == SourceFeature.FORECAST && it.source == source
+                        },
+                        yesterdayMidnight = yesterdayMidnight,
+                        hourlyAirQuality = weatherWrapperCompleted.airQuality?.hourlyForecast ?: emptyMap(),
+                        hourlyPollen = weatherWrapperCompleted.pollen?.hourlyForecast ?: emptyMap(),
+                        currentPollen = weatherWrapperCompleted.pollen?.current
+                    )
+                }
+                .filterValues { !it.isEmpty }
+
             val weather = Weather(
                 base = base.copy(
                     forecastUpdateTime = forecastUpdateTime,
@@ -1009,7 +1056,8 @@ class RefreshHelper @Inject constructor(
                     ?.mapNotNull { it.toValidOrNull() }
                     ?: emptyList(),
                 alertList = weatherWrapperCompleted.alertList ?: emptyList(),
-                normals = weatherWrapperCompleted.normals ?: emptyMap()
+                normals = weatherWrapperCompleted.normals ?: emptyMap(),
+                alternateForecasts = alternateForecasts
             )
             locationRepository.insertParameters(location.formattedId, locationParameters)
             weatherRepository.insert(location, weather)
@@ -1021,6 +1069,67 @@ class RefreshHelper @Inject constructor(
                 listOf(RefreshError(RefreshErrorType.DATA_REFRESH_FAILED))
             )
         }
+    }
+
+    /**
+     * shiroikuma fork: turn one extra forecast source's raw wrapper into the arrays its charts read.
+     *
+     * The same completion the primary source gets, minus everything an alternate has no business
+     * owning. Air quality and pollen are the location's, not the source's, so every chart tab reads
+     * the same way whichever source drew the bars.
+     */
+    private fun completeAlternateForecast(
+        location: Location,
+        wrapper: WeatherWrapper?,
+        previous: AlternateForecast?,
+        hasFailed: Boolean,
+        yesterdayMidnight: Date,
+        hourlyAirQuality: Map<Date, AirQuality>,
+        hourlyPollen: Map<Date, Pollen>,
+        currentPollen: Pollen?,
+    ): AlternateForecast {
+        // A failed call — or one skipped because the cache was still valid — keeps what we already
+        // drew, so a source that fails to answer leaves its block standing instead of blanking it.
+        if (hasFailed ||
+            wrapper == null ||
+            (wrapper.dailyForecast.isNullOrEmpty() && wrapper.hourlyForecast.isNullOrEmpty())
+        ) {
+            return previous ?: AlternateForecast()
+        }
+
+        // shiroikuma fork: the same back-fill the primary source gets. Without it an alternate
+        // fetched late in the day loses today entirely — an hourly-only source has too few hours
+        // left to aggregate one, and there was nothing to complete it from.
+        val completed = completeNewWeatherWithPreviousData(
+            wrapper,
+            previous?.let {
+                Weather(dailyForecast = it.dailyForecast, hourlyForecast = it.hourlyForecast)
+            },
+            yesterdayMidnight,
+            location.airQualitySource,
+            location.pollenSource
+        )
+
+        val hourlyComputed = computeMissingHourlyData(completed.hourlyForecast) ?: emptyList()
+        val dailyForecast = completeDailyListFromHourlyList(
+            if (!completed.dailyForecast.isNullOrEmpty()) convertDailyWrapperToDailyList(completed) else emptyList(),
+            hourlyComputed,
+            hourlyAirQuality,
+            hourlyPollen,
+            completed.hourlyForecast?.associate { it.date to it.sunshineDuration } ?: emptyMap(),
+            currentPollen,
+            location
+        )
+
+        return AlternateForecast(
+            dailyForecast = dailyForecast,
+            hourlyForecast = completeHourlyListFromDailyList(
+                hourlyComputed,
+                dailyForecast,
+                hourlyAirQuality,
+                location
+            )
+        )
     }
 
     fun requestSearchLocations(

@@ -191,6 +191,37 @@ class TenkiUiConfig(context: Context) {
         get() = int(KEY_HEADER_INTENSITY, 50)
         set(v) = putInt(KEY_HEADER_INTENSITY, v)
 
+    // ------------------------------------------------------ trend charts
+
+    /** Height of the hourly forecast graph, in dp — the card grows and shrinks with it. */
+    var hourlyChartHeight: Int
+        get() = int(KEY_HOURLY_CHART_HEIGHT, DEFAULT_HOURLY_CHART_HEIGHT)
+        set(v) = putInt(KEY_HOURLY_CHART_HEIGHT, v)
+
+    /**
+     * Height of the daily forecast graph, in dp. Taller than the hourly one by default because a
+     * day column carries more chrome — two label rows and two icons — above and below its plot.
+     */
+    var dailyChartHeight: Int
+        get() = int(KEY_DAILY_CHART_HEIGHT, DEFAULT_DAILY_CHART_HEIGHT)
+        set(v) = putInt(KEY_DAILY_CHART_HEIGHT, v)
+
+    /**
+     * How many hours of history the hourly graph opens with.
+     *
+     * Together with [hourlyHoursAhead] this is the width of the opening window: the columns share
+     * the screen between them, and the vertical scale is fitted to exactly these hours. Everything
+     * beyond stays scrollable.
+     */
+    var hourlyHoursBack: Int
+        get() = int(KEY_HOURLY_HOURS_BACK, DEFAULT_HOURLY_HOURS_BACK)
+        set(v) = putInt(KEY_HOURLY_HOURS_BACK, v)
+
+    /** How many hours ahead the hourly graph opens with. See [hourlyHoursBack]. */
+    var hourlyHoursAhead: Int
+        get() = int(KEY_HOURLY_HOURS_AHEAD, DEFAULT_HOURLY_HOURS_AHEAD)
+        set(v) = putInt(KEY_HOURLY_HOURS_AHEAD, v)
+
     // ------------------------------------------------------ export directory
 
     /** SAF tree uri of the backup folder, "" when never set. */
@@ -307,6 +338,15 @@ class TenkiUiConfig(context: Context) {
         private const val KEY_INDENT = "density_indent"
 
         private const val KEY_HEADER_INTENSITY = "header_intensity"
+        private const val KEY_HOURLY_CHART_HEIGHT = "hourly_chart_height"
+        private const val KEY_DAILY_CHART_HEIGHT = "daily_chart_height"
+        private const val KEY_HOURLY_HOURS_BACK = "hourly_hours_back"
+        private const val KEY_HOURLY_HOURS_AHEAD = "hourly_hours_ahead"
+
+        const val DEFAULT_HOURLY_CHART_HEIGHT = 410
+        const val DEFAULT_DAILY_CHART_HEIGHT = 480
+        const val DEFAULT_HOURLY_HOURS_BACK = 3
+        const val DEFAULT_HOURLY_HOURS_AHEAD = 9
 
         private const val KEY_EXPORT_DIR = "export_dir"
         private const val KEY_RECENT = "recent_colors"

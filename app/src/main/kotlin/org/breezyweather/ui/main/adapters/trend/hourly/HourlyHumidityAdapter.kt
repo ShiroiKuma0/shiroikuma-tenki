@@ -61,7 +61,7 @@ class HourlyHumidityAdapter(
 
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder()
-            super.onBindView(activity, location, talkBackBuilder, position)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
             val weather = location.weather!!
             val hourly = weather.nextHourlyForecast[position]
             hourly.relativeHumidity?.let {

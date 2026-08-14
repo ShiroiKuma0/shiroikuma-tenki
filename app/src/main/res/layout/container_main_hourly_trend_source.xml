@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    shiroikuma fork: one forecast source's slice of the hourly card — its name, then its chart.
+    The name is hidden when only one source is selected, so the card looks untouched for anyone
+    not using the feature.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/hourly_source_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:accessibilityHeading="true"
+        android:layout_marginHorizontal="@dimen/large_margin"
+        android:layout_marginTop="@dimen/small_margin"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        android:textColor="?attr/colorSurfaceInverse"
+        tools:text="AccuWeather" />
+
+    <!-- No top margin: the chart already carries its own, and stacking the two left a dead
+         strip between one source and the next. -->
+    <org.breezyweather.ui.common.widgets.trend.TrendRecyclerView
+        android:id="@+id/hourly_source_trendRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/hourly_trend_item_height"
+        tools:ignore="UnusedAttribute" />
+
+</LinearLayout>

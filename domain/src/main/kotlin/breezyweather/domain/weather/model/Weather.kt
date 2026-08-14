@@ -38,6 +38,14 @@ data class Weather(
     val minutelyForecast: List<Minutely> = emptyList(),
     val alertList: List<Alert> = emptyList(),
     val normals: Map<Month, Normals> = emptyMap(),
+
+    /**
+     * shiroikuma fork: the extra forecast sources' arrays, keyed by source id.
+     * The primary source's arrays stay in [dailyForecast] / [hourlyForecast]; this holds only the
+     * ones stacked under it, and the drawing order comes from `Location.orderedForecastSources`,
+     * never from this map.
+     */
+    val alternateForecasts: Map<String, AlternateForecast> = emptyMap(),
 ) : Serializable {
 
     // Only hourly in the future, starting from current hour until the next 24 hours
@@ -45,6 +53,19 @@ data class Weather(
         // Example: 15:01 -> starts at 15:00, 15:59 -> starts at 15:00
         it.date.time >= System.currentTimeMillis() - 1.hours.inWholeMilliseconds &&
             it.date.time < System.currentTimeMillis() + 24.hours.inWholeMilliseconds
+    }
+
+    /**
+     * shiroikuma fork: a window around now, so the hourly chart can show a little of what just
+     * happened as well as what is coming — the meteogram reading, where the recent past gives the
+     * curve its context instead of starting it mid-air at the current hour.
+     */
+    fun hourlyForecastWindow(hoursBack: Int, hoursAhead: Int): List<Hourly> {
+        val now = System.currentTimeMillis()
+        return hourlyForecast.filter {
+            it.date.time >= now - (hoursBack + 1).hours.inWholeMilliseconds &&
+                it.date.time < now + hoursAhead.hours.inWholeMilliseconds
+        }
     }
 
     // Only hourly in the future, starting from current hour until the end

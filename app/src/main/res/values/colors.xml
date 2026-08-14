@@ -84,6 +84,10 @@
 
     <color name="colorMainCardBackground">#FDFCFF</color>
     <color name="colorPrecipitationProbability">@color/md_theme_primary</color>
+    <!-- shiroikuma fork: the precipitation-probability line, shared by the details chart and the
+         hourly trend card. Semantic, like the temperature scale: the colour IS the reading, so it
+         stays blue rather than following the black-yellow palette. -->
+    <color name="precipitationProbabilityLine">#1F4E79</color>
 
     <color name="colorNotificationSecondary">@color/secondary_text_default_material_light</color>
 

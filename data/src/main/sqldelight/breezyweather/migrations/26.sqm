@@ -1,0 +1,237 @@
+-- shiroikuma fork: multiple forecast sources per location.
+-- The arranged list of forecast sources, comma-separated, primary first.
+ALTER TABLE locations ADD COLUMN forecast_sources TEXT;
+
+-- dailys: rebuilt so two forecast sources can hold the same date.
+ALTER TABLE dailys RENAME TO dailys_old;
+
+CREATE TABLE dailys(
+    _id INTEGER NOT NULL PRIMARY KEY,
+    location_formatted_id TEXT NOT NULL,
+    -- shiroikuma fork: which forecast source these rows came from ('' = the primary one)
+    source TEXT NOT NULL DEFAULT '',
+
+    date INTEGER NOT NULL,
+
+    -- daytime
+    daytime_weather_text TEXT,
+    daytime_weather_summary TEXT,
+    daytime_weather_code TEXT,
+
+    daytime_temperature INTEGER,
+    daytime_temperature_source_feels_like INTEGER,
+    daytime_temperature_apparent INTEGER,
+    daytime_temperature_wind_chill INTEGER,
+    daytime_humidex INTEGER,
+
+    daytime_total_precipitation INTEGER,
+    daytime_thunderstorm_precipitation INTEGER,
+    daytime_rain_precipitation INTEGER,
+    daytime_snow_precipitation INTEGER,
+    daytime_ice_precipitation INTEGER,
+
+    daytime_total_precipitation_probability INTEGER,
+    daytime_thunderstorm_precipitation_probability INTEGER,
+    daytime_rain_precipitation_probability INTEGER,
+    daytime_snow_precipitation_probability INTEGER,
+    daytime_ice_precipitation_probability INTEGER,
+
+    daytime_total_precipitation_duration INTEGER,
+    daytime_thunderstorm_precipitation_duration INTEGER,
+    daytime_rain_precipitation_duration INTEGER,
+    daytime_snow_precipitation_duration INTEGER,
+    daytime_ice_precipitation_duration INTEGER,
+
+    daytime_wind_degree REAL,
+    daytime_wind_speed INTEGER,
+    daytime_wind_gusts INTEGER,
+
+    -- nighttime
+    nighttime_weather_text TEXT,
+    nighttime_weather_summary TEXT,
+    nighttime_weather_code TEXT,
+
+    nighttime_temperature INTEGER,
+    nighttime_temperature_source_feels_like INTEGER,
+    nighttime_temperature_apparent INTEGER,
+    nighttime_temperature_wind_chill INTEGER,
+    nighttime_humidex INTEGER,
+
+    nighttime_total_precipitation INTEGER,
+    nighttime_thunderstorm_precipitation INTEGER,
+    nighttime_rain_precipitation INTEGER,
+    nighttime_snow_precipitation INTEGER,
+    nighttime_ice_precipitation INTEGER,
+
+    nighttime_total_precipitation_probability INTEGER,
+    nighttime_thunderstorm_precipitation_probability INTEGER,
+    nighttime_rain_precipitation_probability INTEGER,
+    nighttime_snow_precipitation_probability INTEGER,
+    nighttime_ice_precipitation_probability INTEGER,
+
+    nighttime_total_precipitation_duration INTEGER,
+    nighttime_thunderstorm_precipitation_duration INTEGER,
+    nighttime_rain_precipitation_duration INTEGER,
+    nighttime_snow_precipitation_duration INTEGER,
+    nighttime_ice_precipitation_duration INTEGER,
+
+    nighttime_wind_degree REAL,
+    nighttime_wind_speed INTEGER,
+    nighttime_wind_gusts INTEGER,
+
+    degree_day_heating INTEGER,
+    degree_day_cooling INTEGER,
+
+    -- sun
+    sun_rise_date INTEGER,
+    sun_set_date INTEGER,
+
+    -- twilight
+    twilight_rise_date INTEGER,
+    twilight_set_date INTEGER,
+
+    -- moon
+    moon_rise_date INTEGER,
+    moon_set_date INTEGER,
+
+    -- moon phase
+    moon_phase_angle INTEGER,
+
+    -- aqi.
+    pm25 INTEGER,
+    pm10 INTEGER,
+    so2 INTEGER,
+    no2 INTEGER,
+    o3 INTEGER,
+    co INTEGER,
+
+    -- pollen
+    alder INTEGER,
+    ash INTEGER,
+    birch INTEGER,
+    chestnut INTEGER,
+    cypress INTEGER,
+    grass INTEGER,
+    hazel INTEGER,
+    hornbeam INTEGER,
+    linden INTEGER,
+    mold INTEGER,
+    mugwort INTEGER,
+    oak INTEGER,
+    olive INTEGER,
+    plane INTEGER,
+    plantain INTEGER,
+    poplar INTEGER,
+    ragweed INTEGER,
+    sorrel INTEGER,
+    tree INTEGER,
+    urticaceae INTEGER,
+    willow INTEGER,
+
+    -- uv.
+    uv_index REAL,
+
+    sunshine_duration INTEGER,
+
+    -- relative humidity
+    relative_humidity_average INTEGER,
+    relative_humidity_min INTEGER,
+    relative_humidity_max INTEGER,
+
+    -- dewpoint
+    dewpoint_average INTEGER,
+    dewpoint_min INTEGER,
+    dewpoint_max INTEGER,
+
+    -- pressure
+    pressure_average INTEGER,
+    pressure_min INTEGER,
+    pressure_max INTEGER,
+
+    -- cloud cover
+    cloud_cover_average INTEGER,
+    cloud_cover_min INTEGER,
+    cloud_cover_max INTEGER,
+
+    -- visibility
+    visibility_average INTEGER,
+    visibility_min INTEGER,
+    visibility_max INTEGER,
+
+    UNIQUE(location_formatted_id, source, date) ON CONFLICT REPLACE,
+    FOREIGN KEY(location_formatted_id) REFERENCES locations (formatted_id)
+    ON DELETE CASCADE
+);
+
+INSERT INTO dailys(_id, location_formatted_id, date, daytime_weather_text, daytime_weather_summary, daytime_weather_code, daytime_temperature, daytime_temperature_source_feels_like, daytime_temperature_apparent, daytime_temperature_wind_chill, daytime_humidex, daytime_total_precipitation, daytime_thunderstorm_precipitation, daytime_rain_precipitation, daytime_snow_precipitation, daytime_ice_precipitation, daytime_total_precipitation_probability, daytime_thunderstorm_precipitation_probability, daytime_rain_precipitation_probability, daytime_snow_precipitation_probability, daytime_ice_precipitation_probability, daytime_total_precipitation_duration, daytime_thunderstorm_precipitation_duration, daytime_rain_precipitation_duration, daytime_snow_precipitation_duration, daytime_ice_precipitation_duration, daytime_wind_degree, daytime_wind_speed, daytime_wind_gusts, nighttime_weather_text, nighttime_weather_summary, nighttime_weather_code, nighttime_temperature, nighttime_temperature_source_feels_like, nighttime_temperature_apparent, nighttime_temperature_wind_chill, nighttime_humidex, nighttime_total_precipitation, nighttime_thunderstorm_precipitation, nighttime_rain_precipitation, nighttime_snow_precipitation, nighttime_ice_precipitation, nighttime_total_precipitation_probability, nighttime_thunderstorm_precipitation_probability, nighttime_rain_precipitation_probability, nighttime_snow_precipitation_probability, nighttime_ice_precipitation_probability, nighttime_total_precipitation_duration, nighttime_thunderstorm_precipitation_duration, nighttime_rain_precipitation_duration, nighttime_snow_precipitation_duration, nighttime_ice_precipitation_duration, nighttime_wind_degree, nighttime_wind_speed, nighttime_wind_gusts, degree_day_heating, degree_day_cooling, sun_rise_date, sun_set_date, twilight_rise_date, twilight_set_date, moon_rise_date, moon_set_date, moon_phase_angle, pm25, pm10, so2, no2, o3, co, alder, ash, birch, chestnut, cypress, grass, hazel, hornbeam, linden, mold, mugwort, oak, olive, plane, plantain, poplar, ragweed, sorrel, tree, urticaceae, willow, uv_index, sunshine_duration, relative_humidity_average, relative_humidity_min, relative_humidity_max, dewpoint_average, dewpoint_min, dewpoint_max, pressure_average, pressure_min, pressure_max, cloud_cover_average, cloud_cover_min, cloud_cover_max, visibility_average, visibility_min, visibility_max)
+SELECT _id, location_formatted_id, date, daytime_weather_text, daytime_weather_summary, daytime_weather_code, daytime_temperature, daytime_temperature_source_feels_like, daytime_temperature_apparent, daytime_temperature_wind_chill, daytime_humidex, daytime_total_precipitation, daytime_thunderstorm_precipitation, daytime_rain_precipitation, daytime_snow_precipitation, daytime_ice_precipitation, daytime_total_precipitation_probability, daytime_thunderstorm_precipitation_probability, daytime_rain_precipitation_probability, daytime_snow_precipitation_probability, daytime_ice_precipitation_probability, daytime_total_precipitation_duration, daytime_thunderstorm_precipitation_duration, daytime_rain_precipitation_duration, daytime_snow_precipitation_duration, daytime_ice_precipitation_duration, daytime_wind_degree, daytime_wind_speed, daytime_wind_gusts, nighttime_weather_text, nighttime_weather_summary, nighttime_weather_code, nighttime_temperature, nighttime_temperature_source_feels_like, nighttime_temperature_apparent, nighttime_temperature_wind_chill, nighttime_humidex, nighttime_total_precipitation, nighttime_thunderstorm_precipitation, nighttime_rain_precipitation, nighttime_snow_precipitation, nighttime_ice_precipitation, nighttime_total_precipitation_probability, nighttime_thunderstorm_precipitation_probability, nighttime_rain_precipitation_probability, nighttime_snow_precipitation_probability, nighttime_ice_precipitation_probability, nighttime_total_precipitation_duration, nighttime_thunderstorm_precipitation_duration, nighttime_rain_precipitation_duration, nighttime_snow_precipitation_duration, nighttime_ice_precipitation_duration, nighttime_wind_degree, nighttime_wind_speed, nighttime_wind_gusts, degree_day_heating, degree_day_cooling, sun_rise_date, sun_set_date, twilight_rise_date, twilight_set_date, moon_rise_date, moon_set_date, moon_phase_angle, pm25, pm10, so2, no2, o3, co, alder, ash, birch, chestnut, cypress, grass, hazel, hornbeam, linden, mold, mugwort, oak, olive, plane, plantain, poplar, ragweed, sorrel, tree, urticaceae, willow, uv_index, sunshine_duration, relative_humidity_average, relative_humidity_min, relative_humidity_max, dewpoint_average, dewpoint_min, dewpoint_max, pressure_average, pressure_min, pressure_max, cloud_cover_average, cloud_cover_min, cloud_cover_max, visibility_average, visibility_min, visibility_max FROM dailys_old;
+
+DROP TABLE dailys_old;
+
+CREATE INDEX dailys_location_formatted_id_index ON dailys(location_formatted_id);
+
+-- hourlys: rebuilt so two forecast sources can hold the same date.
+ALTER TABLE hourlys RENAME TO hourlys_old;
+
+CREATE TABLE hourlys(
+    _id INTEGER NOT NULL PRIMARY KEY,
+    location_formatted_id TEXT NOT NULL,
+    -- shiroikuma fork: which forecast source these rows came from ('' = the primary one)
+    source TEXT NOT NULL DEFAULT '',
+
+    date INTEGER NOT NULL,
+
+    daylight INTEGER NOT NULL DEFAULT 1,
+    weather_text TEXT,
+    weather_code TEXT,
+
+    temperature INTEGER,
+    temperature_source_feels_like INTEGER,
+    temperature_apparent INTEGER,
+    temperature_wind_chill INTEGER,
+    humidex INTEGER,
+
+    total_precipitation INTEGER,
+    thunderstorm_precipitation INTEGER,
+    rain_precipitation INTEGER,
+    snow_precipitation INTEGER,
+    ice_precipitation INTEGER,
+
+    total_precipitation_probability INTEGER,
+    thunderstorm_precipitation_probability INTEGER,
+    rain_precipitation_probability INTEGER,
+    snow_precipitation_probability INTEGER,
+    ice_precipitation_probability INTEGER,
+
+    wind_degree REAL,
+    wind_speed INTEGER,
+    wind_gusts INTEGER,
+
+    pm25 INTEGER,
+    pm10 INTEGER,
+    so2 INTEGER,
+    no2 INTEGER,
+    o3 INTEGER,
+    co INTEGER,
+
+    -- uv.
+    uvIndex REAL,
+
+    -- details
+    relative_humidity INTEGER,
+    dew_point INTEGER,
+    pressure INTEGER,
+    cloud_cover INTEGER,
+    visibility INTEGER,
+
+    UNIQUE(location_formatted_id, source, date) ON CONFLICT REPLACE,
+    FOREIGN KEY(location_formatted_id) REFERENCES locations (formatted_id)
+    ON DELETE CASCADE
+);
+
+INSERT INTO hourlys(_id, location_formatted_id, date, daylight, weather_text, weather_code, temperature, temperature_source_feels_like, temperature_apparent, temperature_wind_chill, humidex, total_precipitation, thunderstorm_precipitation, rain_precipitation, snow_precipitation, ice_precipitation, total_precipitation_probability, thunderstorm_precipitation_probability, rain_precipitation_probability, snow_precipitation_probability, ice_precipitation_probability, wind_degree, wind_speed, wind_gusts, pm25, pm10, so2, no2, o3, co, relative_humidity, dew_point, pressure, cloud_cover, visibility)
+SELECT _id, location_formatted_id, date, daylight, weather_text, weather_code, temperature, temperature_source_feels_like, temperature_apparent, temperature_wind_chill, humidex, total_precipitation, thunderstorm_precipitation, rain_precipitation, snow_precipitation, ice_precipitation, total_precipitation_probability, thunderstorm_precipitation_probability, rain_precipitation_probability, snow_precipitation_probability, ice_precipitation_probability, wind_degree, wind_speed, wind_gusts, pm25, pm10, so2, no2, o3, co, relative_humidity, dew_point, pressure, cloud_cover, visibility FROM hourlys_old;
+
+DROP TABLE hourlys_old;
+
+CREATE INDEX hourlys_location_formatted_id_index ON hourlys(location_formatted_id);

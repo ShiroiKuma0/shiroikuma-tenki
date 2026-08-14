@@ -20,6 +20,7 @@ package breezyweather.data.weather
 import breezyweather.data.DatabaseHandler
 import breezyweather.domain.location.model.Location
 import breezyweather.domain.weather.model.Alert
+import breezyweather.domain.weather.model.AlternateForecast
 import breezyweather.domain.weather.model.Daily
 import breezyweather.domain.weather.model.Hourly
 import breezyweather.domain.weather.model.Minutely
@@ -31,6 +32,17 @@ import java.util.Date
 class WeatherRepository(
     private val handler: DatabaseHandler,
 ) {
+
+    companion object {
+        /**
+         * shiroikuma fork: the source column of the location's own forecast rows.
+         *
+         * Deliberately the empty string rather than the source id: it is what every row written
+         * before this feature already holds, so migration 26 leaves the cache readable and the
+         * charts draw from it on the very first launch after the upgrade.
+         */
+        const val PRIMARY_SOURCE = ""
+    }
 
     suspend fun getWeatherByLocationId(
         locationFormattedId: String,
@@ -44,18 +56,22 @@ class WeatherRepository(
             weathersQueries.getWeatherByLocationId(locationFormattedId, WeatherMapper::mapWeather)
         }
 
+        // shiroikuma fork: one read per table brings back every source at once, primary keyed by ""
+        val dailyBySource = if (withDaily) getDailyListByLocationId(locationFormattedId) else emptyMap()
+        val hourlyBySource = if (withHourly) getHourlyListByLocationId(locationFormattedId) else emptyMap()
+
         return if (withDaily || withHourly || withMinutely || withAlerts) {
             weather?.copy(
-                dailyForecast = if (withDaily) {
-                    getDailyListByLocationId(locationFormattedId)
-                } else {
-                    emptyList()
-                },
-                hourlyForecast = if (withHourly) {
-                    getHourlyListByLocationId(locationFormattedId)
-                } else {
-                    emptyList()
-                },
+                dailyForecast = dailyBySource[PRIMARY_SOURCE].orEmpty(),
+                hourlyForecast = hourlyBySource[PRIMARY_SOURCE].orEmpty(),
+                alternateForecasts = (dailyBySource.keys + hourlyBySource.keys)
+                    .filter { it != PRIMARY_SOURCE }
+                    .associateWith {
+                        AlternateForecast(
+                            dailyForecast = dailyBySource[it].orEmpty(),
+                            hourlyForecast = hourlyBySource[it].orEmpty()
+                        )
+                    },
                 minutelyForecast = if (withMinutely) {
                     getMinutelyListByLocationId(locationFormattedId)
                 } else {
@@ -77,16 +93,20 @@ class WeatherRepository(
         }
     }
 
-    suspend fun getDailyListByLocationId(locationFormattedId: String): List<Daily> {
+    /**
+     * shiroikuma fork: keyed by forecast source, [PRIMARY_SOURCE] being the location's own.
+     * Rows keep the ORDER BY date of the query, so each source's list stays chronological.
+     */
+    suspend fun getDailyListByLocationId(locationFormattedId: String): Map<String, List<Daily>> {
         return handler.awaitList {
             dailysQueries.getDailyListByLocationId(locationFormattedId, WeatherMapper::mapDaily)
-        }
+        }.groupBy({ it.first }, { it.second })
     }
 
-    suspend fun getHourlyListByLocationId(locationFormattedId: String): List<Hourly> {
+    suspend fun getHourlyListByLocationId(locationFormattedId: String): Map<String, List<Hourly>> {
         return handler.awaitList {
             hourlysQueries.getHourlyListByLocationId(locationFormattedId, WeatherMapper::mapHourly)
-        }
+        }.groupBy({ it.first }, { it.second })
     }
 
     suspend fun getMinutelyListByLocationId(locationFormattedId: String): List<Minutely> {
@@ -173,10 +193,17 @@ class WeatherRepository(
             )
 
             // 2. Save daily (delete first, then re-add)
+            // shiroikuma fork: the primary source and every alternate go in one pass, so a
+            // deselected source's rows disappear with the delete instead of lingering.
             dailysQueries.deleteDailyListForLocationId(location.formattedId)
-            weather.dailyForecast.forEach { daily ->
+            val dailyRows = weather.dailyForecast.map { PRIMARY_SOURCE to it } +
+                weather.alternateForecasts.flatMap { (source, alternate) ->
+                    alternate.dailyForecast.map { source to it }
+                }
+            dailyRows.forEach { (source, daily) ->
                 dailysQueries.insert(
                     locationFormattedId = location.formattedId,
+                    source = source,
                     date = daily.date.time,
 
                     // daytime.
@@ -323,9 +350,14 @@ class WeatherRepository(
 
             // 3. Save hourly (delete first, then re-add)
             hourlysQueries.deleteHourlyListForLocationId(location.formattedId)
-            weather.hourlyForecast.forEach { hourly ->
+            val hourlyRows = weather.hourlyForecast.map { PRIMARY_SOURCE to it } +
+                weather.alternateForecasts.flatMap { (source, alternate) ->
+                    alternate.hourlyForecast.map { source to it }
+                }
+            hourlyRows.forEach { (source, hourly) ->
                 hourlysQueries.insert(
                     locationFormattedId = location.formattedId,
+                    source = source,
                     date = hourly.date.time,
                     daylight = hourly.isDaylight,
                     weatherCode = hourly.weatherCode,
