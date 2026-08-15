@@ -153,7 +153,7 @@ In general, a weather source can be considered for inclusion in the official rel
 | 🇧🇬 Bulgaria                 | [NIMH](https://www.meteo.bg/)                         |                                                                                       |              |
 | 🇭🇷 Croatia                  | [DHMZ](https://meteo.hr/)                             |                                                                                       |              |
 | 🇨🇾 Cyprus                   | [Cyprus](https://www.moa.gov.cy/)                     |                                                                                       |              |
-| 🇨🇿 Czechia                  | [CHMI](https://www.chmi.cz/)                          | ▶️😶‍🌫️⚠️📊 Current, Air quality, Alerts, Normals from 6.2.1+011                        | 2026-08-10   |
+| 🇨🇿 Czechia                  | [CHMI](https://www.chmi.cz/)                          | ▶️😶‍🌫️⚠️📊 Current, Air quality, Alerts, Normals from 6.2.1+011; 📆⏱️ Forecast from 6.2.1+035 | 2026-08-15   |
 | 🇩🇰 Denmark                  | [DMI](https://www.dmi.dk)                             | ✅ included from v5.0.0                                                                |              |
 | 🇪🇪 Estonia                  | [Ilmateenistus](https://www.ilmateenistus.ee/)        | ✅ included from v5.4.0                                                                | 2024-12-24   |
 | 🇫🇴 Faroe Is.                | [DMI](https://www.dmi.dk)                             | ✅ included from v5.0.0                                                                |              |

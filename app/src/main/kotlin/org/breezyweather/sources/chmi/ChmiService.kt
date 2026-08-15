@@ -22,12 +22,18 @@ import breezyweather.domain.source.SourceContinent
 import breezyweather.domain.source.SourceFeature
 import breezyweather.domain.weather.model.AirQuality
 import breezyweather.domain.weather.model.Alert
+import breezyweather.domain.weather.model.DailyCloudCover
 import breezyweather.domain.weather.model.Normals
+import breezyweather.domain.weather.model.Precipitation
 import breezyweather.domain.weather.model.Wind
 import breezyweather.domain.weather.reference.AlertSeverity
 import breezyweather.domain.weather.reference.Month
+import breezyweather.domain.weather.reference.WeatherCode
 import breezyweather.domain.weather.wrappers.AirQualityWrapper
 import breezyweather.domain.weather.wrappers.CurrentWrapper
+import breezyweather.domain.weather.wrappers.DailyWrapper
+import breezyweather.domain.weather.wrappers.HalfDayWrapper
+import breezyweather.domain.weather.wrappers.HourlyWrapper
 import breezyweather.domain.weather.wrappers.TemperatureWrapper
 import breezyweather.domain.weather.wrappers.WeatherWrapper
 import com.google.maps.android.PolyUtil
@@ -43,7 +49,10 @@ import org.breezyweather.R
 import org.breezyweather.common.exceptions.InvalidLocationException
 import org.breezyweather.common.extensions.currentLocale
 import org.breezyweather.common.extensions.getCountryName
+import org.breezyweather.common.extensions.getIsoFormattedDate
 import org.breezyweather.common.extensions.parseRawGeoJson
+import org.breezyweather.common.extensions.toCalendar
+import org.breezyweather.common.extensions.toDateNoHour
 import org.breezyweather.common.source.HttpSource
 import org.breezyweather.common.source.LocationParametersSource
 import org.breezyweather.common.source.WeatherSource
@@ -52,9 +61,13 @@ import org.breezyweather.common.source.WeatherSource.Companion.PRIORITY_NONE
 import org.breezyweather.common.utils.ISO8601Utils
 import org.breezyweather.sources.chmi.json.ChmiAirQualityMetadata
 import org.breezyweather.sources.chmi.json.ChmiDataResult
+import org.breezyweather.sources.chmi.json.ChmiMeteogramHour
+import org.breezyweather.sources.chmi.json.ChmiMeteogramResult
+import org.breezyweather.sources.chmi.json.ChmiOutlookResult
 import org.breezyweather.sources.chmi.json.ChmiTextForecastResult
 import org.breezyweather.sources.common.xml.CapAlert
 import org.breezyweather.unit.pollutant.PollutantConcentration.Companion.microgramsPerCubicMeter
+import org.breezyweather.unit.precipitation.Precipitation.Companion.millimeters
 import org.breezyweather.unit.pressure.Pressure.Companion.hectopascals
 import org.breezyweather.unit.ratio.Ratio.Companion.fraction
 import org.breezyweather.unit.ratio.Ratio.Companion.percent
@@ -70,6 +83,11 @@ import java.util.Objects
 import java.util.TimeZone
 import javax.inject.Inject
 import javax.inject.Named
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Český hydrometeorologický ústav — the Czech national weather service. Everything it
@@ -84,10 +102,15 @@ import javax.inject.Named
  *    captioned with the duty forecaster's own regional text forecast.
  *  - **Air quality.** The national monitoring network, all six pollutants in µg/m³.
  *  - **Normals.** The 1991–2020 monthly means of the daily maximum and minimum.
+ *  - **Forecast.** ALADIN hour by hour, from the API behind ČHMÚ's own web pages
+ *    ([ChmiDataProviderApi]). Three days for the exact coordinates, and past the end of that
+ *    horizon the national nine-day outlook, which is the same figure everywhere in the
+ *    country. The hours already gone are replaced with what the nearest station actually
+ *    measured, out of the very stream the current reading is built from.
  *
- * There is deliberately **no forecast**: ČHMÚ's own point forecasts are text only and its
- * ALADIN output is GRIB2, neither of which a phone can use. ALADIN reaches the app through
- * the Open-Meteo source instead, as the `chmi_aladin_*` models.
+ * ALADIN reaches the app through the Open-Meteo source as well, as the `chmi_aladin_*`
+ * models. The two are meant to be stacked: same model, different pipe, and where they
+ * disagree it is the post-processing that differs.
  */
 class ChmiService @Inject constructor(
     @ApplicationContext context: Context,
@@ -111,6 +134,9 @@ class ChmiService @Inject constructor(
     private val mCapApi by lazy {
         xmlClient.baseUrl(CHMI_CAP_BASE_URL).build().create(ChmiCapApi::class.java)
     }
+    private val mDataProviderApi by lazy {
+        jsonClient.baseUrl(CHMI_DATA_PROVIDER_BASE_URL).build().create(ChmiDataProviderApi::class.java)
+    }
 
     /**
      * Parsed on first use only — [requestLocationParameters] resolves the ORP once per
@@ -121,6 +147,7 @@ class ChmiService @Inject constructor(
     }
 
     override val supportedFeatures = mapOf(
+        SourceFeature.FORECAST to weatherAttribution,
         SourceFeature.CURRENT to weatherAttribution,
         SourceFeature.AIR_QUALITY to weatherAttribution,
         SourceFeature.ALERT to weatherAttribution,
@@ -155,10 +182,31 @@ class ChmiService @Inject constructor(
         val parameters = location.parameters.getOrElse(id) { null }.orEmpty()
         val failedFeatures = mutableMapOf<SourceFeature, Throwable>()
 
-        val current = if (SourceFeature.CURRENT in requestedFeatures) {
-            requestCurrent(parameters, failedFeatures)
+        // The forecast rides on two calls that fail independently, and either one alone still
+        // makes a usable tab, so their errors are held here and only reported if both come up
+        // empty.
+        val forecastFailures = mutableListOf<Throwable>()
+
+        // Carries the ten-minute observations, which serve the current reading and the hours
+        // already gone on the forecast alike — hence fetched here rather than inside either.
+        val current = requestCurrent(parameters, requestedFeatures, failedFeatures)
+
+        val meteogram = if (SourceFeature.FORECAST in requestedFeatures) {
+            mDataProviderApi.getMeteogram(location.longitude, location.latitude).onErrorResumeNext {
+                forecastFailures.add(it)
+                Observable.just(ChmiMeteogramResult())
+            }
         } else {
-            Observable.just(CurrentPieces())
+            Observable.just(ChmiMeteogramResult())
+        }
+
+        val outlook = if (SourceFeature.FORECAST in requestedFeatures) {
+            mDataProviderApi.getOutlook().onErrorResumeNext {
+                forecastFailures.add(it)
+                Observable.just(ChmiOutlookResult())
+            }
+        } else {
+            Observable.just(ChmiOutlookResult())
         }
 
         val alerts = if (SourceFeature.ALERT in requestedFeatures) {
@@ -187,13 +235,32 @@ class ChmiService @Inject constructor(
             Observable.just(emptyMap<Month, Normals>())
         }
 
-        return Observable.zip(current, alerts, airQuality, normals) {
+        return Observable.zip(current, alerts, airQuality, normals, meteogram, outlook) {
                 currentResult: CurrentPieces,
                 alertsResult: List<CapAlert>,
                 airQualityResult: String,
                 normalsResult: Map<Month, Normals>,
+                meteogramResult: ChmiMeteogramResult,
+                outlookResult: ChmiOutlookResult,
             ->
+            val hourly = if (SourceFeature.FORECAST in requestedFeatures) {
+                getHourlyList(context, meteogramResult, currentResult.observations)
+            } else {
+                null
+            }
+            val daily = if (SourceFeature.FORECAST in requestedFeatures) {
+                getDailyList(context, location, hourly.orEmpty(), outlookResult)
+            } else {
+                null
+            }
+            if (SourceFeature.FORECAST in requestedFeatures && hourly.isNullOrEmpty() && daily.isNullOrEmpty()) {
+                failedFeatures[SourceFeature.FORECAST] =
+                    forecastFailures.firstOrNull() ?: InvalidLocationException()
+            }
+
             WeatherWrapper(
+                dailyForecast = daily,
+                hourlyForecast = hourly,
                 current = if (SourceFeature.CURRENT in requestedFeatures) {
                     getCurrent(currentResult)
                 } else {
@@ -219,24 +286,350 @@ class ChmiService @Inject constructor(
         }
     }
 
+    // Forecast
+
+    /**
+     * The meteogram, hour by hour, with the hours already behind us replaced by what the
+     * nearest station actually measured.
+     */
+    private fun getHourlyList(
+        context: Context,
+        meteogram: ChmiMeteogramResult,
+        observations: ChmiDataResult,
+    ): List<HourlyWrapper> {
+        val hours = meteogram.data.orEmpty().mapNotNull { hour ->
+            hour.validityTime?.let { parseDate(it) }?.let { it to hour }
+        }
+        if (hours.isEmpty()) return emptyList()
+
+        val measured = measuredHours(observations)
+        // The hour we are in is left to the model: it still has readings to come, and an
+        // average of the few that have arrived would read as a dip in the curve.
+        val currentHour = System.currentTimeMillis() / HOUR_IN_MILLIS * HOUR_IN_MILLIS
+
+        return hours.map { (date, hour) ->
+            val past = if (date.time < currentHour) measured[date.time] else null
+            HourlyWrapper(
+                date = date,
+                weatherText = getWeatherText(context, hour.icon),
+                weatherCode = getWeatherCode(hour.icon),
+                temperature = (past?.temperature ?: hour.t2m)?.let {
+                    TemperatureWrapper(temperature = it.celsius)
+                },
+                precipitation = getPrecipitation(hour, past),
+                wind = getWind(hour, past),
+                relativeHumidity = (past?.humidity ?: hour.rh2m)?.percent,
+                // The ten-minute stream reports the pressure at the station, not one reduced
+                // to sea level, so the model's stands even for an hour that is past.
+                pressure = hour.mslp?.hectopascals,
+                // Neither an icon nor a cloud amount is measured by these stations.
+                cloudCover = hour.cloudsTot?.percent,
+                sunshineDuration = past?.sunshine
+            )
+        }
+    }
+
+    /**
+     * The ten-minute stream folded into whole hours, keyed by the hour it opens.
+     *
+     * Rain and sunshine accumulate, so they are summed; everything else is a state, and is
+     * averaged. A gust is the strongest of the hour rather than the mean of them, since that
+     * is what a gust means.
+     */
+    private fun measuredHours(
+        observations: ChmiDataResult,
+    ): Map<Long, MeasuredHour> {
+        val table = observations.data?.data ?: return emptyMap()
+        val readings = mutableMapOf<Long, MutableMap<String, MutableList<Double>>>()
+        table.rows().forEach { row ->
+            val element = table.string(row, COLUMN_ELEMENT) ?: return@forEach
+            if (element !in MEASURED_ELEMENTS) return@forEach
+            val quality = table.double(row, COLUMN_QUALITY)
+            if (quality == QUALITY_POOR || quality == QUALITY_MISSING) return@forEach
+            val value = table.double(row, COLUMN_VALUE) ?: return@forEach
+            val date = table.string(row, COLUMN_DATE)?.let { parseDate(it) } ?: return@forEach
+            readings.getOrPut(date.time / HOUR_IN_MILLIS * HOUR_IN_MILLIS) { mutableMapOf() }
+                .getOrPut(element) { mutableListOf() }
+                .add(value)
+        }
+
+        return readings.mapValues { (_, elements) ->
+            MeasuredHour(
+                temperature = elements[ELEMENT_TEMPERATURE]?.average(),
+                humidity = elements[ELEMENT_HUMIDITY]?.average(),
+                precipitation = elements[ELEMENT_PRECIPITATION]?.sum(),
+                windSpeed = (elements[ELEMENT_WIND_SPEED_MEAN] ?: elements[ELEMENT_WIND_SPEED])
+                    ?.average(),
+                windGusts = elements[ELEMENT_WIND_GUSTS]?.max(),
+                windDirection = (
+                    elements[ELEMENT_WIND_DIRECTION_MEAN] ?: elements[ELEMENT_WIND_DIRECTION]
+                    )?.let { meanDegree(it) },
+                sunshine = elements[ELEMENT_SUNSHINE]?.sum()?.seconds
+            )
+        }
+    }
+
+    /**
+     * The mean of a set of bearings, taken as vectors — averaged as plain numbers, 350° and
+     * 10° would come out due south instead of due north.
+     */
+    private fun meanDegree(
+        degrees: List<Double>,
+    ): Double? {
+        var x = 0.0
+        var y = 0.0
+        degrees.forEach {
+            val radians = Math.toRadians(it)
+            x += cos(radians)
+            y += sin(radians)
+        }
+        // Bearings that cancel out exactly leave no direction to report.
+        if (x == 0.0 && y == 0.0) return null
+        return (Math.toDegrees(atan2(y, x)) + FULL_CIRCLE) % FULL_CIRCLE
+    }
+
+    private fun getPrecipitation(
+        hour: ChmiMeteogramHour,
+        measured: MeasuredHour?,
+    ): Precipitation? {
+        // A rain gauge reports what fell, never what it was made of, so a measured hour
+        // carries a total and nothing more.
+        measured?.precipitation?.let { return Precipitation(total = it.millimeters) }
+
+        // Millimetres an hour, on an hourly step, so the rate is also the accumulation.
+        val total = hour.prec ?: return null
+        val snow = hour.snow
+        return Precipitation(
+            total = total.millimeters,
+            rain = snow?.let { (total - it).coerceAtLeast(0.0).millimeters },
+            snow = snow?.millimeters
+        )
+    }
+
+    private fun getWind(
+        hour: ChmiMeteogramHour,
+        measured: MeasuredHour?,
+    ): Wind? {
+        val degree = measured?.windDirection ?: hour.windDirection
+        val speed = measured?.windSpeed ?: hour.windSpeed
+        // ČHMÚ writes a zero where no gust was reported, and a gust weaker than the wind
+        // carrying it would be a contradiction rather than a calm hour.
+        val gusts = (measured?.windGusts ?: hour.windGustSpeed)
+            ?.takeIf { speed == null || it > speed }
+        if (degree == null && speed == null && gusts == null) return null
+        return Wind(
+            degree = degree?.let { Wind.validateDegree(it) },
+            speed = speed?.metersPerSecond,
+            gusts = gusts?.metersPerSecond
+        )
+    }
+
+    /**
+     * The days the meteogram can speak for itself about, then the national outlook for as far
+     * as it reaches beyond them.
+     *
+     * The near days are deliberately left blank: `completeDailyListFromHourlyList` fills them
+     * from the hourly list built above, which is how this location's own rain — the one thing
+     * the outlook never publishes — reaches the daily tab.
+     */
+    private fun getDailyList(
+        context: Context,
+        location: Location,
+        hourlyForecast: List<HourlyWrapper>,
+        outlook: ChmiOutlookResult,
+    ): List<DailyWrapper> {
+        // The first day is clipped by the 00:00 UTC start and the last is a stub of a few
+        // hours, so this is counted rather than assumed to be three.
+        val covered = hourlyForecast
+            .groupBy { it.date.getIsoFormattedDate(location) }
+            .filterValues { it.size >= HOURS_FOR_A_LOCAL_DAY }
+            .keys
+
+        val localDays = covered.mapNotNull { day ->
+            day.toDateNoHour(location.timeZone)?.let { DailyWrapper(date = it) }
+        }
+        val outlookDays = getOutlookDays(context, location, outlook).filterNot {
+            it.date.getIsoFormattedDate(location) in covered
+        }
+
+        return (localDays + outlookDays).sortedBy { it.date }
+    }
+
+    /**
+     * The national outlook as whole days.
+     *
+     * ČHMÚ files a night's minimum under the day it *precedes*; Breezy Weather's night is the
+     * one that *follows* its day. So a day takes the **next** day's minimum for its night, and
+     * the last day of the outlook is left without one rather than borrowing the wrong night.
+     *
+     * That next day is found by date and not by the number after it: the numbering has been
+     * seen to skip a value while the dates run on unbroken, and following it would have lost a
+     * night silently.
+     */
+    private fun getOutlookDays(
+        context: Context,
+        location: Location,
+        outlook: ChmiOutlookResult,
+    ): List<DailyWrapper> {
+        val days = outlook.data.orEmpty()
+            .mapNotNull { row -> row.number?.let { it to row } }
+            .groupBy({ it.first }, { it.second })
+            .values
+            .mapNotNull { rows ->
+                // The maximum sits on the midday row — the only one of the pair whose own date
+                // is the day it belongs to, whatever the offset from UTC happens to be.
+                val midday = rows.firstOrNull { it.maximumTemperature != null }
+                    ?: return@mapNotNull null
+                val date = midday.time?.let { parseDate(it) }?.getIsoFormattedDate(location)
+                    ?: return@mapNotNull null
+                OutlookDay(
+                    date = date,
+                    maximum = midday.maximumTemperature,
+                    // The night this day opens with, which belongs to the day before it.
+                    minimum = rows.firstNotNullOfOrNull { it.minimumTemperature },
+                    icon = rows.firstNotNullOfOrNull { it.weatherIcon },
+                    cloudCover = rows.firstNotNullOfOrNull { it.totalCloudCover }
+                )
+            }
+        val minimums = days.mapNotNull { day -> day.minimum?.let { day.date to it } }.toMap()
+
+        return days.mapNotNull { day ->
+            val date = day.date.toDateNoHour(location.timeZone) ?: return@mapNotNull null
+            DailyWrapper(
+                date = date,
+                day = HalfDayWrapper(
+                    weatherText = getWeatherText(context, day.icon),
+                    weatherCode = getWeatherCode(day.icon),
+                    temperature = day.maximum?.let { TemperatureWrapper(temperature = it.celsius) }
+                ),
+                night = minimums[nextDay(date, location)]?.let {
+                    HalfDayWrapper(
+                        // One icon a day is all the outlook publishes, and a weather code is
+                        // drawn as a moon at night of its own accord.
+                        weatherText = getWeatherText(context, day.icon),
+                        weatherCode = getWeatherCode(day.icon),
+                        temperature = TemperatureWrapper(temperature = it.celsius)
+                    )
+                },
+                cloudCover = day.cloudCover
+                    ?.takeIf { it <= OKTAS }
+                    ?.let { DailyCloudCover(average = (it / OKTAS).fraction) }
+            )
+        }.sortedBy { it.date }
+    }
+
+    /**
+     * The day after this one where the location stands — by the calendar rather than by adding
+     * a day's worth of milliseconds, which lands an hour out either side of a clock change.
+     */
+    private fun nextDay(
+        date: Date,
+        location: Location,
+    ): String {
+        return date.toCalendar(location).apply { add(Calendar.DAY_OF_YEAR, 1) }.getIsoFormattedDate()
+    }
+
+    /**
+     * ČHMÚ's icon vocabulary, published at https://www.chmi.cz/predpoved-pocasi/ikony-pocasi
+     *
+     * It is a two-digit grammar: the tens say how much cloud there is, the ones what is
+     * falling out of it, and the night of any icon is the same code plus a hundred. Reading
+     * the digits rather than tabulating some sixty codes also means one ČHMÚ adds later still
+     * lands somewhere sensible instead of being dropped.
+     */
+    private fun getWeatherCode(
+        icon: Int?,
+    ): WeatherCode? {
+        val base = (icon ?: return null) % NIGHT_ICON_OFFSET
+        return when (base % 10) {
+            // Breezy Weather has no freezing rain of its own, and calls sleet the mixture
+            // rather than the ice, so freezing rain is filed as rain the way it is elsewhere.
+            PRECIPITATION_RAIN, PRECIPITATION_FREEZING_RAIN -> WeatherCode.RAIN
+            PRECIPITATION_SLEET -> WeatherCode.SLEET
+            PRECIPITATION_SNOW, PRECIPITATION_SNOW_SHOWER -> WeatherCode.SNOW
+            PRECIPITATION_THUNDERSTORM -> WeatherCode.THUNDERSTORM
+            PRECIPITATION_HAIL -> WeatherCode.HAIL
+            else -> when (base / 10) {
+                CLOUD_CLEAR, CLOUD_MOSTLY_CLEAR -> WeatherCode.CLEAR
+                CLOUD_PARTLY_CLOUDY, CLOUD_CLOUDY -> WeatherCode.PARTLY_CLOUDY
+                CLOUD_MOSTLY_OVERCAST, CLOUD_OVERCAST -> WeatherCode.CLOUDY
+                CLOUD_FOG -> WeatherCode.FOG
+                else -> null
+            }
+        }
+    }
+
+    /**
+     * The same vocabulary in words, out of Breezy Weather's own shared set rather than ČHMÚ's
+     * Czech — so it reads in whatever language the app is in.
+     */
+    private fun getWeatherText(
+        context: Context,
+        icon: Int?,
+    ): String? {
+        val base = (icon ?: return null) % NIGHT_ICON_OFFSET
+        val cloud = base / 10
+        // ČHMÚ words the same precipitation by how much cloud is above it — a shower under a
+        // broken sky, plain rain under a closed one — and so does Breezy Weather.
+        val showery = cloud <= CLOUD_CLOUDY
+        return when (base % 10) {
+            PRECIPITATION_RAIN -> if (showery) {
+                R.string.common_weather_text_rain_showers
+            } else {
+                R.string.common_weather_text_rain
+            }
+            PRECIPITATION_FREEZING_RAIN -> R.string.common_weather_text_rain_freezing
+            PRECIPITATION_SLEET -> if (showery) {
+                R.string.common_weather_text_rain_snow_mixed_showers
+            } else {
+                R.string.common_weather_text_rain_snow_mixed
+            }
+            PRECIPITATION_SNOW -> R.string.common_weather_text_snow
+            PRECIPITATION_SNOW_SHOWER -> R.string.common_weather_text_snow_showers
+            PRECIPITATION_THUNDERSTORM -> R.string.weather_kind_thunderstorm
+            PRECIPITATION_HAIL -> R.string.weather_kind_hail
+            else -> when (cloud) {
+                CLOUD_CLEAR -> R.string.common_weather_text_clear_sky
+                CLOUD_MOSTLY_CLEAR -> R.string.common_weather_text_mostly_clear
+                CLOUD_PARTLY_CLOUDY -> R.string.common_weather_text_partly_cloudy
+                CLOUD_CLOUDY -> R.string.common_weather_text_cloudy
+                CLOUD_MOSTLY_OVERCAST -> R.string.common_weather_text_mostly_cloudy
+                CLOUD_OVERCAST -> R.string.common_weather_text_overcast
+                CLOUD_FOG -> R.string.common_weather_text_fog
+                else -> null
+            }
+        }?.let { context.getString(it) }
+    }
+
     // Current
 
     /**
      * The three ingredients of a current observation: the ten-minute stream from the nearest
      * station, the hourly synoptic stream if a professional station is close enough, and the
      * regional text forecast.
+     *
+     * The ten-minute stream is fetched for the **forecast** as well, which replaces its own
+     * past hours with what was measured, so this runs whenever either feature is asked for and
+     * only the two current-only ingredients are skipped. A missing station is fatal to the
+     * current reading but not to the forecast, which simply keeps the model's past hours.
      */
     private fun requestCurrent(
         parameters: Map<String, String>,
+        requestedFeatures: List<SourceFeature>,
         failedFeatures: MutableMap<SourceFeature, Throwable>,
     ): Observable<CurrentPieces> {
+        val wantsCurrent = SourceFeature.CURRENT in requestedFeatures
+        val wantsObservations = wantsCurrent || SourceFeature.FORECAST in requestedFeatures
+
         val station = parameters[PARAMETER_STATION]
-        val observations = if (station.isNullOrEmpty()) {
-            failedFeatures[SourceFeature.CURRENT] = InvalidLocationException()
+        val observations = if (!wantsObservations) {
+            Observable.just(ChmiDataResult())
+        } else if (station.isNullOrEmpty()) {
+            if (wantsCurrent) failedFeatures[SourceFeature.CURRENT] = InvalidLocationException()
             Observable.just(ChmiDataResult())
         } else {
             withDayFallback { mApi.getObservations(station, it) }.onErrorResumeNext {
-                failedFeatures[SourceFeature.CURRENT] = it
+                if (wantsCurrent) failedFeatures[SourceFeature.CURRENT] = it
                 Observable.just(ChmiDataResult())
             }
         }
@@ -244,7 +637,7 @@ class ChmiService @Inject constructor(
         // Absent whenever the nearest professional station is out of range, which is most of
         // the country — the ten-minute stream still carries temperature, humidity and wind.
         val hourlyStation = parameters[PARAMETER_STATION_HOURLY]
-        val hourly = if (hourlyStation.isNullOrEmpty()) {
+        val hourly = if (!wantsCurrent || hourlyStation.isNullOrEmpty()) {
             Observable.just(ChmiDataResult())
         } else {
             withDayFallback { mApi.getHourlyObservations(hourlyStation, it) }
@@ -252,7 +645,7 @@ class ChmiService @Inject constructor(
         }
 
         val cisorp = parameters[PARAMETER_ORP]
-        val text = if (cisorp.isNullOrEmpty()) {
+        val text = if (!wantsCurrent || cisorp.isNullOrEmpty()) {
             Observable.just(ChmiTextForecastResult())
         } else {
             requestTextForecast(textForecastCandidates(cisorp))
@@ -842,6 +1235,33 @@ class ChmiService @Inject constructor(
         val flag: String?,
     )
 
+    /**
+     * One day of the national outlook, gathered from its pair of rows.
+     *
+     * [minimum] is the night this day *opens* with, which is the night of the day before —
+     * ČHMÚ's filing, not Breezy Weather's.
+     */
+    private data class OutlookDay(
+        val date: String,
+        val maximum: Double?,
+        val minimum: Double?,
+        val icon: Int?,
+        val cloudCover: Double?,
+    )
+
+    /**
+     * One whole hour as the nearest station measured it, out of the ten-minute stream.
+     */
+    private data class MeasuredHour(
+        val temperature: Double? = null,
+        val humidity: Double? = null,
+        val precipitation: Double? = null,
+        val windSpeed: Double? = null,
+        val windGusts: Double? = null,
+        val windDirection: Double? = null,
+        val sunshine: Duration? = null,
+    )
+
     private data class CurrentPieces(
         val observations: ChmiDataResult = ChmiDataResult(),
         val hourly: ChmiDataResult = ChmiDataResult(),
@@ -853,6 +1273,7 @@ class ChmiService @Inject constructor(
     companion object {
         private const val CHMI_BASE_URL = "https://opendata.chmi.cz/"
         private const val CHMI_CAP_BASE_URL = "https://vystrahy-cr.chmi.cz/"
+        private const val CHMI_DATA_PROVIDER_BASE_URL = "https://data-provider.chmi.cz/"
 
         private const val PARAMETER_ORP = "cisorp"
         private const val PARAMETER_STATION = "station"
@@ -891,6 +1312,25 @@ class ChmiService @Inject constructor(
         private const val ELEMENT_CLOUD_COVER = "N"
         private const val ELEMENT_TEMPERATURE_MAXIMUM = "TMA"
         private const val ELEMENT_TEMPERATURE_MINIMUM = "TMI"
+        private const val ELEMENT_PRECIPITATION = "SRA10M"
+        private const val ELEMENT_SUNSHINE = "SSV10M"
+
+        /**
+         * What the forecast's past hours are rebuilt from. Pressure is missing on purpose: the
+         * ten-minute stream reports it at the station, and the hourly row it would replace is
+         * reduced to sea level.
+         */
+        private val MEASURED_ELEMENTS = arrayOf(
+            ELEMENT_TEMPERATURE,
+            ELEMENT_HUMIDITY,
+            ELEMENT_PRECIPITATION,
+            ELEMENT_SUNSHINE,
+            ELEMENT_WIND_SPEED,
+            ELEMENT_WIND_SPEED_MEAN,
+            ELEMENT_WIND_GUSTS,
+            ELEMENT_WIND_DIRECTION,
+            ELEMENT_WIND_DIRECTION_MEAN
+        )
 
         private val ELEMENTS_WORTH_SHOWING = arrayOf(
             ELEMENT_TEMPERATURE,
@@ -941,6 +1381,39 @@ class ChmiService @Inject constructor(
         private const val VARIABLE_WIND_DEGREE = -1.0
 
         private const val OKTAS = 8.0
+        private const val FULL_CIRCLE = 360.0
+        private const val HOUR_IN_MILLIS = 3600000L
+
+        /**
+         * How much of a local day the meteogram has to cover before that day is built from it
+         * rather than taken from the national outlook. Its first day loses the hours before
+         * 00:00 UTC and its last is a stub of two or three, so what qualifies is counted
+         * rather than assumed — the horizon shrinks as the day goes on.
+         */
+        private const val HOURS_FOR_A_LOCAL_DAY = 20
+
+        /**
+         * The night of an icon is its day plus a hundred. Overcast and fog have no night of
+         * their own, since they look the same either way.
+         */
+        private const val NIGHT_ICON_OFFSET = 100
+
+        private const val CLOUD_CLEAR = 1
+        private const val CLOUD_MOSTLY_CLEAR = 2
+        private const val CLOUD_PARTLY_CLOUDY = 4
+        private const val CLOUD_CLOUDY = 6
+        private const val CLOUD_MOSTLY_OVERCAST = 7
+        private const val CLOUD_OVERCAST = 8
+        private const val CLOUD_FOG = 9
+
+        private const val PRECIPITATION_RAIN = 1
+        private const val PRECIPITATION_FREEZING_RAIN = 2
+        private const val PRECIPITATION_SLEET = 3
+        private const val PRECIPITATION_SNOW = 4
+        private const val PRECIPITATION_SNOW_SHOWER = 5
+        private const val PRECIPITATION_THUNDERSTORM = 6
+        private const val PRECIPITATION_HAIL = 9
+
         private const val MONTHS_IN_YEAR = 12
         private const val NORMALS_STATION_COLUMNS = 7
         private const val MAXIMUM_STATION_DISTANCE = 50000.0
