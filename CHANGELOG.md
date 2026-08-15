@@ -10,6 +10,73 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+038 — 2026-08-15
+
+Built on upstream **v6.2.1**.
+
+- **A restore-default-view button at the top right of both trend cards.** It puts the columns back
+  to the width the settings ask for and the chart back to the hour or the day it opens on — the
+  pinch zoom and the scroll, nothing else. **It fetches nothing**, and it leaves the selected tab
+  where you put it, that being a deliberate choice rather than part of the view.
+- Its icon is four corner brackets rather than a circular arrow: in a weather app a circular arrow
+  reads as "fetch the forecast again", which is precisely what this does not do.
+
+---
+
+## 白い熊 天気 6.2.1+037 — 2026-08-15
+
+Built on upstream **v6.2.1**. Readings no longer run off the top of the chart, and both trend cards
+pinch.
+
+- **A reading can no longer be cut off at the top.** Two things were doing it. An hour hotter than
+  the opening window's range was clamped to the very top of the drawable rather than to the top of
+  the plotting area, leaving its numerals no room at all and slicing them against the edge; the
+  clamp now stops at the margin that is reserved for exactly that reading. And the fallback that
+  tucks a reading under the top edge measured the font's declared ascent, which a face whose digits
+  overshoot their own metrics would exceed — it now measures the glyphs actually being drawn.
+- **The degree readings are a quarter smaller** on both cards, which also buys back the headroom.
+- **Both trend cards pinch-zoom.** Spreading two fingers widens the columns and fits fewer hours or
+  days on the screen; pinching them together fits more. The columns are re-measured rather than the
+  canvas scaled, so the labels, icons and readings keep their own size instead of blowing up with
+  the chart. The hourly card refits its temperature scale to whatever the zoom now shows.
+- The zoom is **remembered**, separately for the hourly and the daily card — a zoom held only by the
+  chart would be lost the moment the card scrolled off the screen and came back.
+
+---
+
+## 白い熊 天気 6.2.1+036 — 2026-08-15
+
+Built on upstream **v6.2.1**. The trend charts gain a past, and the hourly and daily cards stop
+having to agree about their sources.
+
+### Scroll back into what already happened
+
+- **A month of history is kept**, where before a refresh carried forward only what was stored back
+  to yesterday 00:00. Both trend cards can now be scrolled left through what the weather actually
+  did. This accumulates from this build onwards — it cannot recover days that were never fetched.
+- **The hourly card opens three hours back and scrolls both ways.** It plots the whole stored
+  series rather than a clipped window; the configured hours of history now decide only where the
+  card *lands*. The daily card already opened on today and simply has more behind it now.
+- **Every hourly tab is a meteogram now.** Precipitation, wind, humidity, pressure, UV, cloud
+  cover, visibility, feels-like and air quality were all still drawing upstream's "now to +24 h"
+  with no history at all, while only temperature had been rebuilt. They now share one series and
+  one column width, so switching tabs keeps your place instead of jumping to another hour.
+- **The hourly graph opens on 3 + 20 hours** rather than 3 + 9.
+
+### Hourly and daily pick their own forecast sources
+
+- **"Weather sources" now has an Hourly forecast row and a Daily forecast row**, each with its own
+  multi-select and its own drag order. A source can be in one and not the other — which is the
+  point, since a source that is excellent hour by hour is not always the one you want deciding the
+  week. ČHMÚ is exactly that case: local for three days, national beyond them.
+- The **first hourly source stays the location's identity**, as before, so the duplicate-location
+  check and the widgets are unaffected. The daily list carries no such obligation and may leave the
+  identity source out entirely.
+- A location that predates the split draws the same sources on both cards, and every source either
+  list asks for is fetched once.
+
+---
+
 ## 白い熊 天気 6.2.1+035 — 2026-08-15
 
 Built on upstream **v6.2.1**. ČHMÚ becomes a forecast source.

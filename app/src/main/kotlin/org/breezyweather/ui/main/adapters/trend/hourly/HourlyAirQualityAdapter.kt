@@ -61,8 +61,8 @@ class HourlyAirQualityAdapter(
             position: Int,
         ) {
             val talkBackBuilder = StringBuilder(activity.getString(R.string.tag_aqi))
-            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
-            val hourly = location.weather!!.nextHourlyForecast[position]
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.hourlyForecast)
+            val hourly = location.weather!!.hourlyForecast[position]
 
             val index = hourly.airQuality?.getIndex()
             if (index != null) {
@@ -107,7 +107,7 @@ class HourlyAirQualityAdapter(
     }
 
     init {
-        location.weather!!.nextHourlyForecast
+        location.weather!!.hourlyForecast
             .mapNotNull { it.airQuality?.getIndex() }
             .maxOrNull()
             ?.let {
@@ -127,11 +127,11 @@ class HourlyAirQualityAdapter(
     }
 
     override fun getItemCount(): Int {
-        return location.weather!!.nextHourlyForecast.size
+        return location.weather!!.hourlyForecast.size
     }
 
     override fun isValid(location: Location): Boolean {
-        return location.weather!!.nextHourlyForecast.any { it.airQuality?.getIndex() != null }
+        return location.weather!!.hourlyForecast.any { it.airQuality?.getIndex() != null }
     }
 
     override fun getDisplayName(context: Context): String {

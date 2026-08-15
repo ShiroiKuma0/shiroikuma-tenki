@@ -203,8 +203,9 @@ fun TenkiUiScreen(onNavigateBack: () -> Unit) {
                 ui,
                 "History and hours ahead set the window the hourly graph OPENS with: those " +
                     "columns share the screen between them, and the temperature scale is fitted " +
-                    "to exactly those hours, so the peak you can see reaches the top. The rest " +
-                    "of the forecast stays there, off to the right, and scrolls."
+                    "to exactly those hours, so the peak you can see reaches the top. Everything " +
+                    "else stays there and scrolls — the rest of the forecast to the right, and " +
+                    "up to a month of what already happened to the left."
             )
 
             // ------------------------------------------------------------ density

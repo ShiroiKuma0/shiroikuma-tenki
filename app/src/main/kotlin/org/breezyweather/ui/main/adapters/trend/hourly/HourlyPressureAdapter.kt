@@ -61,9 +61,9 @@ class HourlyPressureAdapter(
 
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder(activity.getString(R.string.tag_pressure))
-            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.hourlyForecast)
             val weather = location.weather!!
-            val hourly = weather.nextHourlyForecast[position]
+            val hourly = weather.hourlyForecast[position]
             hourly.pressure?.let { pressure ->
                 talkBackBuilder.append(activity.getString(org.breezyweather.unit.R.string.locale_separator))
                     .append(pressure.formatMeasure(activity, unitWidth = UnitWidth.LONG))
@@ -137,11 +137,11 @@ class HourlyPressureAdapter(
 
     init {
         val weather = location.weather!!
-        mPressures = arrayOfNulls(max(0, weather.nextHourlyForecast.size * 2 - 1))
+        mPressures = arrayOfNulls(max(0, weather.hourlyForecast.size * 2 - 1))
         run {
             var i = 0
             while (i < mPressures.size) {
-                mPressures[i] = weather.nextHourlyForecast.getOrNull(i / 2)?.pressure?.value?.toFloat()
+                mPressures[i] = weather.hourlyForecast.getOrNull(i / 2)?.pressure?.value?.toFloat()
                 i += 2
             }
         }
@@ -158,7 +158,7 @@ class HourlyPressureAdapter(
         }
         mHighestPressure = PressureUnit.STANDARD.toFloat()
         mLowestPressure = PressureUnit.STANDARD.toFloat()
-        weather.nextHourlyForecast
+        weather.hourlyForecast
             .forEach { hourly ->
                 hourly.pressure?.value?.let {
                     if (mHighestPressure == null || it > mHighestPressure!!) {
@@ -180,7 +180,7 @@ class HourlyPressureAdapter(
         (holder as ViewHolder).onBindView(activity, location, position)
     }
 
-    override fun getItemCount() = location.weather!!.nextHourlyForecast.size
+    override fun getItemCount() = location.weather!!.hourlyForecast.size
 
     override fun isValid(location: Location): Boolean {
         return mHighestPressure != null &&

@@ -47,6 +47,9 @@ class HourlyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
     private val subtitle: TextView = itemView.findViewById(R.id.hourly_block_subtitle)
     private val buttonGroup: MaterialButtonGroup = itemView.findViewById(R.id.hourly_block_button_group)
 
+    // shiroikuma fork: back to the view the card opens with — zoom and scroll, no refetch
+    private val resetView: View = itemView.findViewById(R.id.hourly_block_reset_view)
+
     // shiroikuma fork: one chart per selected forecast source, rebuilt on every bind
     private val sourceContainer: LinearLayout = itemView.findViewById(R.id.hourly_block_source_container)
     private val charts = mutableListOf<SourceChart>()
@@ -55,6 +58,7 @@ class HourlyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
         val adapter: HourlyTrendAdapter,
         val recyclerView: TrendRecyclerView,
         val scrollBar: TrendRecyclerViewScrollBar,
+        val location: Location,
     )
 
     override fun onBindView(
@@ -79,7 +83,11 @@ class HourlyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
 
         // shiroikuma fork: build a chart per source, stacked in the arranged order. With a single
         // source this is one unlabelled chart — the card as it always was.
-        val blocks = location.forecastSourceBlocks((activity as? MainActivity)?.sourceManager, activity)
+        val blocks = location.forecastSourceBlocks(
+            (activity as? MainActivity)?.sourceManager,
+            activity,
+            location.orderedHourlyForecastSources
+        )
         sourceContainer.removeAllViews()
         charts.clear()
 
@@ -98,6 +106,8 @@ class HourlyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
                 height = context.dpToPx(TenkiViewTheme.state(context).hourlyChartHeight.toFloat()).toInt()
             }
 
+            // shiroikuma fork: which zoom level the pinch on this chart drives
+            recyclerView.zoomKind = TrendRecyclerView.ZoomKind.HOURLY
             val scrollBar = TrendRecyclerViewScrollBar()
             recyclerView.setHasFixedSize(true)
             recyclerView.addItemDecoration(scrollBar)
@@ -105,7 +115,8 @@ class HourlyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
                 SourceChart(
                     adapter = HourlyTrendAdapter(activity, recyclerView).apply { bindData(block.location) },
                     recyclerView = recyclerView,
-                    scrollBar = scrollBar
+                    scrollBar = scrollBar,
+                    location = block.location
                 )
             )
             sourceContainer.addView(sourceView)
@@ -186,13 +197,35 @@ class HourlyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
         )
         val keyLinesEnabled = SettingsManager.getInstance(context).isTrendHorizontalLinesEnabled
 
+        // shiroikuma fork: the charts plot every hour still stored, a month of history included, so
+        // each opens scrolled to its configured hours of history rather than at the oldest hour we
+        // happen to have kept. Each source has its own series, so each finds its own column.
+        val hoursBack = TenkiViewTheme.state(context).hourlyHoursBack
+
         charts.forEach { chart ->
             chart.recyclerView.layoutManager = TrendLayoutManager(context)
             chart.recyclerView.setLineColor(lineColor)
             chart.recyclerView.setTextColor(textColor)
             chart.recyclerView.adapter = chart.adapter
             chart.recyclerView.setKeyLineVisibility(keyLinesEnabled)
+            chart.location.weather?.let {
+                chart.recyclerView.scrollToPosition(it.hourlyOpeningIndex(hoursBack))
+            }
             chart.scrollBar.resetColor(activity)
+        }
+
+        // shiroikuma fork: the pinch zoom and the scroll are the only things this touches — the
+        // selected tab is a deliberate choice and stays where it was put.
+        resetView.setOnClickListener {
+            charts.forEach { chart ->
+                chart.recyclerView.resetZoom()
+                chart.location.weather?.let { weather ->
+                    // After the re-bind rather than during it, or the pending scroll is dropped
+                    chart.recyclerView.post {
+                        chart.recyclerView.scrollToPosition(weather.hourlyOpeningIndex(hoursBack))
+                    }
+                }
+            }
         }
     }
 }

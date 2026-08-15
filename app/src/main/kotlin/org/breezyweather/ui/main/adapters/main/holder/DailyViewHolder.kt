@@ -48,6 +48,9 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
     private val subtitle: TextView = itemView.findViewById(R.id.daily_block_subtitle)
     private val buttonGroup: MaterialButtonGroup = itemView.findViewById(R.id.daily_block_button_group)
 
+    // shiroikuma fork: back to the view the card opens with — zoom and scroll, no refetch
+    private val resetView: View = itemView.findViewById(R.id.daily_block_reset_view)
+
     // shiroikuma fork: one chart per selected forecast source, rebuilt on every bind
     private val sourceContainer: LinearLayout = itemView.findViewById(R.id.daily_block_source_container)
     private val charts = mutableListOf<SourceChart>()
@@ -82,7 +85,11 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
 
         // shiroikuma fork: build a chart per source, stacked in the arranged order. With a single
         // source this is one unlabelled chart — the card as it always was.
-        val blocks = location.forecastSourceBlocks((activity as? MainActivity)?.sourceManager, activity)
+        val blocks = location.forecastSourceBlocks(
+            (activity as? MainActivity)?.sourceManager,
+            activity,
+            location.orderedDailyForecastSources
+        )
         sourceContainer.removeAllViews()
         charts.clear()
 
@@ -101,6 +108,8 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
                 height = context.dpToPx(TenkiViewTheme.state(context).dailyChartHeight.toFloat()).toInt()
             }
 
+            // shiroikuma fork: which zoom level the pinch on this chart drives
+            recyclerView.zoomKind = TrendRecyclerView.ZoomKind.DAILY
             val scrollBar = TrendRecyclerViewScrollBar()
             recyclerView.setHasFixedSize(true)
             recyclerView.addItemDecoration(scrollBar)
@@ -203,6 +212,18 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
             // Each source has its own today, so each chart scrolls to its own
             chart.location.weather?.todayIndex?.let { chart.recyclerView.scrollToPosition(it) }
             chart.scrollBar.resetColor(activity)
+        }
+
+        // shiroikuma fork: the pinch zoom and the scroll are the only things this touches — the
+        // selected tab is a deliberate choice and stays where it was put.
+        resetView.setOnClickListener {
+            charts.forEach { chart ->
+                chart.recyclerView.resetZoom()
+                chart.location.weather?.todayIndex?.let { today ->
+                    // After the re-bind rather than during it, or the pending scroll is dropped
+                    chart.recyclerView.post { chart.recyclerView.scrollToPosition(today) }
+                }
+            }
         }
     }
 }

@@ -105,6 +105,8 @@ class TenkiUiState(context: Context) {
     var hourlyChartHeight by mutableIntStateOf(config.hourlyChartHeight)
     var dailyChartHeight by mutableIntStateOf(config.dailyChartHeight)
     var hourlyHoursBack by mutableIntStateOf(config.hourlyHoursBack)
+    var hourlyColumnZoom by mutableIntStateOf(config.hourlyColumnZoom)
+    var dailyColumnZoom by mutableIntStateOf(config.dailyColumnZoom)
     var hourlyHoursAhead by mutableIntStateOf(config.hourlyHoursAhead)
         private set
 
@@ -262,6 +264,16 @@ class TenkiUiState(context: Context) {
         hourlyChartHeight = v
     }
 
+    fun updateHourlyColumnZoom(v: Int) {
+        config.hourlyColumnZoom = v
+        hourlyColumnZoom = v
+    }
+
+    fun updateDailyColumnZoom(v: Int) {
+        config.dailyColumnZoom = v
+        dailyColumnZoom = v
+    }
+
     fun updateDailyChartHeight(v: Int) {
         config.dailyChartHeight = v
         dailyChartHeight = v
@@ -322,6 +334,8 @@ class TenkiUiState(context: Context) {
         indentStep = config.indentStep
         headerIntensity = config.headerIntensity
         hourlyChartHeight = config.hourlyChartHeight
+        hourlyColumnZoom = config.hourlyColumnZoom
+        dailyColumnZoom = config.dailyColumnZoom
         dailyChartHeight = config.dailyChartHeight
         hourlyHoursBack = config.hourlyHoursBack
         hourlyHoursAhead = config.hourlyHoursAhead

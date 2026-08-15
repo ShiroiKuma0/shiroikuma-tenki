@@ -56,16 +56,18 @@ data class Weather(
     }
 
     /**
-     * shiroikuma fork: a window around now, so the hourly chart can show a little of what just
-     * happened as well as what is coming — the meteogram reading, where the recent past gives the
-     * curve its context instead of starting it mid-air at the current hour.
+     * shiroikuma fork: which column of [hourlyForecast] the hourly charts open on — [hoursBack]
+     * hours before the current one.
+     *
+     * The charts plot the **whole** series, past included, so what has already happened can be
+     * scrolled back into; this only decides where the card lands. Every hourly tab indexes the same
+     * list, so the position keeps its meaning when the tab is switched.
      */
-    fun hourlyForecastWindow(hoursBack: Int, hoursAhead: Int): List<Hourly> {
-        val now = System.currentTimeMillis()
-        return hourlyForecast.filter {
-            it.date.time >= now - (hoursBack + 1).hours.inWholeMilliseconds &&
-                it.date.time < now + hoursAhead.hours.inWholeMilliseconds
-        }
+    fun hourlyOpeningIndex(hoursBack: Int): Int {
+        // Example: 15:01 -> the current column is 15:00, 15:59 -> still 15:00
+        val currentHour = System.currentTimeMillis() - 1.hours.inWholeMilliseconds
+        val nowIndex = hourlyForecast.indexOfFirst { it.date.time >= currentHour }
+        return if (nowIndex < 0) 0 else (nowIndex - hoursBack).coerceAtLeast(0)
     }
 
     // Only hourly in the future, starting from current hour until the end

@@ -51,11 +51,20 @@ data class Location(
     val forecastSource: String = "openmeteo",
 
     /**
-     * shiroikuma fork: the full ordered list of forecast sources, the first one being [forecastSource].
-     * Empty means "only [forecastSource]", which is what every location built before this feature says.
-     * Read it through [orderedForecastSources], never directly.
+     * shiroikuma fork: the ordered forecast sources for the **hourly** charts, the first one being
+     * [forecastSource]. Empty means "only [forecastSource]", which is what every location built
+     * before this feature says. Read it through [orderedHourlyForecastSources], never directly.
      */
     val forecastSources: List<String> = emptyList(),
+
+    /**
+     * shiroikuma fork: the ordered forecast sources for the **daily** charts, chosen independently
+     * of [forecastSources] — a source good at hours is not always the one you want for days.
+     *
+     * Empty means "whatever the hourly charts use", which is what every location built before the
+     * two lists were split says. Read it through [orderedDailyForecastSources], never directly.
+     */
+    val dailyForecastSources: List<String> = emptyList(),
     val currentSource: String? = null,
     val airQualitySource: String? = null,
     val pollenSource: String? = null,
@@ -90,13 +99,13 @@ data class Location(
         get() = latitude != 0.0 || longitude != 0.0
 
     /**
-     * shiroikuma fork: every forecast source to draw, in the order the user arranged them.
+     * shiroikuma fork: the forecast sources the **hourly** charts draw, in the order arranged.
      *
      * Self-healing on purpose: [forecastSource] is the identity source baked into [formattedId], so it
      * always has to be in there. A location that predates the feature, or a `copy(forecastSource = …)`
      * that did not touch [forecastSources], still comes out with a sensible list.
      */
-    val orderedForecastSources: List<String>
+    val orderedHourlyForecastSources: List<String>
         get() {
             val ordered = forecastSources.filter { it.isNotEmpty() }.distinct()
             return when {
@@ -105,6 +114,27 @@ data class Location(
                 else -> listOf(forecastSource) + ordered
             }
         }
+
+    /**
+     * shiroikuma fork: the forecast sources the **daily** charts draw, in their own order.
+     *
+     * Falls back to the hourly list when never set, so a location from before the split keeps
+     * drawing exactly what it drew. Unlike the hourly list this one is **not** forced to contain
+     * [forecastSource]: the identity source has to be drawn somewhere, and the hourly list is where
+     * that is guaranteed — so the daily charts are free to leave it out entirely.
+     */
+    val orderedDailyForecastSources: List<String>
+        get() = dailyForecastSources.filter { it.isNotEmpty() }.distinct()
+            .ifEmpty { orderedHourlyForecastSources }
+
+    /**
+     * shiroikuma fork: every source either set of charts needs, which is what has to be fetched.
+     *
+     * Hourly first, so the identity source leads and the refresh order matches the way the charts
+     * are stacked; then whatever only the daily charts asked for.
+     */
+    val orderedForecastSources: List<String>
+        get() = (orderedHourlyForecastSources + orderedDailyForecastSources).distinct()
 
     val isTimeZoneInvalid: Boolean
         get() = timeZone.id == "GMT"
@@ -129,6 +159,7 @@ data class Location(
         parcel.writeString(district)
         parcel.writeString(forecastSource)
         parcel.writeStringList(forecastSources)
+        parcel.writeStringList(dailyForecastSources)
         parcel.writeString(currentSource)
         parcel.writeString(airQualitySource)
         parcel.writeString(pollenSource)
@@ -162,6 +193,7 @@ data class Location(
         district = parcel.readString(),
         forecastSource = parcel.readString()!!,
         forecastSources = parcel.createStringArrayList() ?: emptyList(),
+        dailyForecastSources = parcel.createStringArrayList() ?: emptyList(),
         currentSource = parcel.readString(),
         airQualitySource = parcel.readString(),
         pollenSource = parcel.readString(),
@@ -193,7 +225,11 @@ data class Location(
             return false
         }
 
-        if (orderedForecastSources != other.orderedForecastSources) {
+        if (orderedHourlyForecastSources != other.orderedHourlyForecastSources) {
+            return false
+        }
+
+        if (orderedDailyForecastSources != other.orderedDailyForecastSources) {
             return false
         }
 

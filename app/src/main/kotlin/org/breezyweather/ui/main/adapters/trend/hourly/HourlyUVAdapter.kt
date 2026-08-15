@@ -57,8 +57,8 @@ class HourlyUVAdapter(
         @SuppressLint("SetTextI18n, InflateParams", "DefaultLocale")
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder(activity.getString(R.string.tag_uv))
-            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
-            val hourly = location.weather!!.nextHourlyForecast[position]
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.hourlyForecast)
+            val hourly = location.weather!!.hourlyForecast[position]
 
             val index = hourly.uV?.index
             if (index != null) {
@@ -105,7 +105,7 @@ class HourlyUVAdapter(
     }
 
     init {
-        location.weather!!.nextHourlyForecast
+        location.weather!!.hourlyForecast
             .mapNotNull { it.uV?.index }
             .maxOrNull()
             ?.let {
@@ -124,9 +124,9 @@ class HourlyUVAdapter(
         (holder as ViewHolder).onBindView(activity, location, position)
     }
 
-    override fun getItemCount() = location.weather!!.nextHourlyForecast.size
+    override fun getItemCount() = location.weather!!.hourlyForecast.size
 
-    override fun isValid(location: Location) = location.weather!!.nextHourlyForecast.any {
+    override fun isValid(location: Location) = location.weather!!.hourlyForecast.any {
         it.uV?.index != null
     }
 

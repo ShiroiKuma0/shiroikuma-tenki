@@ -59,9 +59,9 @@ class HourlyVisibilityAdapter(
 
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder(activity.getString(R.string.tag_visibility))
-            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.hourlyForecast)
             val weather = location.weather!!
-            val hourly = weather.nextHourlyForecast[position]
+            val hourly = weather.hourlyForecast[position]
             hourly.visibility?.let {
                 talkBackBuilder.append(activity.getString(org.breezyweather.unit.R.string.locale_separator))
                     .append(it.formatMeasure(activity, unitWidth = UnitWidth.LONG))
@@ -135,11 +135,11 @@ class HourlyVisibilityAdapter(
 
     init {
         val weather = location.weather!!
-        mVisibilities = arrayOfNulls(max(0, weather.nextHourlyForecast.size * 2 - 1))
+        mVisibilities = arrayOfNulls(max(0, weather.hourlyForecast.size * 2 - 1))
         run {
             var i = 0
             while (i < mVisibilities.size) {
-                mVisibilities[i] = weather.nextHourlyForecast.getOrNull(i / 2)?.visibility?.value?.toFloat()
+                mVisibilities[i] = weather.hourlyForecast.getOrNull(i / 2)?.visibility?.value?.toFloat()
                 i += 2
             }
         }
@@ -154,7 +154,7 @@ class HourlyVisibilityAdapter(
                 i += 2
             }
         }
-        weather.nextHourlyForecast
+        weather.hourlyForecast
             .forEach { hourly ->
                 hourly.visibility?.value?.let {
                     if (mHighestVisibility == null || it > mHighestVisibility!!) {
@@ -173,7 +173,7 @@ class HourlyVisibilityAdapter(
         (holder as ViewHolder).onBindView(activity, location, position)
     }
 
-    override fun getItemCount() = location.weather!!.nextHourlyForecast.size
+    override fun getItemCount() = location.weather!!.hourlyForecast.size
 
     override fun isValid(location: Location): Boolean {
         return mHighestVisibility != null

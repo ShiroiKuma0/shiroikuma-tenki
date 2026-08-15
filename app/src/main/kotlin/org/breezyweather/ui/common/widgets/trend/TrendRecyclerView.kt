@@ -16,16 +16,21 @@
 
 package org.breezyweather.ui.common.widgets.trend
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import androidx.annotation.ColorInt
 import androidx.core.view.isNotEmpty
 import org.breezyweather.R
 import org.breezyweather.common.extensions.dpToPx
 import org.breezyweather.common.extensions.getTypefaceFromTextAppearance
+import org.breezyweather.tenki.TenkiUiConfig
+import org.breezyweather.tenki.TenkiViewTheme
 import org.breezyweather.ui.common.widgets.trend.item.AbsTrendItemView
 import org.breezyweather.ui.main.widgets.NestedHorizontalRecyclerView
 
@@ -65,6 +70,92 @@ class TrendRecyclerView @JvmOverloads constructor(
             ABOVE_LINE,
             BELOW_LINE,
         }
+    }
+
+    /**
+     * shiroikuma fork: which of the two zoom levels this chart pinches — the hourly and the daily
+     * cards remember their own, since a day column and an hour column are nothing like the same
+     * width to begin with. Set by the holder that builds the chart.
+     */
+    var zoomKind: ZoomKind = ZoomKind.HOURLY
+
+    enum class ZoomKind { HOURLY, DAILY }
+
+    /**
+     * shiroikuma fork: how far the columns have been pinched apart, 1 being the width the settings
+     * ask for. Read by the item views when they measure themselves.
+     */
+    val columnScale: Float
+        get() = storedZoom / 100f
+
+    private var storedZoom: Int
+        get() = TenkiViewTheme.state(context).let {
+            if (zoomKind == ZoomKind.HOURLY) it.hourlyColumnZoom else it.dailyColumnZoom
+        }
+        set(v) = TenkiViewTheme.state(context).let {
+            if (zoomKind == ZoomKind.HOURLY) it.updateHourlyColumnZoom(v) else it.updateDailyColumnZoom(v)
+        }
+
+    /**
+     * Pinch to widen or narrow the columns.
+     *
+     * The zoom is persisted rather than held here, so it survives the card being recycled — and it
+     * is applied by re-binding rather than by scaling the canvas, which would blow the text and the
+     * icons up with it instead of simply fitting fewer hours on the screen.
+     */
+    private val mScaleDetector = ScaleGestureDetector(
+        context,
+        object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                val next = (storedZoom * detector.scaleFactor)
+                    .toInt()
+                    .coerceIn(TenkiUiConfig.MINIMUM_COLUMN_ZOOM, TenkiUiConfig.MAXIMUM_COLUMN_ZOOM)
+                if (next == storedZoom) return true
+                storedZoom = next
+                // Re-binding is what re-measures the columns. Never while a layout pass is under
+                // way, which RecyclerView refuses outright.
+                if (isComputingLayout) {
+                    post { adapter?.notifyDataSetChanged() }
+                } else {
+                    adapter?.notifyDataSetChanged()
+                }
+                return true
+            }
+        }
+    )
+
+    /**
+     * shiroikuma fork: put the columns back to the width the settings ask for.
+     *
+     * The caller scrolls afterwards — the two together are what "restore the default view" means,
+     * and neither of them fetches anything.
+     */
+    fun resetZoom() {
+        if (storedZoom == TenkiUiConfig.DEFAULT_COLUMN_ZOOM) return
+        storedZoom = TenkiUiConfig.DEFAULT_COLUMN_ZOOM
+        if (isComputingLayout) {
+            post { adapter?.notifyDataSetChanged() }
+        } else {
+            adapter?.notifyDataSetChanged()
+        }
+    }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+        mScaleDetector.onTouchEvent(ev)
+        // A second finger is always a pinch, never a drag: taking the gesture here stops the
+        // horizontal scroll from running away underneath it.
+        if (ev.pointerCount > 1) {
+            parent.requestDisallowInterceptTouchEvent(true)
+            return true
+        }
+        return super.onInterceptTouchEvent(ev)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(e: MotionEvent): Boolean {
+        mScaleDetector.onTouchEvent(e)
+        if (mScaleDetector.isInProgress || e.pointerCount > 1) return true
+        return super.onTouchEvent(e)
     }
 
     init {

@@ -22,6 +22,7 @@ import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.util.AttributeSet
@@ -613,10 +614,15 @@ class PolylineAndHistogramView @JvmOverloads constructor(
         } else {
             anchorY - metrics.top + mTextMargin * READING_CLEARANCE
         }
-        // shiroikuma fork: where the curve has run to the top of the drawable there is no room
-        // above it, so the plate tucks under the top edge instead of being drawn off the card.
-        if (baseline + metrics.top - mTextMargin < 0f) {
-            baseline = mTextMargin * 2f - metrics.top
+        // shiroikuma fork: a reading is never allowed off the top of the card. Measured from the
+        // glyphs actually being drawn rather than from the font's declared ascent, because a face
+        // whose digits overshoot their own metrics — and the theming page can load any face at all
+        // — would otherwise have its numerals sliced against the top edge.
+        val bounds = Rect()
+        mPaint.getTextBounds(text, 0, text.length, bounds)
+        val rise = maxOf(-metrics.top, -bounds.top.toFloat())
+        if (baseline - rise - mTextMargin < 0f) {
+            baseline = rise + mTextMargin * 2f
         }
         mPaint.color = ColorUtils.setAlphaComponent(Color.BLACK, READING_PLATE_ALPHA)
         canvas.drawRoundRect(
@@ -1076,12 +1082,14 @@ class PolylineAndHistogramView @JvmOverloads constructor(
         max: Float,
         min: Float,
     ): Int {
-        // shiroikuma fork: clamped to the DRAWABLE, not to the plotting area. The hourly chart
-        // scales to its opening window, so a later hour can exceed that range — it should fill to
-        // the very top of the chart view rather than stopping short at marginTop and leaving a gap
-        // under the icons. Values inside the range never reach this bound.
+        // shiroikuma fork: clamped to the PLOTTING AREA. The hourly chart scales to its opening
+        // window, so a later hour can exceed that range — and an out-of-range value used to be
+        // clamped to the very top of the drawable instead, which left its reading no room and cut
+        // the numerals in half against the top edge. marginTop is reserved for exactly that
+        // reading, so stopping there is what keeps it whole. Values inside the range never reach
+        // this bound.
         return (measuredHeight - marginBottom - (canvasHeight * (value - min) / (max - min)))
-            .coerceIn(0f, (measuredHeight - marginBottom).toFloat())
+            .coerceIn(marginTop.toFloat(), (measuredHeight - marginBottom).toFloat())
             .toInt()
     }
 
@@ -1101,7 +1109,7 @@ class PolylineAndHistogramView @JvmOverloads constructor(
         // shiroikuma fork: the readings are the headline figure on the card, so they are set large
         // — more than twice upstream's 14dp. MARGIN_TOP/BOTTOM above are sized to match; raising
         // this without raising those clips the topmost and bottommost readings.
-        private const val POLYLINE_TEXT_SIZE_DIP = 30f
+        private const val POLYLINE_TEXT_SIZE_DIP = 22.5f
 
         // How light a reading is allowed to get, and the dark halo that separates it from the
         // curve and the wash underneath.

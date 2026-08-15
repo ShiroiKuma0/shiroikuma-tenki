@@ -372,7 +372,7 @@ class DailyTemperatureAdapter(
         private const val MIN_AMOUNT_CEILING_MM = 3f
 
         /** A day column is wide enough to carry two readings at this size. */
-        private const val DAILY_READING_SIZE_DIP = 33f
+        private const val DAILY_READING_SIZE_DIP = 24.75f
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

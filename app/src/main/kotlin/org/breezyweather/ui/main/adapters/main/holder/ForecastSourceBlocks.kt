@@ -36,18 +36,22 @@ internal data class ForecastSourceBlock(
 )
 
 /**
- * shiroikuma fork: every selected forecast source, in the order the user arranged them.
+ * shiroikuma fork: the selected forecast sources for one set of charts, in the arranged order.
  *
- * The primary source comes first and uses the weather as-is. An alternate with no data yet — never
- * refreshed, or its last refresh failed — is dropped rather than drawn as an empty chart.
+ * [sourceIds] is the hourly or the daily list — the two are chosen independently, so the hourly card
+ * and the daily card can stack different sources, or the same ones in a different order.
+ *
+ * The identity source uses the weather as-is. An alternate with no data yet — never refreshed, or
+ * its last refresh failed — is dropped rather than drawn as an empty chart.
  */
 internal fun Location.forecastSourceBlocks(
     sourceManager: SourceManager?,
     context: Context,
+    sourceIds: List<String>,
 ): List<ForecastSourceBlock> {
     val weather = weather ?: return emptyList()
 
-    return orderedForecastSources.mapNotNull { sourceId ->
+    return sourceIds.mapNotNull { sourceId ->
         val blockLocation = if (sourceId == forecastSource) {
             this
         } else {

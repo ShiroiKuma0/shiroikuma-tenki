@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    shiroikuma fork: restore a trend card's default view — the columns back to the width the
+    settings ask for, and the chart back to the hour or the day it opens on.
+
+    Four corner brackets rather than a circular arrow: in a weather app a circular arrow reads as
+    "fetch the forecast again", and this deliberately touches nothing but the viewport.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960"
+    android:tint="?attr/colorControlNormal">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M180,180 L380,180 L380,250 L250,250 L250,380 L180,380 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M780,180 L580,180 L580,250 L710,250 L710,380 L780,380 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M180,780 L380,780 L380,710 L250,710 L250,580 L180,580 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M780,780 L580,780 L580,710 L710,710 L710,580 L780,580 Z" />
+</vector>
