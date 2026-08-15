@@ -209,7 +209,14 @@ class HourlyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
             chart.recyclerView.adapter = chart.adapter
             chart.recyclerView.setKeyLineVisibility(keyLinesEnabled)
             chart.location.weather?.let {
-                chart.recyclerView.scrollToPosition(it.hourlyOpeningIndex(hoursBack))
+                chart.recyclerView.scrollToAnchor(it.hourlyOpeningIndex(hoursBack))
+            }
+            // One zoom level for the card: a pinch on any chart re-measures the others too, or the
+            // charts stacked beside it would keep comparing columns of a different width
+            chart.recyclerView.onColumnZoomChanged = {
+                charts.forEach { other ->
+                    if (other !== chart) other.recyclerView.refreshColumns()
+                }
             }
             chart.scrollBar.resetColor(activity)
         }
@@ -222,7 +229,7 @@ class HourlyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
                 chart.location.weather?.let { weather ->
                     // After the re-bind rather than during it, or the pending scroll is dropped
                     chart.recyclerView.post {
-                        chart.recyclerView.scrollToPosition(weather.hourlyOpeningIndex(hoursBack))
+                        chart.recyclerView.scrollToAnchor(weather.hourlyOpeningIndex(hoursBack))
                     }
                 }
             }

@@ -26,6 +26,9 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import androidx.annotation.ColorInt
 import androidx.core.view.isNotEmpty
+import androidx.core.view.updatePaddingRelative
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import org.breezyweather.R
 import org.breezyweather.common.extensions.dpToPx
 import org.breezyweather.common.extensions.getTypefaceFromTextAppearance
@@ -112,32 +115,120 @@ class TrendRecyclerView @JvmOverloads constructor(
                     .coerceIn(TenkiUiConfig.MINIMUM_COLUMN_ZOOM, TenkiUiConfig.MAXIMUM_COLUMN_ZOOM)
                 if (next == storedZoom) return true
                 storedZoom = next
-                // Re-binding is what re-measures the columns. Never while a layout pass is under
-                // way, which RecyclerView refuses outright.
-                if (isComputingLayout) {
-                    post { adapter?.notifyDataSetChanged() }
-                } else {
-                    adapter?.notifyDataSetChanged()
-                }
+                refreshColumns()
+                onColumnZoomChanged?.invoke()
                 return true
             }
         }
     )
 
     /**
-     * shiroikuma fork: put the columns back to the width the settings ask for.
+     * shiroikuma fork: told that this chart's zoom level has moved.
      *
-     * The caller scrolls afterwards — the two together are what "restore the default view" means,
-     * and neither of them fetches anything.
+     * The level is one stored value for the whole card, so the chart being pinched is never the only
+     * one measuring the wrong columns — the card puts its other charts on the same footing here.
      */
-    fun resetZoom() {
-        if (storedZoom == TenkiUiConfig.DEFAULT_COLUMN_ZOOM) return
-        storedZoom = TenkiUiConfig.DEFAULT_COLUMN_ZOOM
+    var onColumnZoomChanged: (() -> Unit)? = null
+
+    /**
+     * shiroikuma fork: re-measure the columns at the level currently stored.
+     *
+     * Re-binding is what re-measures them — never while a layout pass is under way, which
+     * RecyclerView refuses outright.
+     */
+    fun refreshColumns() {
         if (isComputingLayout) {
             post { adapter?.notifyDataSetChanged() }
         } else {
             adapter?.notifyDataSetChanged()
         }
+    }
+
+    /**
+     * shiroikuma fork: put the columns back to the width the settings ask for.
+     *
+     * The caller scrolls afterwards — the two together are what "restore the default view" means,
+     * and neither of them fetches anything.
+     *
+     * The re-measure is unconditional, since the level is shared: with several charts on one card
+     * the first of them puts the stored level back and every other one would find nothing left to
+     * change, keeping the columns it was last measured at while its neighbour widened.
+     */
+    fun resetZoom() {
+        if (storedZoom != TenkiUiConfig.DEFAULT_COLUMN_ZOOM) {
+            storedZoom = TenkiUiConfig.DEFAULT_COLUMN_ZOOM
+        }
+        refreshColumns()
+    }
+
+    /**
+     * shiroikuma fork: the column the chart opens on, and the empty room after the last one that
+     * lets it get there.
+     *
+     * A [RecyclerView] never scrolls past the end of its content: on a series short enough to fit on
+     * the screen the layout manager pulls the last column back to the edge once it has laid the
+     * anchor out at the left, and the history in front of the anchor rides back in with it — so the
+     * chart opens on yesterday however loudly it was told to open on today. Reserving as much room
+     * after the last column as the columns from the anchor on leave empty gives the scroll somewhere
+     * to go: the anchor reaches the left edge whatever the length of the series, there is no end gap
+     * left to pull back, and the past stays one swipe to the left of it.
+     *
+     * The room is re-measured on every layout, since a pinch changes what one column is worth.
+     */
+    private var anchorPosition = RecyclerView.NO_POSITION
+    private var anchorScrollPending = false
+
+    /**
+     * Open on [position], reserving the room it needs to actually get there.
+     *
+     * The alternative to [scrollToPosition] for a chart that carries history: the anchor is
+     * remembered, so a re-measure that changes the column width keeps it reachable.
+     */
+    fun scrollToAnchor(position: Int) {
+        anchorPosition = position
+        anchorScrollPending = true
+        scrollToAnchorPosition()
+    }
+
+    private fun scrollToAnchorPosition() {
+        if (anchorPosition < 0) return
+
+        // NOT scrollToPosition: that one only promises to bring the column on screen, and leaves a
+        // column already visible exactly where it is — which on a short series the anchor always is,
+        // so the chart would keep opening on the history in front of it
+        val manager = layoutManager
+        if (manager is LinearLayoutManager) {
+            manager.scrollToPositionWithOffset(anchorPosition, 0)
+        } else {
+            scrollToPosition(anchorPosition)
+        }
+    }
+
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        super.onLayout(changed, l, t, r, b)
+
+        val room = anchorRoom()
+        if (room != paddingEnd) {
+            // Never from inside the pass that measured it — a padding change is a new layout, and
+            // the scroll that could not reach the anchor before is only worth repeating after it
+            post {
+                updatePaddingRelative(end = room)
+                if (anchorScrollPending) {
+                    scrollToAnchorPosition()
+                }
+            }
+        } else {
+            anchorScrollPending = false
+        }
+    }
+
+    private fun anchorRoom(): Int {
+        val count = adapter?.itemCount ?: 0
+        if (anchorPosition <= 0 || anchorPosition >= count || childCount == 0) return 0
+
+        // Every column is the same width, whatever the zoom has made of it
+        val columnWidth = getChildAt(0).measuredWidth
+        return (width - columnWidth * (count - anchorPosition)).coerceAtLeast(0)
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
@@ -160,6 +251,9 @@ class TrendRecyclerView @JvmOverloads constructor(
 
     init {
         setWillNotDraw(false)
+        // The room reserved by [scrollToAnchor] is scrolled through, not held empty: the columns
+        // beyond it are drawn and laid out rather than cut off at the padding
+        clipToPadding = false
         mPaint.typeface = getContext().getTypefaceFromTextAppearance(R.style.subtitle_text)
         mTextSize = getContext().dpToPx(TEXT_SIZE_DIP.toFloat()).toInt()
         mTextMargin = getContext().dpToPx(TEXT_MARGIN_DIP.toFloat()).toInt()
