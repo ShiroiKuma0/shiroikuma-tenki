@@ -3,9 +3,6 @@
     <!-- App -->
     <string name="brand_name" translatable="false">白い熊 天気</string>
 
-    <!-- Trend cards -->
-    <string name="tenki_restore_default_view">Restore the default view</string>
-
     <!-- Icon packs: our two, then the one we inherited. -->
     <string name="tenki_icon_provider_traced" translatable="false">白い熊 天気 traced</string>
     <string name="tenki_icon_provider_full" translatable="false">白い熊 天気 full</string>

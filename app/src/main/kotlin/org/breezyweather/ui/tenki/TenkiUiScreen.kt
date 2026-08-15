@@ -55,6 +55,7 @@ import org.breezyweather.tenki.TenkiUiState
 import org.breezyweather.tenki.automation.TenkiAutomationAuth
 import org.breezyweather.ui.common.widgets.Material3Scaffold
 import org.breezyweather.ui.common.widgets.insets.FitStatusBarTopAppBar
+import org.breezyweather.ui.meteomap.MeteomapCity
 
 /**
  * The 白い熊 天気 UI page — every knob that shapes the app's look, in the kxkb page grammar:
@@ -199,6 +200,26 @@ fun TenkiUiScreen(onNavigateBack: () -> Unit) {
             SliderRow(ui, "Hours ahead", ui.hourlyHoursAhead, 3..24, "h") {
                 ui.updateHourlyHoursAhead(it)
             }
+            ToggleRow(ui, "Meteomap clock in 24-hour time", ui.meteomapClock24h) {
+                ui.updateMeteomapClock24h(it)
+            }
+            SubHeader(ui, "Meteomap city labels")
+            SliderRow(ui, "Reading size", ui.meteomapValueSize, 10..40, "dp", level2 = true) {
+                ui.updateMeteomapValueSize(it)
+            }
+            SliderRow(ui, "Name size", ui.meteomapNameSize, 7..28, "dp", level2 = true) {
+                ui.updateMeteomapNameSize(it)
+            }
+            MeteomapCity.entries.forEach { city ->
+                ToggleRow(ui, city.label, city.id !in ui.meteomapHiddenCities, level2 = true) {
+                    ui.toggleMeteomapCity(city.id, it)
+                }
+            }
+            RowNote(
+                ui,
+                "The temperature map prints each of these as it plays. The reading is taken from " +
+                    "the picture itself, so a city costs nothing to show."
+            )
             RowNote(
                 ui,
                 "History and hours ahead set the window the hourly graph OPENS with: those " +

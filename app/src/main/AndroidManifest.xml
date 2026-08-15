@@ -198,6 +198,12 @@
             android:label="@string/action_about"
             android:theme="@style/BreezyWeatherTheme" />
 
+        <!-- shiroikuma fork: ČHMÚ's radar and forecast maps for Czechia -->
+        <activity
+            android:name=".ui.meteomap.MeteomapActivity"
+            android:label="@string/meteomap"
+            android:theme="@style/BreezyWeatherTheme" />
+
         <activity
             android:name=".ui.settings.activities.DependenciesActivity"
             android:label="@string/action_dependencies"

@@ -107,6 +107,10 @@ class TenkiUiState(context: Context) {
     var hourlyHoursBack by mutableIntStateOf(config.hourlyHoursBack)
     var hourlyColumnZoom by mutableIntStateOf(config.hourlyColumnZoom)
     var dailyColumnZoom by mutableIntStateOf(config.dailyColumnZoom)
+    var meteomapClock24h by mutableStateOf(config.meteomapClock24h)
+    var meteomapHiddenCities by mutableStateOf(config.meteomapHiddenCities.toIdSet())
+    var meteomapValueSize by mutableIntStateOf(config.meteomapValueSize)
+    var meteomapNameSize by mutableIntStateOf(config.meteomapNameSize)
     var hourlyHoursAhead by mutableIntStateOf(config.hourlyHoursAhead)
         private set
 
@@ -274,6 +278,28 @@ class TenkiUiState(context: Context) {
         dailyColumnZoom = v
     }
 
+    fun updateMeteomapClock24h(v: Boolean) {
+        config.meteomapClock24h = v
+        meteomapClock24h = v
+    }
+
+    fun updateMeteomapValueSize(v: Int) {
+        config.meteomapValueSize = v
+        meteomapValueSize = v
+    }
+
+    fun updateMeteomapNameSize(v: Int) {
+        config.meteomapNameSize = v
+        meteomapNameSize = v
+    }
+
+    /** Flip one city label on or off. */
+    fun toggleMeteomapCity(id: String, shown: Boolean) {
+        val next = if (shown) meteomapHiddenCities - id else meteomapHiddenCities + id
+        config.meteomapHiddenCities = next.joinToString(",")
+        meteomapHiddenCities = next
+    }
+
     fun updateDailyChartHeight(v: Int) {
         config.dailyChartHeight = v
         dailyChartHeight = v
@@ -336,6 +362,10 @@ class TenkiUiState(context: Context) {
         hourlyChartHeight = config.hourlyChartHeight
         hourlyColumnZoom = config.hourlyColumnZoom
         dailyColumnZoom = config.dailyColumnZoom
+        meteomapClock24h = config.meteomapClock24h
+        meteomapHiddenCities = config.meteomapHiddenCities.toIdSet()
+        meteomapValueSize = config.meteomapValueSize
+        meteomapNameSize = config.meteomapNameSize
         dailyChartHeight = config.dailyChartHeight
         hourlyHoursBack = config.hourlyHoursBack
         hourlyHoursAhead = config.hourlyHoursAhead
@@ -470,3 +500,6 @@ typealias ColorSlot = TenkiUiState.ColorSlot
 val LocalTenkiUi = compositionLocalOf<TenkiUiState> {
     error("LocalTenkiUi accessed outside BreezyWeatherTheme")
 }
+
+private fun String.toIdSet(): Set<String> =
+    split(',').map { it.trim() }.filter { it.isNotEmpty() }.toSet()

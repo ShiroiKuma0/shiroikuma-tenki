@@ -25,9 +25,13 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.ImageView
+import androidx.appcompat.widget.ActionMenuView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.view.children
 import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -49,6 +53,7 @@ import org.breezyweather.common.extensions.isMotionReduced
 import org.breezyweather.common.extensions.isTabletDevice
 import org.breezyweather.common.extensions.setSystemBarStyle
 import org.breezyweather.common.options.appearance.BackgroundAnimationMode
+import org.breezyweather.common.utils.helpers.IntentHelper
 import org.breezyweather.databinding.FragmentHomeBinding
 import org.breezyweather.domain.location.model.getPlace
 import org.breezyweather.domain.settings.SettingsManager
@@ -205,6 +210,7 @@ class HomeFragment : MainModuleFragment() {
         binding.toolbar.menu.findItem(R.id.action_open_in_other_app).isVisible = false
         // Needed to get the icon to show the correct color depending on dark mode
         binding.toolbar.overflowIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_more_vert)
+        bindTenkiUiLongPress()
 
         binding.switchLayout.setOnSwitchListener(switchListener)
         binding.switchLayout.reset()
@@ -278,6 +284,8 @@ class HomeFragment : MainModuleFragment() {
                     if (it?.location != null) {
                         binding.toolbar.menu.findItem(R.id.action_edit).isVisible = true
                         binding.toolbar.menu.findItem(R.id.action_open_in_other_app).isVisible = true
+                        // The overflow button does not exist until something is in it
+                        bindTenkiUiLongPress()
                         binding.emptyText.visibility = if (it.location.weather != null) View.GONE else View.VISIBLE
                     } else {
                         binding.toolbar.menu.findItem(R.id.action_edit).isVisible = false
@@ -516,6 +524,36 @@ class HomeFragment : MainModuleFragment() {
             mScrollY = recyclerView.computeVerticalScrollOffset()
             weatherView.onScroll(mScrollY)
             adapter?.onScroll()
+        }
+    }
+
+    /**
+     * shiroikuma fork: a long press on either of the toolbar's own buttons opens the 白い熊 天気 UI
+     * page — the same gesture the settings cog on the locations screen already answers to.
+     *
+     * Toolbar builds those two buttons itself and hands out no reference to them, so they are found
+     * among its children: the navigation icon is the ImageButton it adds first, and the overflow is
+     * the ImageView inside the ActionMenuView. Neither exists before a layout pass, and the overflow
+     * not until a menu item is visible, so this is posted and called again whenever that changes.
+     */
+    private fun bindTenkiUiLongPress() {
+        val openTenkiUi = View.OnLongClickListener {
+            activity?.let { IntentHelper.startTenkiUiSettingsActivity(it) }
+            true
+        }
+        binding.toolbar.post {
+            if (!isAdded) return@post
+            binding.toolbar.children
+                .filterIsInstance<ImageButton>()
+                .firstOrNull()
+                ?.setOnLongClickListener(openTenkiUi)
+            binding.toolbar.children
+                .filterIsInstance<ActionMenuView>()
+                .firstOrNull()
+                ?.children
+                ?.filterIsInstance<ImageView>()
+                ?.lastOrNull()
+                ?.setOnLongClickListener(openTenkiUi)
         }
     }
 

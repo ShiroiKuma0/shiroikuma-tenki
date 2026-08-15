@@ -238,6 +238,34 @@ class TenkiUiConfig(context: Context) {
         get() = int(KEY_DAILY_COLUMN_ZOOM, DEFAULT_COLUMN_ZOOM)
         set(v) = putInt(KEY_DAILY_COLUMN_ZOOM, v)
 
+    /**
+     * Whether the Meteomap's clock reads 24-hour. On by default: a map of a country that keeps a
+     * 24-hour clock has no business showing AM and PM.
+     */
+    var meteomapClock24h: Boolean
+        get() = bool(KEY_METEOMAP_CLOCK_24H, true)
+        set(v) = putBool(KEY_METEOMAP_CLOCK_24H, v)
+
+    /**
+     * The city labels switched **off** on the Meteomap, comma separated.
+     *
+     * Stored as the exclusions rather than the inclusions so a city added in a later build shows up
+     * without anybody having to go and enable it.
+     */
+    var meteomapHiddenCities: String
+        get() = str(KEY_METEOMAP_HIDDEN_CITIES)
+        set(v) = putStr(KEY_METEOMAP_HIDDEN_CITIES, v)
+
+    /** How big a city's reading is printed on the map, in dp. */
+    var meteomapValueSize: Int
+        get() = int(KEY_METEOMAP_VALUE_SIZE, DEFAULT_METEOMAP_VALUE_SIZE)
+        set(v) = putInt(KEY_METEOMAP_VALUE_SIZE, v)
+
+    /** And its name, under it. */
+    var meteomapNameSize: Int
+        get() = int(KEY_METEOMAP_NAME_SIZE, DEFAULT_METEOMAP_NAME_SIZE)
+        set(v) = putInt(KEY_METEOMAP_NAME_SIZE, v)
+
     // ------------------------------------------------------ export directory
 
     /** SAF tree uri of the backup folder, "" when never set. */
@@ -360,6 +388,10 @@ class TenkiUiConfig(context: Context) {
         private const val KEY_HOURLY_HOURS_AHEAD = "hourly_hours_ahead"
         private const val KEY_HOURLY_COLUMN_ZOOM = "hourly_column_zoom"
         private const val KEY_DAILY_COLUMN_ZOOM = "daily_column_zoom"
+        private const val KEY_METEOMAP_CLOCK_24H = "meteomap_clock_24h"
+        private const val KEY_METEOMAP_HIDDEN_CITIES = "meteomap_hidden_cities"
+        private const val KEY_METEOMAP_VALUE_SIZE = "meteomap_value_size"
+        private const val KEY_METEOMAP_NAME_SIZE = "meteomap_name_size"
 
         const val DEFAULT_HOURLY_CHART_HEIGHT = 410
         const val DEFAULT_DAILY_CHART_HEIGHT = 480
@@ -370,6 +402,9 @@ class TenkiUiConfig(context: Context) {
         const val DEFAULT_COLUMN_ZOOM = 100
         const val MINIMUM_COLUMN_ZOOM = 25
         const val MAXIMUM_COLUMN_ZOOM = 400
+
+        const val DEFAULT_METEOMAP_VALUE_SIZE = 21
+        const val DEFAULT_METEOMAP_NAME_SIZE = 13
 
         private const val KEY_EXPORT_DIR = "export_dir"
         private const val KEY_RECENT = "recent_colors"

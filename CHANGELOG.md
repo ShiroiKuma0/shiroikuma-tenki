@@ -10,6 +10,178 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+048 — 2026-08-15
+
+Built on upstream **v6.2.1**.
+
+- **The Meteomap is no longer stuck an hour behind.** Frame URLs name the minute they depict and can
+  never change, so they are cached for a week — but the same rewrite was landing on the *manifest*,
+  which is the index of which frames exist and the one thing that does change (ČHMÚ marks it
+  `max-age=60`). Once fetched, the radar froze at that hour for a week, across app updates, since
+  the cache lives in `cacheDir`. The manifest is now exempt, and read straight off the network so a
+  cache still holding the week-long entry is stepped over rather than waited out.
+- **The map keeps up while you watch it.** The manifest is re-read on ČHMÚ's own published interval
+  — 180 s for the radar — but only while the screen is in front. The playhead holds its frame by
+  name rather than by number, so a newly published frame does not shuffle the map a step backwards;
+  sitting on "now" follows the new now.
+- **The timeline's hour labels sit on the hour.** They were placed every `frames/10` — forty minutes
+  apart on the five-minute radar — and printed only the hour, so the axis read `06 06 07 08 08 09 10
+  10 11`, naming one hour twice, missing another, and lining up with none of the rules above them.
+- If a manifest cannot be fetched at all, the last one is kept rather than blanking the map, as the
+  playback already does with a frame.
+
+---
+
+## 白い熊 天気 6.2.1+047 — 2026-08-15
+
+Built on upstream **v6.2.1**.
+
+- **The third countries' borders are the accent yellow now, at 4 dp** rather than a thin navy. The
+  navy read as one more river on the device; the accent is the one colour on the map that is never
+  weather and never water, so the frontiers stop competing with the Vltava.
+- **They are drawn over the water, not under it.** At this weight a river crossing a boundary was
+  notching it in blue.
+- Round caps and joins on those runs — the geometry is coarse, and a miter joint spikes out of every
+  sharp vertex.
+
+---
+
+## 白い熊 天気 6.2.1+046 — 2026-08-15
+
+Built on upstream **v6.2.1**.
+
+- **The third countries' borders are drawn only where they meet each other**, in a dark navy at
+  2.7 dp. Their frontiers with Czechia are no longer in the data at all: that line is already drawn
+  in the accent, and painting it twice only thickened it and put a halo round the country.
+- **Those runs now reach the Czech border.** Cutting the coincident stretch left each one ending a
+  few kilometres short. Both thresholds are measured rather than guessed — ends cut by the frontier
+  sit 0.07–0.19° from it, ends cut by the edge of the map at 0.89° and beyond — so a cut end is
+  pulled onto the frontier and an edge end is left alone.
+- **The ground no longer spills off the map.** It is cut a little wider than the frame so its lines
+  run off the edge rather than stopping short, but nothing clipped it back, so the rivers and
+  borders were drawing over the tab row and across the timeline.
+
+---
+
+## 白い熊 天気 6.2.1+045 — 2026-08-15
+
+Built on upstream **v6.2.1**.
+
+- **The city reading and name are bigger, and both are sliders** on the 白い熊 天気 UI page —
+  21 dp and 13 dp by default, up from 15 and 9.
+- **The neighbouring borders are cased grey-black-grey**: three strokes of falling width leaving a
+  dark band between two pale edges, the way an atlas draws an administrative boundary. In the accent
+  they read as more of Czechia; in grey and black they read as a line somebody agreed on rather than
+  as something the weather is doing.
+
+---
+
+## 白い熊 天気 6.2.1+044 — 2026-08-15
+
+Built on upstream **v6.2.1**.
+
+- **Each city label sits on its own dark plate.** Outlining alone was not enough — the numerals land
+  on whatever the field is doing beneath them, and yellow on a yellow-orange heatwave stays hard to
+  read however thickly it is outlined. Same trick the trend charts' readings already use.
+- **The neighbouring borders are marked properly**: 1.5 dp at 92% rather than a 0.8 dp hairline at
+  60%. They were being drawn all along — the data parses, the layer renders — but at that weight
+  against a dimmed field they amounted to nothing, which is the same as not drawing them.
+
+---
+
+## 白い熊 天気 6.2.1+043 — 2026-08-15
+
+Built on upstream **v6.2.1**.
+
+- **Temperature labels at twelve towns** on the forecast map — Praha, Brno, Ostrava, Plzeň, Liberec,
+  Olomouc, České Budějovice, Hradec Králové, Ústí nad Labem, Jihlava, Karlovy Vary and Zlín, chosen
+  for even coverage rather than for population. They change as the playback runs.
+
+  **The reading costs no request**: it is decoded out of the frame already on screen, at the pixel
+  the town projects onto, by the same colour-to-value machinery that repaints the map. Checked
+  against ČHMÚ's own point forecast for the same hour, all twelve agreed within half a degree.
+  The sampling happens *before* the repaint, since our own ramp cannot be inverted.
+- **Every label switches on and off** on the 白い熊 天気 UI page. The setting stores the ones turned
+  **off**, so a town added in a later build appears without anybody having to enable it.
+- **The neighbouring borders can actually be seen.** They have been drawn since +041, but in the
+  accent at 30% alpha — invisible over a bright field. Now 60%.
+
+---
+
+## 白い熊 天気 6.2.1+042 — 2026-08-15
+
+Built on upstream **v6.2.1**.
+
+- **A long press on either of the weather screen's toolbar buttons** — the locations icon at the
+  left, the overflow at the right — opens the 白い熊 天気 UI page, matching the settings cog on the
+  locations screen. `Toolbar` builds both buttons itself and hands out no reference to them, so they
+  are found among its children; the overflow does not exist until a menu item is visible, so the
+  binding is repeated whenever that changes.
+
+---
+
+## 白い熊 天気 6.2.1+041 — 2026-08-15
+
+Built on upstream **v6.2.1**. The Meteomap gets its bearings.
+
+- **The map is no longer floating in a void.** Neighbouring countries are outlined faintly, and the
+  rivers and lakes are picked out in blue — cut from **Natural Earth**, which is public domain, by
+  `tools/chmi/build_meteomap_basemap.py` into a 37 KB bundled file. Still no tiles fetched from
+  anyone.
+- **Prague stands out**: filled and outlined brightest of everything on the map.
+- **The national border is drawn apart from the districts** — traced from the union of the same ORP
+  polygons — so the country reads as one shape with its internal detail kept quiet, instead of 206
+  rings at one weight making a thicket.
+- **The emblem is twice the size**, at 152 dp.
+- **A clock over the map's top corner**, big, in the accent and outlined in black so it survives
+  whatever the field is doing underneath. 24-hour by default, switchable on the 白い熊 天気 UI page.
+- **A strip under the map**, in place of the plain slider: the location's own hourly forecast for
+  that layer, filled column by column in the **layer's own colours** — a miniature of the field
+  above. Day boundaries and hour marks are ruled through the chart **and** the track together, so a
+  bump in the curve ties to a place on the slider and you can see at a glance which hour the
+  temperature climbs or the rain arrives. Rain and radar plot blue.
+- **Forecast is now the first tab**, and the radar is **1 Hour Radar** — it opens on the present and
+  plays the nowcast hour first, only then looping round into the six hours of history behind it.
+
+---
+
+## 白い熊 天気 6.2.1+040 — 2026-08-15
+
+Built on upstream **v6.2.1**. The app gets a map.
+
+### Meteomap
+
+An emblem **beside the temperature** on the weather screen — only for Czech locations, the maps
+being ČHMÚ's — opens a full-screen animated map with two tabs.
+
+- **Radar**: observed reflectivity at 5-minute steps, six hours back, with ČHMÚ's own **one-hour
+  nowcast** running on past the present.
+- **Forecast**: ALADIN hour by hour for three days — temperature, rain, snow, cloud cover, wind,
+  humidity and sunshine, each its own layer.
+- Time slider, play/pause, loop toggle and five speeds; pinch to zoom and drag to pan.
+
+**The fields are repainted in our colours, and exactly.** ČHMÚ publishes the scale it painted each
+field with, printed ticks included, so a pixel's colour is turned back into the reading it stands
+for and then coloured again from the app's own palette. Temperature uses the very stops the hourly
+meteogram uses — a colour on the map and a colour on the chart mean the same degree. Rain, snow and
+radar are blue.
+
+**The basemap is ours.** Czechia is drawn from the 206 ORP district boundaries the app already
+carries for alert geocoding, so **no map tiles are fetched from anyone** and the country comes out in
+the house black and yellow without asking. Weather beyond the border is drawn as well, only dimmed:
+a shower crossing from Saxony matters long before it arrives, so clipping it away would hide the
+thing worth watching.
+
+The emblem is generated by `tools/chmi/emit_meteomap_icon.py` from those same boundaries — Czechia
+in line-art with the sun over Bohemia and a storm over Moravia — so the icon and the map are the
+same geometry rather than a hand copy of it. Both motifs are fit-checked against the path data that
+actually ships: each is rasterised and shrunk until no pixel of it lands outside the border.
+
+Data © ČHMÚ, CC BY 4.0. `docs/RADAR.md` said the app would never have a radar; for Czechia it now
+does, and the page says so.
+
+---
+
 ## 白い熊 天気 6.2.1+038 — 2026-08-15
 
 Built on upstream **v6.2.1**.

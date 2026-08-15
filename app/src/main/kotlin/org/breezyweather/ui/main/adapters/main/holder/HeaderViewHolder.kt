@@ -19,10 +19,12 @@ package org.breezyweather.ui.main.adapters.main.holder
 import android.animation.Animator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
@@ -31,6 +33,7 @@ import org.breezyweather.BreezyWeather
 import org.breezyweather.R
 import org.breezyweather.common.extensions.currentLocale
 import org.breezyweather.common.extensions.formatMeasure
+import org.breezyweather.common.utils.helpers.IntentHelper
 import org.breezyweather.domain.settings.SettingsManager
 import org.breezyweather.domain.weather.model.getTemperatureRangeSummary
 import org.breezyweather.ui.common.widgets.NumberAnimTextView
@@ -53,6 +56,9 @@ class HeaderViewHolder(parent: ViewGroup) : AbstractMainViewHolder(
     private val mWeatherText: TextView = itemView.findViewById(R.id.container_main_header_weather_condition_description)
     private val mFeelsLike: TextView = itemView.findViewById(R.id.container_main_header_feels_like)
     private val mTemperatureRange: TextView = itemView.findViewById(R.id.container_main_header_temperature_range)
+
+    // shiroikuma fork: the way into the Meteomap, beside the temperature
+    private val mMeteomap: ImageView = itemView.findViewById(R.id.container_main_header_meteomap)
     private var mTemperatureFrom = 0
     private var mTemperatureTo = 0
 
@@ -65,6 +71,19 @@ class HeaderViewHolder(parent: ViewGroup) : AbstractMainViewHolder(
         itemAnimationEnabled: Boolean,
     ) {
         super.onBindView(context, location, provider, listAnimationEnabled, itemAnimationEnabled)
+
+        // shiroikuma fork: ČHMÚ maps Czechia, so elsewhere there is nothing to open.
+        if (location.countryCode.equals("CZ", ignoreCase = true)) {
+            mMeteomap.visibility = View.VISIBLE
+            mMeteomap.setOnClickListener {
+                (context as? Activity)?.let { activity ->
+                    IntentHelper.startMeteomapActivity(activity, location.formattedId)
+                }
+            }
+        } else {
+            mMeteomap.visibility = View.GONE
+            mMeteomap.setOnClickListener(null)
+        }
 
         if (BreezyWeather.instance.debugMode) {
             timezoneText.visibility = View.VISIBLE
