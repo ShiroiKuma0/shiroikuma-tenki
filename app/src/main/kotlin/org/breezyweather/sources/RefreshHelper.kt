@@ -580,6 +580,14 @@ class RefreshHelper @Inject constructor(
             val yesterdayMidnight = Date(Date().time - 1.days.inWholeMilliseconds)
                 .getIsoFormattedDate(location)
                 .toDateNoHour(location.timeZone)!!
+
+            // shiroikuma fork: how far back the charts can be scrolled. A refresh carries forward
+            // everything already stored from this moment on, so the history builds up as the app is
+            // used — it cannot invent days that were never fetched. Distinct from [yesterdayMidnight]
+            // above, which is not a retention window but the marker for finding today.
+            val historyStart = Date(Date().time - HISTORY_DAYS.days.inWholeMilliseconds)
+                .getIsoFormattedDate(location)
+                .toDateNoHour(location.timeZone)!!
             var forecastUpdateTime = base.forecastUpdateTime
             var currentUpdateTime = base.currentUpdateTime
             var airQualityUpdateTime = base.airQualityUpdateTime
@@ -813,7 +821,7 @@ class RefreshHelper @Inject constructor(
                         }
                     } else {
                         null
-                    } ?: location.weather?.toDailyWrapperList(yesterdayMidnight),
+                    } ?: location.weather?.toDailyWrapperList(historyStart),
                     hourlyForecast = if (location.forecastSource.isNotEmpty()) {
                         if (errors.any {
                                 it.feature == SourceFeature.FORECAST &&
@@ -826,7 +834,7 @@ class RefreshHelper @Inject constructor(
                         }
                     } else {
                         null
-                    } ?: location.weather?.toHourlyWrapperList(yesterdayMidnight),
+                    } ?: location.weather?.toHourlyWrapperList(historyStart),
                     current = if (!location.currentSource.isNullOrEmpty()) {
                         if (errors.any {
                                 it.feature == SourceFeature.CURRENT &&
@@ -855,7 +863,7 @@ class RefreshHelper @Inject constructor(
                                 airQualityUpdateTime = Date()
                                 it
                             }
-                        } ?: location.weather?.toAirQualityWrapperList(yesterdayMidnight)
+                        } ?: location.weather?.toAirQualityWrapperList(historyStart)
                     } else {
                         null
                     },
@@ -871,7 +879,7 @@ class RefreshHelper @Inject constructor(
                                 pollenUpdateTime = Date()
                                 it
                             }
-                        } ?: location.weather?.toPollenWrapperList(yesterdayMidnight)
+                        } ?: location.weather?.toPollenWrapperList(historyStart)
                     } else {
                         null
                     },
@@ -942,7 +950,7 @@ class RefreshHelper @Inject constructor(
             val weatherWrapperCompleted = completeNewWeatherWithPreviousData(
                 weatherWrapper,
                 location.weather,
-                yesterdayMidnight,
+                historyStart,
                 location.airQualitySource,
                 location.pollenSource
             )
@@ -1009,7 +1017,7 @@ class RefreshHelper @Inject constructor(
                         hasFailed = errors.any {
                             it.feature == SourceFeature.FORECAST && it.source == source
                         },
-                        yesterdayMidnight = yesterdayMidnight,
+                        historyStart = historyStart,
                         hourlyAirQuality = weatherWrapperCompleted.airQuality?.hourlyForecast ?: emptyMap(),
                         hourlyPollen = weatherWrapperCompleted.pollen?.hourlyForecast ?: emptyMap(),
                         currentPollen = weatherWrapperCompleted.pollen?.current
@@ -1083,7 +1091,7 @@ class RefreshHelper @Inject constructor(
         wrapper: WeatherWrapper?,
         previous: AlternateForecast?,
         hasFailed: Boolean,
-        yesterdayMidnight: Date,
+        historyStart: Date,
         hourlyAirQuality: Map<Date, AirQuality>,
         hourlyPollen: Map<Date, Pollen>,
         currentPollen: Pollen?,
@@ -1105,7 +1113,7 @@ class RefreshHelper @Inject constructor(
             previous?.let {
                 Weather(dailyForecast = it.dailyForecast, hourlyForecast = it.hourlyForecast)
             },
-            yesterdayMidnight,
+            historyStart,
             location.airQualitySource,
             location.pollenSource
         )
@@ -1561,6 +1569,17 @@ class RefreshHelper @Inject constructor(
     }
 
     companion object {
+        /**
+         * shiroikuma fork: how many days of past forecast a refresh carries forward, so the trend
+         * charts can be scrolled back through what the weather actually did.
+         *
+         * Upstream kept only back to yesterday 00:00, which left exactly one day behind today to
+         * scroll to. The cost is small — a month is roughly 720 hourly rows and 30 daily ones per
+         * location per source — and history only accumulates from the moment this is raised, since
+         * nothing can be recovered that was never stored.
+         */
+        private const val HISTORY_DAYS = 30
+
         private const val WAIT_MINIMUM = 1
         private const val WAIT_REGULAR = 5
         private const val WAIT_RESTRICTED = 15

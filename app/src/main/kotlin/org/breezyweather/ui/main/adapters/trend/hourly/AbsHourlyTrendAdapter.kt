@@ -28,6 +28,7 @@ import org.breezyweather.common.extensions.getHourIn24Format
 import org.breezyweather.common.extensions.getThemeColor
 import org.breezyweather.common.options.appearance.DetailScreen
 import org.breezyweather.common.utils.helpers.IntentHelper
+import org.breezyweather.tenki.TenkiViewTheme
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerView
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerViewAdapter
 import org.breezyweather.ui.common.widgets.trend.item.HourlyTrendItemView
@@ -42,21 +43,28 @@ abstract class AbsHourlyTrendAdapter(
         val hourlyItem: HourlyTrendItemView = itemView.findViewById(R.id.item_trend_hourly)
 
         /**
-         * @param hourlyList shiroikuma fork: which window of hours this adapter is plotting.
-         *   Defaults to upstream's "from the current hour", so the tabs that have not been
-         *   rebuilt keep their existing behaviour; the temperature tab passes a window that
-         *   reaches back a few hours, and the labels have to follow the same list or they
-         *   would be indexed against the wrong hours.
+         * @param hourlyList shiroikuma fork: the hours this adapter is plotting, which is the whole
+         *   stored series — a month of history included — so the card can be scrolled back through
+         *   what the weather actually did. Every tab plots this same list, so a tab switch keeps
+         *   its place; an adapter passing a different one would index its labels against the wrong
+         *   hours.
          */
         fun onBindView(
             activity: BreezyActivity,
             location: Location,
             talkBackBuilder: StringBuilder,
             position: Int,
-            hourlyList: List<Hourly> = location.weather!!.nextHourlyForecast,
+            hourlyList: List<Hourly> = location.weather!!.hourlyForecast,
         ) {
             val context = itemView.context
             val hourly = hourlyList[position]
+            // shiroikuma fork: every hourly tab plots the same series and shares this column width,
+            // so the scroll position keeps its meaning when the tab is switched. Set here rather
+            // than per adapter, since a tab that sized its columns differently would appear to jump
+            // to another hour the moment it was selected.
+            hourlyItem.visibleColumns = TenkiViewTheme.state(context).let {
+                (it.hourlyHoursBack + it.hourlyHoursAhead).coerceAtLeast(2)
+            }
             talkBackBuilder
                 .append(context.getString(org.breezyweather.unit.R.string.locale_separator))
                 .append(hourly.date.getHour(location, activity))
@@ -74,7 +82,7 @@ abstract class AbsHourlyTrendAdapter(
             detailScreen: DetailScreen,
         ) {
             if (activity.isActivityResumed) {
-                val hourlyDate = location.weather!!.nextHourlyForecast[adapterPosition].date
+                val hourlyDate = location.weather!!.hourlyForecast[adapterPosition].date
                 // Might not work with sources like AccuWeather not starting the day at 00:00
                 val dailyIndex = location.weather!!.dailyForecast.indexOfFirst {
                     it.date.time > hourlyDate.time - 1.days.inWholeMilliseconds

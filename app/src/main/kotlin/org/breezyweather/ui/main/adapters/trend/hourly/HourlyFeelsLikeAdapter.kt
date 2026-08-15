@@ -60,9 +60,9 @@ class HourlyFeelsLikeAdapter(
 
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder(activity.getString(R.string.tag_feels_like))
-            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.hourlyForecast)
             val weather = location.weather!!
-            val hourly = weather.nextHourlyForecast[position]
+            val hourly = weather.hourlyForecast[position]
             hourly.temperature?.feelsLikeTemperature?.let {
                 talkBackBuilder.append(activity.getString(org.breezyweather.unit.R.string.locale_separator))
                     .append(it.formatMeasure(activity, temperatureUnit, unitWidth = UnitWidth.LONG))
@@ -142,13 +142,13 @@ class HourlyFeelsLikeAdapter(
 
     init {
         val weather = location.weather!!
-        mTemperatures = arrayOfNulls(max(0, weather.nextHourlyForecast.size * 2 - 1))
+        mTemperatures = arrayOfNulls(max(0, weather.hourlyForecast.size * 2 - 1))
         run {
             var i = 0
             while (i < mTemperatures.size) {
                 mTemperatures[i] =
-                    weather.nextHourlyForecast.getOrNull(i / 2)?.temperature?.feelsLikeTemperature?.value?.toFloat()
-                        ?: weather.nextHourlyForecast.getOrNull(i / 2)?.temperature?.temperature?.value?.toFloat()
+                    weather.hourlyForecast.getOrNull(i / 2)?.temperature?.feelsLikeTemperature?.value?.toFloat()
+                        ?: weather.hourlyForecast.getOrNull(i / 2)?.temperature?.temperature?.value?.toFloat()
                 i += 2
             }
         }
@@ -163,7 +163,7 @@ class HourlyFeelsLikeAdapter(
                 i += 2
             }
         }
-        weather.nextHourlyForecast
+        weather.hourlyForecast
             .forEach { hourly ->
                 (hourly.temperature?.feelsLikeTemperature ?: hourly.temperature?.temperature)?.value?.let {
                     if (mHighestTemperature == null || it > mHighestTemperature!!) {
@@ -185,10 +185,10 @@ class HourlyFeelsLikeAdapter(
         (holder as ViewHolder).onBindView(activity, location, position)
     }
 
-    override fun getItemCount() = location.weather!!.nextHourlyForecast.size
+    override fun getItemCount() = location.weather!!.hourlyForecast.size
 
     override fun isValid(location: Location): Boolean {
-        return location.weather?.nextHourlyForecast?.any {
+        return location.weather?.hourlyForecast?.any {
             it.temperature?.feelsLikeTemperature != null
         } == true
     }

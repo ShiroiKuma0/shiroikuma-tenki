@@ -37,6 +37,22 @@
             app:layout_constraintStart_toEndOf="@+id/daily_block_title_icon"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- shiroikuma fork: put this card's charts back to the view they open with — the pinch
+             zoom and the scroll position, and nothing else. It fetches nothing. -->
+        <ImageView
+            android:id="@+id/daily_block_reset_view"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="8dp"
+            android:layout_marginEnd="@dimen/large_margin"
+            android:src="@drawable/ic_fit_screen"
+            android:tint="?attr/colorSurfaceInverse"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/tenki_restore_default_view"
+            app:layout_constraintBottom_toBottomOf="@+id/daily_block_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/daily_block_title" />
+
         <TextView
             android:id="@+id/daily_block_subtitle"
             android:layout_marginTop="2dp"

@@ -60,28 +60,31 @@ class HourlyTemperatureAdapter(
     private val mResourceProvider: ResourceProvider = provider
 
     /**
-     * shiroikuma fork: how many columns the card opens with, from the settings page. The window
-     * beyond that stays scrollable, so this decides the opening view and the vertical scale, not
-     * how much forecast is available.
+     * shiroikuma fork: how many columns actually fit on the screen — the window from the settings
+     * page, widened or narrowed by whatever the chart has been pinched to. The rest stays
+     * scrollable, so this decides the vertical scale, not how much forecast is available.
      */
     private val mVisibleColumns: Int = TenkiViewTheme.state(activity).let {
-        (it.hourlyHoursBack + it.hourlyHoursAhead).coerceAtLeast(2)
+        val asked = (it.hourlyHoursBack + it.hourlyHoursAhead).coerceAtLeast(2)
+        (asked * 100 / it.hourlyColumnZoom.coerceAtLeast(1)).coerceAtLeast(2)
     }
 
     /**
-     * The plotted window — the configured hours of history, then everything ahead. This adapter
-     * indexes into THIS list, not `Weather.nextHourlyForecast`, so the hour labels and the curve
-     * stay in step.
+     * The plotted series: everything still stored, the past included, so the card can be scrolled
+     * back through what the weather actually did. Every hourly tab plots this same list, which is
+     * what lets the scroll position survive a tab switch.
      */
-    private val mHourlyList: List<Hourly> = location.weather!!.hourlyForecastWindow(
-        TenkiViewTheme.state(activity).hourlyHoursBack,
-        HOURS_AHEAD
-    )
+    private val mHourlyList: List<Hourly> = location.weather!!.hourlyForecast
 
     /** Where the past ends: the first hour at or after the current one. */
     private val mNowIndex: Int = mHourlyList
         .indexOfFirst { it.date.time >= System.currentTimeMillis() - 1.hours.inWholeMilliseconds }
         .coerceAtLeast(0)
+
+    /** The column the card opens on, which is where the vertical scale is measured from. */
+    private val mOpeningIndex: Int = location.weather!!.hourlyOpeningIndex(
+        TenkiViewTheme.state(activity).hourlyHoursBack
+    )
 
     private val mTemperatures: Array<Float?>
     private var mHighestTemperature: Float? = null
@@ -122,8 +125,8 @@ class HourlyTemperatureAdapter(
                     .append(hourly.weatherText)
             }
             // shiroikuma fork: banding and the past wash belong to the whole column, hour label
-            // and icon included, so the item view draws them rather than the chart.
-            hourlyItem.visibleColumns = mVisibleColumns
+            // and icon included, so the item view draws them rather than the chart. The column
+            // width is set by the base adapter, which every tab shares.
             hourlyItem.bandShaded = position % 2 == 0
             hourlyItem.dimmed = position < mNowIndex
             hourlyItem.dayDivider = hourly.date.getHourIn24Format(location) == "0"
@@ -296,8 +299,10 @@ class HourlyTemperatureAdapter(
         }
         // shiroikuma fork: the range fits only the hours visible when the card opens, not the whole
         // scrollable window — otherwise tomorrow afternoon's peak, which you cannot see, dictates
-        // the scale and leaves the visible half empty.
+        // the scale and leaves the visible half empty. Measured from the opening column rather than
+        // from the start of the list, which is now a month of history behind it.
         mHourlyList
+            .drop(mOpeningIndex)
             .take(mVisibleColumns)
             .forEach { hourly ->
                 hourly.temperature?.temperature?.value?.let {
@@ -323,18 +328,8 @@ class HourlyTemperatureAdapter(
     override fun getItemCount() = mHourlyList.size
 
     companion object {
-        /**
-         * shiroikuma fork: three hours behind, and everything the source has ahead — all of it
-         * scrollable. The vertical range is fitted to the OPENING window only (see
-         * [HourlyTrendItemView.VISIBLE_COLUMNS]), which is what puts today's peak at the top and
-         * its trough at the bottom. Hours further right that exceed that range simply reach the
-         * edge of the pane and keep their reading.
-         */
-        private const val HOURS_BACK = 3
-        private const val HOURS_AHEAD = 48
-
         /** Sized to fill a column at 12 visible hours without spilling into its neighbours. */
-        private const val HOURLY_READING_SIZE_DIP = 30f
+        private const val HOURLY_READING_SIZE_DIP = 22.5f
 
         /** The lightest window that still fills the band, when a source reports amounts only. */
         private const val MIN_AMOUNT_CEILING_MM = 3f

@@ -91,13 +91,18 @@ class HourlyTrendItemView @JvmOverloads constructor(
     var visibleColumns: Int = 0
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val hostWidth = (parent as? android.view.View)?.measuredWidth ?: 0
+        val host = parent as? TrendRecyclerView
+        val hostWidth = host?.measuredWidth ?: 0
+        // shiroikuma fork: the pinch widens the column rather than scaling the canvas, so fewer
+        // hours fit on the screen and the labels and icons keep their own size.
+        val zoom = host?.columnScale ?: 1f
         val width = if (hostWidth > 0 && visibleColumns > 0) {
-            hostWidth / visibleColumns
+            (hostWidth / visibleColumns * zoom).roundToInt().coerceAtLeast(1)
         } else {
             context.resources
                 .getDimensionPixelSize(R.dimen.hourly_trend_item_width)
                 .times(context.fontScaleToApply)
+                .times(zoom)
                 .roundToInt()
         }
         val height = MeasureSpec.getSize(heightMeasureSpec)

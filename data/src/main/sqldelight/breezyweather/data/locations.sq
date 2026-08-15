@@ -27,6 +27,8 @@ CREATE TABLE locations(
     weather_source TEXT NOT NULL,
     -- shiroikuma fork: every forecast source in the arranged order, comma-separated, weather_source first
     forecast_sources TEXT,
+    -- shiroikuma fork: the daily charts' own list; NULL or empty means "the same as forecast_sources"
+    daily_forecast_sources TEXT,
     current_source TEXT,
     air_quality_source TEXT,
     pollen_source TEXT,
@@ -44,30 +46,30 @@ CREATE TABLE locations(
 );
 
 getLocationById:
-SELECT city_id, latitude, longitude, timezone, custom_name, country, country_code, admin1, admin1_code, admin2, admin2_code, admin3, admin3_code, admin4, admin4_code, city, district, weather_source, forecast_sources, current_source, air_quality_source, pollen_source, minutely_source, alert_source, normals_source, reverse_geocoding_source, current_position, needs_geocode_refresh, background_weather_kind, background_day_night_type
+SELECT city_id, latitude, longitude, timezone, custom_name, country, country_code, admin1, admin1_code, admin2, admin2_code, admin3, admin3_code, admin4, admin4_code, city, district, weather_source, forecast_sources, daily_forecast_sources, current_source, air_quality_source, pollen_source, minutely_source, alert_source, normals_source, reverse_geocoding_source, current_position, needs_geocode_refresh, background_weather_kind, background_day_night_type
 FROM locations
 WHERE formatted_id = :formattedId;
 
 getAllLocations:
-SELECT city_id, latitude, longitude, timezone, custom_name, country, country_code, admin1, admin1_code, admin2, admin2_code, admin3, admin3_code, admin4, admin4_code, city, district, weather_source, forecast_sources, current_source, air_quality_source, pollen_source, minutely_source, alert_source, normals_source, reverse_geocoding_source, current_position, needs_geocode_refresh, background_weather_kind, background_day_night_type
+SELECT city_id, latitude, longitude, timezone, custom_name, country, country_code, admin1, admin1_code, admin2, admin2_code, admin3, admin3_code, admin4, admin4_code, city, district, weather_source, forecast_sources, daily_forecast_sources, current_source, air_quality_source, pollen_source, minutely_source, alert_source, normals_source, reverse_geocoding_source, current_position, needs_geocode_refresh, background_weather_kind, background_day_night_type
 FROM locations
 ORDER BY list_order;
 
 getXLocations:
-SELECT city_id, latitude, longitude, timezone, custom_name, country, country_code, admin1, admin1_code, admin2, admin2_code, admin3, admin3_code, admin4, admin4_code, city, district, weather_source, forecast_sources, current_source, air_quality_source, pollen_source, minutely_source, alert_source, normals_source, reverse_geocoding_source, current_position, needs_geocode_refresh, background_weather_kind, background_day_night_type
+SELECT city_id, latitude, longitude, timezone, custom_name, country, country_code, admin1, admin1_code, admin2, admin2_code, admin3, admin3_code, admin4, admin4_code, city, district, weather_source, forecast_sources, daily_forecast_sources, current_source, air_quality_source, pollen_source, minutely_source, alert_source, normals_source, reverse_geocoding_source, current_position, needs_geocode_refresh, background_weather_kind, background_day_night_type
 FROM locations
 ORDER BY list_order
 LIMIT :limit;
 
 getFirstLocation:
-SELECT city_id, latitude, longitude, timezone, custom_name, country, country_code, admin1, admin1_code, admin2, admin2_code, admin3, admin3_code, admin4, admin4_code, city, district, weather_source, forecast_sources, current_source, air_quality_source, pollen_source, minutely_source, alert_source, normals_source, reverse_geocoding_source, current_position, needs_geocode_refresh, background_weather_kind, background_day_night_type
+SELECT city_id, latitude, longitude, timezone, custom_name, country, country_code, admin1, admin1_code, admin2, admin2_code, admin3, admin3_code, admin4, admin4_code, city, district, weather_source, forecast_sources, daily_forecast_sources, current_source, air_quality_source, pollen_source, minutely_source, alert_source, normals_source, reverse_geocoding_source, current_position, needs_geocode_refresh, background_weather_kind, background_day_night_type
 FROM locations
 ORDER BY list_order
 LIMIT 1;
 
 insert:
-INSERT INTO locations(formatted_id, list_order, city_id, latitude, longitude, timezone, custom_name, country, country_code, admin1, admin1_code, admin2, admin2_code, admin3, admin3_code, admin4, admin4_code, city, district, weather_source, forecast_sources, current_source, air_quality_source, pollen_source, minutely_source, alert_source, normals_source, reverse_geocoding_source, current_position, needs_geocode_refresh, background_weather_kind, background_day_night_type)
-VALUES (:formattedId, :listOrder, :cityId, :latitude, :longitude, :timezone, :customName, :country, :countryCode, :admin1, :admin1Code, :admin2, :admin2Code, :admin3, :admin3Code, :admin4, :admin4Code, :city, :district, :weatherSource, :forecastSources, :currentSource, :airQualitySource, :pollenSource, :minutelySource, :alertSource, :normalsSource, :reverseGeocodingSource, :currentPosition, :needsGeocodeRefresh, :backgroundWeatherKind, :backgroundDayNightType)
+INSERT INTO locations(formatted_id, list_order, city_id, latitude, longitude, timezone, custom_name, country, country_code, admin1, admin1_code, admin2, admin2_code, admin3, admin3_code, admin4, admin4_code, city, district, weather_source, forecast_sources, daily_forecast_sources, current_source, air_quality_source, pollen_source, minutely_source, alert_source, normals_source, reverse_geocoding_source, current_position, needs_geocode_refresh, background_weather_kind, background_day_night_type)
+VALUES (:formattedId, :listOrder, :cityId, :latitude, :longitude, :timezone, :customName, :country, :countryCode, :admin1, :admin1Code, :admin2, :admin2Code, :admin3, :admin3Code, :admin4, :admin4Code, :city, :district, :weatherSource, :forecastSources, :dailyForecastSources, :currentSource, :airQualitySource, :pollenSource, :minutelySource, :alertSource, :normalsSource, :reverseGeocodingSource, :currentPosition, :needsGeocodeRefresh, :backgroundWeatherKind, :backgroundDayNightType)
 ON CONFLICT(formatted_id) DO UPDATE SET
     list_order = coalesce(:listOrder, list_order),
     city_id = coalesce(:cityId, city_id),
@@ -89,6 +91,7 @@ ON CONFLICT(formatted_id) DO UPDATE SET
     district = coalesce(:district, district),
     weather_source = coalesce(:weatherSource, weather_source),
     forecast_sources = coalesce(:forecastSources, forecast_sources),
+    daily_forecast_sources = coalesce(:dailyForecastSources, daily_forecast_sources),
     current_source = coalesce(:currentSource, current_source),
     air_quality_source = coalesce(:airQualitySource, air_quality_source),
     pollen_source = coalesce(:pollenSource, pollen_source),
@@ -127,6 +130,7 @@ SET city_id = coalesce(:cityId, city_id),
     district = coalesce(:district, district),
     weather_source = coalesce(:weatherSource, weather_source),
     forecast_sources = coalesce(:forecastSources, forecast_sources),
+    daily_forecast_sources = coalesce(:dailyForecastSources, daily_forecast_sources),
     current_source = coalesce(:currentSource, current_source),
     air_quality_source = coalesce(:airQualitySource, air_quality_source),
     pollen_source = coalesce(:pollenSource, pollen_source),

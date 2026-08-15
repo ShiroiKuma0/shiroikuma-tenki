@@ -1,0 +1,4 @@
+-- shiroikuma fork: the daily charts pick their forecast sources independently of the hourly ones.
+-- NULL and empty both mean "use whatever the hourly charts use", so every existing location keeps
+-- drawing exactly what it drew before the split.
+ALTER TABLE locations ADD COLUMN daily_forecast_sources TEXT;

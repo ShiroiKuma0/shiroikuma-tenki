@@ -99,10 +99,14 @@ class DailyTrendItemView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        // shiroikuma fork: the pinch widens the column rather than scaling the canvas, so fewer
+        // days fit on the screen and the labels and icons keep their own size.
         val width = context.resources
             .getDimensionPixelSize(R.dimen.trend_item_width)
             .times(context.fontScaleToApply)
+            .times((parent as? TrendRecyclerView)?.columnScale ?: 1f)
             .roundToInt()
+            .coerceAtLeast(1)
         val height = MeasureSpec.getSize(heightMeasureSpec)
         var y = 0f
         val textMargin = context.dpToPx(TEXT_MARGIN_DIP.toFloat())

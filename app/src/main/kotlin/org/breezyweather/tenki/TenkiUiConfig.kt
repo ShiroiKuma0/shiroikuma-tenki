@@ -222,6 +222,22 @@ class TenkiUiConfig(context: Context) {
         get() = int(KEY_HOURLY_HOURS_AHEAD, DEFAULT_HOURLY_HOURS_AHEAD)
         set(v) = putInt(KEY_HOURLY_HOURS_AHEAD, v)
 
+    /**
+     * How far the hourly columns have been pinched apart, as a percentage — 100 being the width the
+     * settings above ask for, 200 twice that with half as many hours on screen.
+     *
+     * Kept here rather than on the chart because the cards are recycled: a zoom held only by the
+     * view would be lost the moment the card scrolled off the screen and came back.
+     */
+    var hourlyColumnZoom: Int
+        get() = int(KEY_HOURLY_COLUMN_ZOOM, DEFAULT_COLUMN_ZOOM)
+        set(v) = putInt(KEY_HOURLY_COLUMN_ZOOM, v)
+
+    /** The same for the daily columns, which have no hours-ahead setting of their own. */
+    var dailyColumnZoom: Int
+        get() = int(KEY_DAILY_COLUMN_ZOOM, DEFAULT_COLUMN_ZOOM)
+        set(v) = putInt(KEY_DAILY_COLUMN_ZOOM, v)
+
     // ------------------------------------------------------ export directory
 
     /** SAF tree uri of the backup folder, "" when never set. */
@@ -342,11 +358,18 @@ class TenkiUiConfig(context: Context) {
         private const val KEY_DAILY_CHART_HEIGHT = "daily_chart_height"
         private const val KEY_HOURLY_HOURS_BACK = "hourly_hours_back"
         private const val KEY_HOURLY_HOURS_AHEAD = "hourly_hours_ahead"
+        private const val KEY_HOURLY_COLUMN_ZOOM = "hourly_column_zoom"
+        private const val KEY_DAILY_COLUMN_ZOOM = "daily_column_zoom"
 
         const val DEFAULT_HOURLY_CHART_HEIGHT = 410
         const val DEFAULT_DAILY_CHART_HEIGHT = 480
         const val DEFAULT_HOURLY_HOURS_BACK = 3
-        const val DEFAULT_HOURLY_HOURS_AHEAD = 9
+        const val DEFAULT_HOURLY_HOURS_AHEAD = 20
+
+        /** Percent. The pinch runs from a quarter of the asked-for width to four times it. */
+        const val DEFAULT_COLUMN_ZOOM = 100
+        const val MINIMUM_COLUMN_ZOOM = 25
+        const val MAXIMUM_COLUMN_ZOOM = 400
 
         private const val KEY_EXPORT_DIR = "export_dir"
         private const val KEY_RECENT = "recent_colors"

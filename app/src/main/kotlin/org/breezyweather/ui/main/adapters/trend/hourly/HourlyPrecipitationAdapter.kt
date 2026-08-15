@@ -59,9 +59,9 @@ class HourlyPrecipitationAdapter(
 
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder(activity.getString(R.string.tag_precipitation))
-            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.hourlyForecast)
             val weather = location.weather!!
-            val hourly = weather.nextHourlyForecast[position]
+            val hourly = weather.hourlyForecast[position]
 
             hourlyItem.setIconDrawable(
                 hourly.weatherCode?.let {
@@ -121,7 +121,7 @@ class HourlyPrecipitationAdapter(
     }
 
     init {
-        location.weather!!.nextHourlyForecast
+        location.weather!!.hourlyForecast
             .mapNotNull { it.precipitation?.total }
             .maxOrNull()
             ?.let {
@@ -141,10 +141,10 @@ class HourlyPrecipitationAdapter(
     }
 
     override fun getItemCount(): Int {
-        return location.weather!!.nextHourlyForecast.size
+        return location.weather!!.hourlyForecast.size
     }
 
-    override fun isValid(location: Location) = location.weather!!.nextHourlyForecast.any {
+    override fun isValid(location: Location) = location.weather!!.hourlyForecast.any {
         it.precipitation?.total != null
     }
 

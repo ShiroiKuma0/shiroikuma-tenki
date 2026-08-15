@@ -361,9 +361,11 @@ fun SecondarySourcesPreference(
     val dialogLinkOpenState = remember { mutableStateOf(false) }
     val hasChangedReverseGeocodingSource = remember { mutableStateOf(false) }
     val hasChangedASource = remember { mutableStateOf(false) }
-    // shiroikuma fork: forecast takes several sources, drawn stacked in this order.
-    // The first is the location's identity source, so it drives the duplicate check below.
-    val forecastSources = remember { mutableStateOf(location.orderedForecastSources) }
+    // shiroikuma fork: forecast takes several sources, drawn stacked in this order, and the hourly
+    // and daily charts choose theirs independently. The first HOURLY source is the location's
+    // identity source, so that list drives the duplicate check below; the daily one is free.
+    val forecastSources = remember { mutableStateOf(location.orderedHourlyForecastSources) }
+    val dailyForecastSources = remember { mutableStateOf(location.orderedDailyForecastSources) }
     val isLocationDuplicate = remember { mutableStateOf(false) }
     val currentSource = remember { mutableStateOf(location.currentSource ?: "") }
     val airQualitySource = remember { mutableStateOf(location.airQualitySource ?: "") }
@@ -513,12 +515,13 @@ fun SecondarySourcesPreference(
                         )
                     }
                 }
-                // shiroikuma fork: several forecast sources, arranged. A selected source that is no
-                // longer compatible is not injected into the list here the way the single-source
-                // rows do it — the dialog names it "(unavailable)" in its ordered section, where it
-                // can be removed.
+                // shiroikuma fork: several forecast sources, arranged, and the two sets of charts
+                // pick theirs separately — a source worth stacking hour by hour is not always one
+                // you want deciding the week. A selected source that is no longer compatible is not
+                // injected into the list here the way the single-source rows do it — the dialog
+                // names it "(unavailable)" in its ordered section, where it can be removed.
                 MultiSourceViewWithContinents(
-                    title = stringResource(SourceFeature.FORECAST.resourceName),
+                    title = stringResource(R.string.hourly_forecast),
                     selectedKeys = forecastSources.value.toImmutableList(),
                     sourceList = compatibleForecastSources
                 ) { sources ->
@@ -538,6 +541,18 @@ fun SecondarySourcesPreference(
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.normal_margin))
                     )
+                }
+                // The identity source is guaranteed a place in the hourly list, so this one carries
+                // no such obligation and may leave it out entirely.
+                MultiSourceViewWithContinents(
+                    title = stringResource(R.string.daily_forecast),
+                    selectedKeys = dailyForecastSources.value.toImmutableList(),
+                    sourceList = compatibleForecastSources
+                ) { sources ->
+                    if (sources.isNotEmpty()) {
+                        dailyForecastSources.value = sources
+                        hasChangedASource.value = true
+                    }
                 }
                 SourceViewWithContinents(
                     title = stringResource(SourceFeature.CURRENT.resourceName),
@@ -826,6 +841,7 @@ fun SecondarySourcesPreference(
                             cityId = if (hasChangedReverseGeocodingSource.value) "" else location.cityId,
                             forecastSource = forecastSources.value.first(),
                             forecastSources = forecastSources.value,
+                            dailyForecastSources = dailyForecastSources.value,
                             currentSource = currentSource.value,
                             airQualitySource = airQualitySource.value,
                             pollenSource = pollenSource.value,

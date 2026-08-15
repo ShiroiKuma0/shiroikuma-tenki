@@ -61,9 +61,9 @@ class HourlyHumidityAdapter(
 
         fun onBindView(activity: BreezyActivity, location: Location, position: Int) {
             val talkBackBuilder = StringBuilder()
-            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.nextHourlyForecast)
+            super.onBindView(activity, location, talkBackBuilder, position, location.weather!!.hourlyForecast)
             val weather = location.weather!!
-            val hourly = weather.nextHourlyForecast[position]
+            val hourly = weather.hourlyForecast[position]
             hourly.relativeHumidity?.let {
                 talkBackBuilder.append(activity.getString(org.breezyweather.unit.R.string.locale_separator))
                     .append(activity.getString(R.string.humidity))
@@ -150,11 +150,11 @@ class HourlyHumidityAdapter(
 
     init {
         val weather = location.weather!!
-        mDewPoints = arrayOfNulls(max(0, weather.nextHourlyForecast.size * 2 - 1))
+        mDewPoints = arrayOfNulls(max(0, weather.hourlyForecast.size * 2 - 1))
         run {
             var i = 0
             while (i < mDewPoints.size) {
-                mDewPoints[i] = weather.nextHourlyForecast.getOrNull(i / 2)?.dewPoint?.value?.toFloat()
+                mDewPoints[i] = weather.hourlyForecast.getOrNull(i / 2)?.dewPoint?.value?.toFloat()
                 i += 2
             }
         }
@@ -169,7 +169,7 @@ class HourlyHumidityAdapter(
                 i += 2
             }
         }
-        weather.nextHourlyForecast
+        weather.hourlyForecast
             .forEach { hourly ->
                 hourly.dewPoint?.value?.let {
                     if (mHighestDewPoint == null || it > mHighestDewPoint!!) {
@@ -191,7 +191,7 @@ class HourlyHumidityAdapter(
         (holder as ViewHolder).onBindView(activity, location, position)
     }
 
-    override fun getItemCount() = location.weather!!.nextHourlyForecast.size
+    override fun getItemCount() = location.weather!!.hourlyForecast.size
 
     override fun isValid(location: Location): Boolean {
         return mHighestDewPoint != null && mLowestDewPoint != null
