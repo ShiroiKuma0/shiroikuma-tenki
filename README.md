@@ -9,13 +9,14 @@
 A fork of [Breezy Weather](https://github.com/breezy-weather/breezy-weather) — forecast, observations,
 nowcasting, air quality, pollen and alerts from more than 50 weather sources — with **major
 additions**: several forecast sources stacked side by side for the same place, meteogram-style trend
-charts, a live theming page that repaints the app as you drag a slider, a black-yellow repaint that
-reaches every surface upstream draws, two hand-cut weather-icon packs, Czechia's national weather
-service, and headless backup automation for the 保存復元 batch.
+charts, an animated radar and forecast map drawn on a basemap of our own, a live theming page that
+repaints the app as you drag a slider, a black-yellow repaint that reaches every surface upstream
+draws, two hand-cut weather-icon packs, Czechia's national weather service, and headless backup
+automation for the 保存復元 batch.
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 Latest release: [`6.2.1+034`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
+**📥 Latest release: [`6.2.1+048`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
 
@@ -158,6 +159,38 @@ forecast for the entire country and is labelled as such rather than passed off a
 The same model still reaches the app the other way too — **ČHMÚ ALADIN** is selectable in the
 Open-Meteo source at 1 km — and the two are worth stacking, since where they disagree it is the
 post-processing talking.
+
+---
+
+## 🗺️ The Meteomap — weather in motion, on a map we draw
+
+Upstream ships no radar at all, and its own documentation tells you to bookmark somebody else's
+website. For Czechia there is now a full-screen animated map instead, opened from a line-art emblem
+beside the temperature: **ALADIN hour by hour for three days** — temperature, rain, snow, cloud,
+wind, humidity and sunshine, each its own layer — and **an hour of radar**, five-minute observation
+with ČHMÚ's own nowcast running on past the present. Time slider, play/pause, loop, five speeds;
+pinch to zoom, drag to pan.
+
+**The fields are repainted in our colours, and exactly.** ČHMÚ publishes the scale it painted each
+field with, printed ticks included — so every pixel's colour is turned back into the reading it
+stands for, and coloured again from the app's own palette. Temperature uses the very stops the hourly
+meteogram uses: a colour on the map and a colour on the chart mean the same degree. Rain, snow and
+radar are blue. The same machinery reads the map's own numbers back out at **twelve towns**, so the
+temperature labels that follow the playback cost no request of their own — checked against ČHMÚ's
+point forecasts, all twelve agreed within half a degree.
+
+**The ground under the weather is ours.** Czechia comes from the 206 ORP district boundaries the app
+already carries for alert geocoding; the rivers, lakes and inter-country frontiers are cut from
+public-domain Natural Earth into a 35 KB bundled file. **No map tiles are fetched from anyone**, so
+there are no third-party terms and the country arrives in the house black and yellow without being
+asked. Weather beyond the border is drawn too, only dimmed — a shower crossing from Saxony matters
+long before it arrives, and clipping it away would hide the thing worth watching.
+
+Under the slider runs a miniature of the field above: the location's own hourly forecast for that
+layer, filled column by column in the layer's own colours, with day boundaries and hour marks ruled
+through the chart **and** the track together — so a bump in the curve ties to a place on the slider.
+
+Data © ČHMÚ, CC BY 4.0.
 
 ---
 
