@@ -16,7 +16,7 @@ automation for the 保存復元 batch.
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 Latest release: [`6.2.1+048`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
+**📥 Latest release: [`6.2.1+050`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
 
@@ -45,8 +45,16 @@ bands instead, with a divider at midnight and a dashed marker at now.
 The hourly chart opens on a window of your choosing — so many hours behind, so many ahead — sized so
 those columns fill the screen exactly and the visible peak reaches the top, with the rest of the
 forecast scrolling off to the right. The daily chart merges the day and night curves into a single
-trace that rises through each day and falls through each night. Rain sits along the foot of both at
-hourly resolution, and falls back to millimetres for sources that report no probability.
+trace that rises through each day and falls through each night, and always opens on today, whatever
+each source's week is long enough to fill. Rain sits along the foot of both at hourly resolution, and
+falls back to millimetres for sources that report no probability.
+
+Both cards **keep a month of history** and plot it: a refresh no longer throws away the hours and
+days it has already fetched, so the weather that actually happened stays one swipe to the left of now
+— for every stacked source at once. Both cards **pinch to zoom**, widening the columns rather than
+scaling the drawing, so labels and icons keep their size and fewer hours simply fit on the screen;
+the level is remembered per card, and a button at the top right puts zoom and scroll back without
+fetching anything.
 
 Graph heights and the hourly window are sliders on the 白い熊 天気 page.
 
