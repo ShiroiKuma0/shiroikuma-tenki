@@ -209,8 +209,17 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
             chart.recyclerView.setTextColor(textColor)
             chart.recyclerView.adapter = chart.adapter
             chart.recyclerView.setKeyLineVisibility(keyLinesEnabled)
-            // Each source has its own today, so each chart scrolls to its own
-            chart.location.weather?.todayIndex?.let { chart.recyclerView.scrollToPosition(it) }
+            // Each source has its own today, so each chart opens on its own — as the anchor rather
+            // than a plain scroll, or a source with few enough days to fit on the screen has nothing
+            // to scroll and opens on the history in front of today
+            chart.location.weather?.todayIndex?.let { chart.recyclerView.scrollToAnchor(it) }
+            // One zoom level for the card: a pinch on any chart re-measures the others too, or the
+            // charts stacked beside it would keep comparing columns of a different width
+            chart.recyclerView.onColumnZoomChanged = {
+                charts.forEach { other ->
+                    if (other !== chart) other.recyclerView.refreshColumns()
+                }
+            }
             chart.scrollBar.resetColor(activity)
         }
 
@@ -221,7 +230,7 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
                 chart.recyclerView.resetZoom()
                 chart.location.weather?.todayIndex?.let { today ->
                     // After the re-bind rather than during it, or the pending scroll is dropped
-                    chart.recyclerView.post { chart.recyclerView.scrollToPosition(today) }
+                    chart.recyclerView.post { chart.recyclerView.scrollToAnchor(today) }
                 }
             }
         }

@@ -10,6 +10,27 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+050 — 2026-08-15
+
+Built on upstream **v6.2.1**.
+
+- **Every daily chart opens on today.** Only the longest one did. A list never scrolls past the end
+  of its own content, so a source carrying few enough days to fit on the screen had nothing to scroll
+  and opened on the day of history sitting in front of today, while Open-Meteo's sixteen days had
+  room to spare and landed where it was told. Each chart now reserves as much empty room after its
+  last column as the columns from today on leave unused, which is what gives the scroll somewhere to
+  go — and it lands by putting today at the left edge outright rather than asking for it to be
+  brought on screen, which leaves a column that is already visible exactly where it stands, as today
+  on a short chart always is. The past stays one swipe to the left, and the hourly card lands the
+  same way.
+- **Restoring the default view no longer widens one chart and leaves its neighbours narrow.** The
+  zoom is one stored level for the whole card, so the first chart to put it back found it already at
+  the default — and every chart after it re-measured nothing, keeping the columns it was last drawn
+  with beside one that had just widened. A pinch parted them the same way, re-measuring only the
+  chart under the fingers. Both now re-measure every chart on the card.
+
+---
+
 ## 白い熊 天気 6.2.1+048 — 2026-08-15
 
 Built on upstream **v6.2.1**.
