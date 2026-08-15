@@ -7,4 +7,21 @@
     <string name="settings_tenki_ui" translatable="false">白い熊 天気 UI</string>
     <string name="settings_tenki_ui_summary" translatable="false">Colours, fonts, sizes, borders, density — and Export / Import</string>
     <string name="settings_tenki_ui_summary_no_backup_dir" translatable="false">No backup directory set</string>
+
+    <!-- Trend cards -->
+    <string name="tenki_restore_default_view">Restore the default view</string>
+
+    <!-- Meteomap -->
+    <string name="meteomap">Meteomap</string>
+    <string name="meteomap_radar">1 Hour Radar</string>
+    <string name="meteomap_nowcast">Nowcast</string>
+    <string name="meteomap_observed">Observed</string>
+    <string name="meteomap_play">Play</string>
+    <string name="meteomap_pause">Pause</string>
+    <string name="meteomap_loop">Loop</string>
+    <string name="meteomap_speed">Speed</string>
+    <string name="meteomap_clock_24h" translatable="false">Meteomap clock in 24-hour time</string>
+    <string name="meteomap_loading">Loading frames…</string>
+    <string name="meteomap_unavailable">The map could not be loaded</string>
+    <string name="meteomap_attribution" translatable="false">© ČHMÚ · CC BY 4.0</string>
 </resources>

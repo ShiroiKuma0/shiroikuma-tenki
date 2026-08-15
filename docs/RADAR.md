@@ -1,6 +1,20 @@
 # Radar
 
-白い熊 天気 offers no radar feature because there is no free radar API we can use that can compete with the other free websites listed below, and we don't intend to become a paid app, so it's best to just add to your homescreen a bookmark to one of the free websites below, that will be more feature-complete. Alternatively, if you are looking for a paid open source app, consider subscribing to OsmAnd Pro (also mentioned below).
+## 🇨🇿 Czechia: the Meteomap
+
+For Czech locations 白い熊 天気 has its **own** map, reached from the **Meteomap** card on the weather screen. ČHMÚ publishes both observed radar and its ALADIN forecast fields as open data under CC BY 4.0, and the app animates them over a border it draws itself:
+
+- **Radar** — 5-minute steps, six hours of history, plus ČHMÚ's own one-hour nowcast running past the present.
+- **Forecast** — hourly for three days: temperature, rain, snow, cloud cover, wind, humidity and sunshine.
+- A time slider, play/pause, a loop toggle and five speeds; pinch to zoom, drag to pan.
+
+The fields arrive in ČHMÚ's colours and are **repainted in ours**. That is exact rather than decorative: ČHMÚ publishes the scale it painted with, ticks and all, so each pixel's colour is turned back into the reading it stands for and coloured again from the app's own palette — temperature uses the very stops the hourly meteogram uses, so a colour on the map and a colour on the chart mean the same degree. Everything that falls out of the sky is blue.
+
+The basemap is Czechia's 206 ORP districts, the same boundaries the app already carries for alert geocoding. No map tiles are fetched, from anyone. Weather beyond the border is drawn too, only dimmed, because a shower crossing from Saxony matters well before it arrives.
+
+## Everywhere else
+
+Outside Czechia there is no radar feature, because there is no free radar API we can use that can compete with the other free websites listed below, and we don't intend to become a paid app, so it's best to just add to your homescreen a bookmark to one of the free websites below, that will be more feature-complete. Alternatively, if you are looking for a paid open source app, consider subscribing to OsmAnd Pro (also mentioned below).
 
 Below is a list of suggested alternatives (you can submit a pull request to add more).
 

@@ -31,6 +31,7 @@ import org.breezyweather.ui.about.AboutActivity
 import org.breezyweather.ui.alert.AlertActivity
 import org.breezyweather.ui.details.DetailsActivity
 import org.breezyweather.ui.main.MainActivity
+import org.breezyweather.ui.meteomap.MeteomapActivity
 import org.breezyweather.ui.search.SearchActivity
 import org.breezyweather.ui.settings.activities.CardDisplayManageActivity
 import org.breezyweather.ui.settings.activities.DailyTrendDisplayManageActivity
@@ -145,6 +146,18 @@ object IntentHelper {
                 SettingsActivity.KEY_SETTINGS_ACTIVITY_START_DESTINATION,
                 SettingsScreenRouter.TenkiUi.route
             )
+        )
+    }
+
+    /**
+     * shiroikuma fork: ČHMÚ's radar and forecast maps. Reached from the card of the same name,
+     * which the main screen only builds for Czech locations.
+     */
+    fun startMeteomapActivity(activity: Activity, formattedId: String? = null) {
+        activity.startActivity(
+            Intent(activity, MeteomapActivity::class.java).apply {
+                putExtra(MeteomapActivity.KEY_FORMATTED_ID, formattedId)
+            }
         )
     }
 

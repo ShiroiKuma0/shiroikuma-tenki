@@ -104,6 +104,22 @@
             android:textColor="?attr/colorSurfaceInverse"
             style="@style/large_title_text"
             tools:text="°C" />
+
+        <!-- shiroikuma fork: the way into the Meteomap, beside the temperature. Shown only for
+             Czech locations, the maps being ČHMÚ's. -->
+        <ImageView
+            android:id="@+id/container_main_header_meteomap"
+            android:layout_width="152dp"
+            android:layout_height="152dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="@dimen/large_margin"
+            android:padding="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/meteomap"
+            android:src="@drawable/ic_meteomap"
+            android:tint="?attr/colorSurfaceInverse"
+            android:visibility="gone" />
     </RelativeLayout>
 
     <TextView
