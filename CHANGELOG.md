@@ -10,6 +10,39 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+035 — 2026-08-15
+
+Built on upstream **v6.2.1**. ČHMÚ becomes a forecast source.
+
+### ČHMÚ forecasts
+
+- **Hourly, three days, for your exact coordinates.** ALADIN hour by hour — temperature,
+  precipitation in millimetres, snow, wind with gusts and direction, pressure, cloud cover and
+  humidity — read from the API behind ČHMÚ's own web pages rather than from the nearest listed town.
+  Anywhere in Czechia works; there is no table of municipalities to be on.
+- **The hours already behind you are measured, not modelled.** The left half of the hourly meteogram
+  is rebuilt from the ten-minute stream of the nearest station — the same one the current observation
+  comes from — folded into whole hours: temperature, humidity, rain, wind and sunshine. The hour
+  still running is left to the model, since averaging the few readings that have arrived would read
+  as a dip. Pressure stays the model's, because the station reports its own rather than one reduced
+  to sea level.
+- **Daily: three local days, then the national outlook.** The near days are built from this
+  location's own hourly series, so they carry its rain. Past that the tab is filled with ČHMÚ's
+  nine-day outlook, which is **one forecast for the whole country** — identical in Prague and on
+  Sněžka — and which publishes no precipitation at all. Read the later days as the national picture.
+- **Stacks with Open-Meteo's ALADIN.** ČHMÚ now appears in the Forecast multi-select, so it can be
+  drawn under the `chmi_aladin_*` models: the same model through a different pipe, and where the two
+  disagree it is the post-processing that differs.
+- **Weather icons.** ČHMÚ's icon vocabulary is read as the two-digit grammar it is — tens for cloud,
+  ones for what is falling, plus a hundred for night — so a code they add later still lands somewhere
+  sensible. The wording comes from 白い熊 天気's own shared set, so it reads in the app's language
+  rather than in Czech.
+
+There is still no precipitation *probability*: ČHMÚ publishes none for a single location anywhere,
+only the amount.
+
+---
+
 ## 白い熊 天気 6.2.1+034 — 2026-08-14
 
 Built on upstream **v6.2.1**. Two things: a location can draw **several forecast sources at once**,

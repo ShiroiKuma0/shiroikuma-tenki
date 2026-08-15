@@ -125,9 +125,9 @@ it, which upstream can get away with and line-art cannot.
 ## 🇨🇿 Czechia, from the Czech weather service
 
 Upstream's coverage table lists Czechia's agency and nothing else — nobody had worked out what ČHMÚ
-publishes. It turns out to be a lot, and the fork now reads four things from it: **current
-observations**, **air quality**, **warnings** and **temperature normals**, all of it open data under
-CC BY 4.0.
+publishes. It turns out to be a lot, and the fork now reads five things from it: **forecasts**,
+**current observations**, **air quality**, **warnings** and **temperature normals**, all of it open
+data under CC BY 4.0.
 
 The warnings are the interesting part. ČHMÚ geocodes them by ORP district and ships **no polygon**,
 so knowing which of the 206 districts you are standing in is the whole problem. The boundaries are
@@ -144,9 +144,20 @@ enough — and captioned with the duty forecaster's own regional text forecast. 
 background stations over the kerbside ones, so you get the air the town is breathing rather than a
 traffic canyon.
 
-ČHMÚ publishes no numeric point forecast — its own are prose, and its ALADIN model is GRIB2 — so the
-model reaches the app the only way it can: **ČHMÚ ALADIN** is now selectable in the Open-Meteo source,
-at 1 km over Czechia.
+The forecast looked impossible at first: ČHMÚ's own point forecasts read as prose and its ALADIN
+output ships as GRIB2. But `chmi.cz` is a shell that renders empty and fills itself from an
+undocumented JSON API — so the numbers behind its web pages are numbers after all, and the fork reads
+them straight, for **your exact coordinates** rather than for the nearest listed town.
+
+Three days of it, hour by hour. The half of the meteogram that is already past is then **overwritten
+with what the nearest station actually measured**, out of the very ten-minute stream the current
+observation comes from — so the curve to the left of *now* is history rather than a model's memory of
+what it expected. Beyond three days the daily tab falls back to ČHMÚ's nine-day outlook, which is one
+forecast for the entire country and is labelled as such rather than passed off as local.
+
+The same model still reaches the app the other way too — **ČHMÚ ALADIN** is selectable in the
+Open-Meteo source at 1 km — and the two are worth stacking, since where they disagree it is the
+post-processing talking.
 
 ---
 
