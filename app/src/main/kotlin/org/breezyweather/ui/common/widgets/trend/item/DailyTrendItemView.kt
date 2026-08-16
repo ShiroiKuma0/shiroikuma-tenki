@@ -44,6 +44,11 @@ class DailyTrendItemView @JvmOverloads constructor(
 ) : AbsTrendItemView(context, attrs, defStyleAttr, defStyleRes) {
     private var mChartItem: AbsChartItemView? = null
     private val mBandPaint = Paint().apply { isAntiAlias = false }
+    private val mNowPaint = Paint().apply {
+        isAntiAlias = true
+        style = Paint.Style.STROKE
+    }
+    private val mNowDashLength: Float
     private val mWeekTextPaint = Paint().apply {
         isAntiAlias = true
         textAlign = Paint.Align.CENTER
@@ -96,6 +101,8 @@ class DailyTrendItemView @JvmOverloads constructor(
         }
         setTextColor(Color.BLACK, Color.GRAY)
         mIconSize = getContext().dpToPx(ICON_SIZE_DIP.toFloat()).toInt()
+        mNowPaint.strokeWidth = getContext().dpToPx(NOW_MARKER_WIDTH_DIP)
+        mNowDashLength = getContext().dpToPx(NOW_DASH_LENGTH_DIP).coerceAtLeast(1f)
     }
 
     /**
@@ -187,6 +194,16 @@ class DailyTrendItemView @JvmOverloads constructor(
      */
     var bandShaded: Boolean = false
 
+    /**
+     * shiroikuma fork: where the current moment falls across this column, 0 at its leading edge and
+     * 1 at its trailing one, or null for every column but the one we are actually in.
+     *
+     * Drawn as a dashed rule through the plotting area, exactly like the hourly card's "now" — the
+     * daily trace is one continuous line across the week, and without it there is nothing to say how
+     * far along today's rise or tonight's fall the week has already got.
+     */
+    var nowAt: Float? = null
+
     override fun onDraw(canvas: Canvas) {
         if (bandShaded) {
             mBandPaint.color = ColorUtils.setAlphaComponent(Color.WHITE, BAND_ALPHA)
@@ -220,6 +237,29 @@ class DailyTrendItemView @JvmOverloads constructor(
             canvas.translate(mNightIconLeft, mNightIconTop)
             it.draw(canvas)
             canvas.restoreToCount(restoreCount)
+        }
+    }
+
+    /**
+     * shiroikuma fork: the "now" rule, over the children rather than under them — the chart fills
+     * everything below its curve, so a marker drawn in [onDraw] would be buried by it.
+     */
+    override fun dispatchDraw(canvas: Canvas) {
+        super.dispatchDraw(canvas)
+        val at = nowAt?.coerceIn(0f, 1f) ?: return
+        val floor = chartBottom.toFloat()
+        if (floor <= chartTop) return
+
+        mNowPaint.color = ColorUtils.setAlphaComponent(Color.WHITE, NOW_MARKER_ALPHA)
+        // Held half a stroke clear of both edges: a rule landing exactly on a column boundary is
+        // otherwise clipped down its middle, and 06:00 lands there every morning
+        val half = mNowPaint.strokeWidth / 2f
+        val offset = (measuredWidth * at).coerceAtLeast(half).coerceAtMost(measuredWidth - half)
+        val x = if (layoutDirection == LAYOUT_DIRECTION_RTL) measuredWidth - offset else offset
+        var y = chartTop.toFloat()
+        while (y < floor) {
+            canvas.drawLine(x, y, x, (y + mNowDashLength).coerceAtMost(floor), mNowPaint)
+            y += mNowDashLength * 2f
         }
     }
 
@@ -287,5 +327,11 @@ class DailyTrendItemView @JvmOverloads constructor(
 
         /** shiroikuma fork: the alternating day band, matching the hourly card's. */
         private const val BAND_ALPHA = 42
+
+        // shiroikuma fork: the "now" rule, dashed exactly like the hourly chart's — same width,
+        // same dash, same strength, so the two cards mark the moment the same way.
+        private const val NOW_MARKER_WIDTH_DIP = 2f
+        private const val NOW_DASH_LENGTH_DIP = 4f
+        private const val NOW_MARKER_ALPHA = 220
     }
 }
