@@ -16,7 +16,7 @@ automation for the 保存復元 batch.
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 Latest release: [`6.2.1+050`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
+**📥 Latest release: [`6.2.1+056`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
 
@@ -33,6 +33,15 @@ Each source is fetched and cached in its own right, so a second opinion survives
 than appearing only after a refresh. The first source in the list stays the location's identity: it
 feeds the header, the widgets and the notification exactly as before.
 
+The charts stand on **one column axis**, which is what makes them comparable at a glance. A source
+added today has no history, so its first column would otherwise be the current hour while the source
+above it opened three hours earlier — the same place on the screen meaning a different hour on each
+chart. Each card takes the union of every selected source's hours, or of their local days, and hands
+a source the columns it does not reach as **blanks**: hour label and banding, no curve and no icon,
+so missing history reads as missing rather than as a chart that starts somewhere else. And a swipe on
+any one of them **carries the others with it**, so the same column stays under your finger all the
+way down the card.
+
 ---
 
 ## 📈 Meteogram trend charts
@@ -42,12 +51,17 @@ colour of the temperature at that point** — one scale, shared with the details
 cold below 16°. No gridlines, no axis, no reference rules: hours and days are delimited by alternating
 bands instead, with a divider at midnight and a dashed marker at now.
 
-The hourly chart opens on a window of your choosing — so many hours behind, so many ahead — sized so
-those columns fill the screen exactly and the visible peak reaches the top, with the rest of the
-forecast scrolling off to the right. The daily chart merges the day and night curves into a single
-trace that rises through each day and falls through each night, and always opens on today, whatever
-each source's week is long enough to fill. Rain sits along the foot of both at hourly resolution, and
-falls back to millimetres for sources that report no probability.
+Both charts open on a window of your choosing — so many hours behind and ahead, so many days across —
+sized so exactly those columns fill the screen, on any screen. The **temperature scale follows what
+is on the screen**: wherever you scroll or pinch to, the warmest thing in view reaches the top of the
+pane and the coldest sits on the floor, so the shape of the day is never squashed by a peak you
+cannot see. The daily chart merges the day and night curves into a single trace that rises through
+each day and falls through each night, and always opens on today, whatever each source's week is long
+enough to fill. Where a source publishes a day with only one of its halves — ČHMÚ's outlook files
+each night's minimum under the day it precedes, so its last day arrives without one — the missing
+half is filled in from the day-to-night swing of the days around it, drawn faded and without a
+reading: the shape is ours, the figures stay theirs. Rain sits along the foot of both at hourly
+resolution, and falls back to millimetres for sources that report no probability.
 
 Both cards **keep a month of history** and plot it: a refresh no longer throws away the hours and
 days it has already fetched, so the weather that actually happened stays one swipe to the left of now
@@ -56,7 +70,8 @@ scaling the drawing, so labels and icons keep their size and fewer hours simply 
 the level is remembered per card, and a button at the top right puts zoom and scroll back without
 fetching anything.
 
-Graph heights and the hourly window are sliders on the 白い熊 天気 page.
+Graph heights, the hourly window, the days across the daily graph, and whether the stacked charts
+scroll together are all on the 白い熊 天気 page.
 
 ---
 
