@@ -10,6 +10,37 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+059 — 2026-08-16
+
+Built on upstream **v6.2.1**.
+
+- **The daily graph's "now" rule is placed by when the day actually peaks, not by the clock.** +057
+  read a column as a plain 06:00-to-06:00 span, which lands noon on the day's knot and midnight on
+  the night's — the centres of the two halves a daily forecast is made of. But a knot is its half's
+  *extreme*, not its middle, and a summer maximum falls near the end of the 06:00–17:59 window rather
+  than in the middle of it: on the 16th ČHMÚ had Prague topping out at 30° at 17:00, five hours past
+  that span's noon, so at 13:50 the rule stood to the *right* of the peak and said the day's heat was
+  already spent — while the hourly card on the same screen still had it four hours ahead.
+- **The anchors now come off the forecast itself.** The day knot is placed on the hour the day half
+  actually tops out and the night knot on the hour the night half bottoms out, both read from the
+  source's own hourly temperatures over the windows those halves are defined by; the moment is
+  interpolated between them, and out on the limbs between the neighbouring columns' knots, since the
+  rise into a morning begins in the column before it. A flat afternoon anchors on the middle of its
+  plateau — 30° at 17:00 and again at 18:00 is a peak at 17:30, not at 17:00.
+- Where a source gives no hours, the sun places the knots instead: three-quarters of the way from
+  sunrise to sunset for the high, since the ground goes on gaining heat well past solar noon, and the
+  following sunrise for the low, since it goes on losing it until the sun is back. Failing even that,
+  mid-afternoon and the small hours.
+- Each stacked source anchors on its **own** hours, so every pane's rule crosses that pane's trace at
+  the temperature that source has happening now; two sources an hour apart on when the peak comes get
+  their rules an hour apart too, which is that disagreement, drawn.
+- The small hours land differently as a result: +057 put them near the right-hand edge of
+  *yesterday's* column, and with real anchors they sit around the middle of it, falling from
+  yesterday's peak towards a low that is at dawn rather than at midnight. A column still takes its
+  width from the next column's own midnight, so a day the clocks change on stays 23 or 25 hours wide.
+
+---
+
 ## 白い熊 天気 6.2.1+057 — 2026-08-16
 
 Built on upstream **v6.2.1**.

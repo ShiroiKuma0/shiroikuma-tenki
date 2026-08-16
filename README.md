@@ -16,7 +16,7 @@ automation for the 保存復元 batch.
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 Latest release: [`6.2.1+057`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
+**📥 Latest release: [`6.2.1+059`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
 
@@ -57,11 +57,12 @@ is on the screen**: wherever you scroll or pinch to, the warmest thing in view r
 pane and the coldest sits on the floor, so the shape of the day is never squashed by a peak you
 cannot see. The daily chart merges the day and night curves into a single trace that rises through
 each day and falls through each night, and always opens on today, whatever each source's week is long
-enough to fill. Now is ruled on it as well, on the axis that trace implies rather than the calendar's:
-a day's column runs 06:00 to 06:00, which is what puts its two knots at noon and at midnight — so the
-dashed rule crosses the curve at the temperature actually happening, and between midnight and dawn it
-sits in *yesterday's* column, which is where that night is drawn. Where a source publishes a day with
-only one of its halves — ČHMÚ's outlook files
+enough to fill. Now is ruled on it as well, **placed by when that day's peak and trough actually
+happen** rather than by the clock: the rule is anchored on the hour the source's own forecast tops out
+and the hour it bottoms out, so on a summer afternoon that peaks at five it stands low on the rise at
+two, where the calendar would already have put it past the top. Between midnight and dawn it therefore
+sits in *yesterday's* column, falling towards a low at dawn — which is where that night is drawn. Where
+a source publishes a day with only one of its halves — ČHMÚ's outlook files
 each night's minimum under the day it precedes, so its last day arrives without one — the missing
 half is filled in from the day-to-night swing of the days around it, drawn faded and without a
 reading: the shape is ours, the figures stay theirs. Rain sits along the foot of both at hourly
