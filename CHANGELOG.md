@@ -10,6 +10,32 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+057 — 2026-08-16
+
+Built on upstream **v6.2.1**.
+
+- **The daily graph marks now.** The hourly card has carried a dashed rule at the current moment ever
+  since the trend charts were redrawn as meteograms; the daily card had nothing, so a trace running
+  continuously across the week never said how far along today's rise or tonight's fall the week had
+  already got. The daily columns now carry the same rule — same width, same dash, same strength —
+  drawn through the plotting area and over the fill rather than under it, on every daily tab and on
+  every stacked source at once.
+- **It is placed on the axis the trace itself implies, not on the calendar's.** A day's column runs
+  06:00 to 06:00, because that is what its two knots mean: a daily forecast's day half is 06:00–17:59
+  and its night half 18:00–05:59 of the morning after, so their centres — noon and midnight — are
+  exactly the quarter and three-quarter points the trace peaks and troughs at. Measuring the calendar
+  day instead would put noon halfway down the fall, when noon is the top of the rise, and the rule
+  would cross the curve at a temperature that is not happening. The visible consequence is
+  deliberate: between midnight and 06:00 the rule sits near the right-hand edge of *yesterday's*
+  column. That is where the trace is — the night we are in is the one that column falls through — so
+  the rule still meets the curve at now.
+- A column takes its width from the next column's own midnight rather than from a fixed twenty-four
+  hours, so a day the clocks change on is 23 or 25 hours wide and the rule stays in step with it; and
+  the rule is held half a stroke clear of both edges, since 06:00 lands on a column boundary every
+  morning and a line drawn exactly there would be clipped down its middle.
+
+---
+
 ## 白い熊 天気 6.2.1+056 — 2026-08-16
 
 Built on upstream **v6.2.1**.
