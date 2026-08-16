@@ -98,15 +98,29 @@ class DailyTrendItemView @JvmOverloads constructor(
         mIconSize = getContext().dpToPx(ICON_SIZE_DIP.toFloat()).toInt()
     }
 
+    /**
+     * shiroikuma fork: how many columns share the host's width — the days the settings page asks
+     * the daily graph to open with. A fixed dp width instead left the card showing whatever number
+     * of days happened to fit the screen it was on.
+     */
+    var visibleColumns: Int = 0
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val host = parent as? TrendRecyclerView
+        val hostWidth = host?.measuredWidth ?: 0
         // shiroikuma fork: the pinch widens the column rather than scaling the canvas, so fewer
         // days fit on the screen and the labels and icons keep their own size.
-        val width = context.resources
-            .getDimensionPixelSize(R.dimen.trend_item_width)
-            .times(context.fontScaleToApply)
-            .times((parent as? TrendRecyclerView)?.columnScale ?: 1f)
-            .roundToInt()
-            .coerceAtLeast(1)
+        val zoom = host?.columnScale ?: 1f
+        val width = if (hostWidth > 0 && visibleColumns > 0) {
+            (hostWidth / visibleColumns * zoom).roundToInt().coerceAtLeast(1)
+        } else {
+            context.resources
+                .getDimensionPixelSize(R.dimen.trend_item_width)
+                .times(context.fontScaleToApply)
+                .times(zoom)
+                .roundToInt()
+                .coerceAtLeast(1)
+        }
         val height = MeasureSpec.getSize(heightMeasureSpec)
         var y = 0f
         val textMargin = context.dpToPx(TEXT_MARGIN_DIP.toFloat())

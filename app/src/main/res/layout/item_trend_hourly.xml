@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    shiroikuma fork: the column follows the CHART'S height rather than a fixed dimen.
+    The chart's height is a setting here, and a column measured to a dimen taller than
+    the chart hosting it simply hangs out of the bottom of it — the coldest hours and
+    their readings are drawn below the edge and clipped away, which reads as the curve
+    disappearing at both ends.
+-->
 <org.breezyweather.ui.common.widgets.trend.item.HourlyTrendItemView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/item_trend_hourly"
     android:layout_width="wrap_content"
-    android:layout_height="@dimen/hourly_trend_item_height"
+    android:layout_height="match_parent"
     android:foreground="@drawable/selectable_item_background"
     tools:ignore="UnusedAttribute" />

@@ -107,6 +107,10 @@ class TenkiUiState(context: Context) {
     var hourlyHoursBack by mutableIntStateOf(config.hourlyHoursBack)
     var hourlyColumnZoom by mutableIntStateOf(config.hourlyColumnZoom)
     var dailyColumnZoom by mutableIntStateOf(config.dailyColumnZoom)
+    var dailyDaysVisible by mutableIntStateOf(config.dailyDaysVisible)
+        private set
+    var chartScrollSync by mutableStateOf(config.chartScrollSync)
+        private set
     var meteomapClock24h by mutableStateOf(config.meteomapClock24h)
     var meteomapHiddenCities by mutableStateOf(config.meteomapHiddenCities.toIdSet())
     var meteomapValueSize by mutableIntStateOf(config.meteomapValueSize)
@@ -278,6 +282,16 @@ class TenkiUiState(context: Context) {
         dailyColumnZoom = v
     }
 
+    fun updateDailyDaysVisible(v: Int) {
+        config.dailyDaysVisible = v
+        dailyDaysVisible = v
+    }
+
+    fun updateChartScrollSync(v: Boolean) {
+        config.chartScrollSync = v
+        chartScrollSync = v
+    }
+
     fun updateMeteomapClock24h(v: Boolean) {
         config.meteomapClock24h = v
         meteomapClock24h = v
@@ -362,6 +376,8 @@ class TenkiUiState(context: Context) {
         hourlyChartHeight = config.hourlyChartHeight
         hourlyColumnZoom = config.hourlyColumnZoom
         dailyColumnZoom = config.dailyColumnZoom
+        dailyDaysVisible = config.dailyDaysVisible
+        chartScrollSync = config.chartScrollSync
         meteomapClock24h = config.meteomapClock24h
         meteomapHiddenCities = config.meteomapHiddenCities.toIdSet()
         meteomapValueSize = config.meteomapValueSize

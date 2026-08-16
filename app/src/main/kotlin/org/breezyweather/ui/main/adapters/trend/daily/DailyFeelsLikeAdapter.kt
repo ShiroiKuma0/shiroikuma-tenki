@@ -235,24 +235,61 @@ class DailyFeelsLikeAdapter(
                 i += 2
             }
         }
-        weather.dailyForecast.forEach { daily ->
-            (daily.day?.temperature?.feelsLikeTemperature ?: daily.day?.temperature?.temperature)?.value?.let {
-                if (mHighestTemperature == null || it > mHighestTemperature!!) {
-                    mHighestTemperature = it.toFloat()
-                }
-                if (mLowestTemperature == null || it < mLowestTemperature!!) {
-                    mLowestTemperature = it.toFloat()
-                }
-            }
-            (daily.night?.temperature?.feelsLikeTemperature ?: daily.night?.temperature?.temperature)?.value?.let {
-                if (mHighestTemperature == null || it > mHighestTemperature!!) {
-                    mHighestTemperature = it.toFloat()
-                }
-                if (mLowestTemperature == null || it < mLowestTemperature!!) {
-                    mLowestTemperature = it.toFloat()
-                }
+        // shiroikuma fork: only the opening guess — the scale is refitted to the days actually on
+        // screen as soon as the chart has been laid out, and again on every scroll and pinch
+        fitRange(0, weather.dailyForecast.size)
+    }
+
+    /** Where the scale was last fitted, so an unchanged view is not re-fitted on every scroll. */
+    private var mFittedFirst = -1
+    private var mFittedLast = -1
+
+    override val polylineRange: Pair<Float, Float>?
+        get() = mHighestTemperature?.let { high -> mLowestTemperature?.let { low -> high to low } }
+
+    override fun fitToVisible(first: Int, last: Int): Boolean {
+        if (first == mFittedFirst && last == mFittedLast) return false
+        mFittedFirst = first
+        mFittedLast = last
+        val high = mHighestTemperature
+        val low = mLowestTemperature
+        // One column of slack either side: a column's trace is drawn from the midpoints it shares
+        // with its neighbours, so what those two read decides where its own ends are.
+        fitRange(first - 1, last + 2)
+        return mHighestTemperature != high || mLowestTemperature != low
+    }
+
+    /** Fit the scale to the days in `[from, until)`, keeping the last fit where there are none. */
+    private fun fitRange(from: Int, until: Int) {
+        val daily = location.weather!!.dailyForecast
+        var high: Float? = null
+        var low: Float? = null
+        val start = from.coerceIn(0, daily.size)
+        for (i in start..<until.coerceIn(start, daily.size)) {
+            val day = daily[i]
+            listOfNotNull(
+                (day.day?.temperature?.feelsLikeTemperature ?: day.day?.temperature?.temperature)?.value?.toFloat(),
+                (day.night?.temperature?.feelsLikeTemperature ?: day.night?.temperature?.temperature)?.value?.toFloat()
+            ).forEach {
+                if (high == null || it > high) high = it
+                if (low == null || it < low) low = it
             }
         }
+        val highest = high ?: return
+        val lowest = low ?: return
+        if (highest - lowest < MIN_RANGE) {
+            val middle = (highest + lowest) / 2f
+            mHighestTemperature = middle + MIN_RANGE / 2f
+            mLowestTemperature = middle - MIN_RANGE / 2f
+        } else {
+            mHighestTemperature = highest
+            mLowestTemperature = lowest
+        }
+    }
+
+    companion object {
+        /** The narrowest scale a chart is fitted to, in deci-degrees — two degrees top to bottom. */
+        private const val MIN_RANGE = 20f
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

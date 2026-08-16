@@ -27,4 +27,13 @@ abstract class AbsChartItemView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
     abstract val marginTop: Int
     abstract val marginBottom: Int
+
+    /**
+     * shiroikuma fork: re-scale a column that is already bound.
+     *
+     * The vertical scale follows the columns on screen, and a scroll changes those several times a
+     * second. Handing the new scale straight to the views that are up costs an invalidate; going
+     * through the adapter would rebind every column instead, text, icons and all.
+     */
+    open fun setPolylineRange(highest: Float?, lowest: Float?) = Unit
 }

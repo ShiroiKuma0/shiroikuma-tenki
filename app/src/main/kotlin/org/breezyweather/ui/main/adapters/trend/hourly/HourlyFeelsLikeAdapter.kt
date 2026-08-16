@@ -172,17 +172,57 @@ class HourlyFeelsLikeAdapter(
                 i += 2
             }
         }
-        weather.hourlyForecast
-            .forEach { hourly ->
-                (hourly.temperature?.feelsLikeTemperature ?: hourly.temperature?.temperature)?.value?.let {
-                    if (mHighestTemperature == null || it > mHighestTemperature!!) {
-                        mHighestTemperature = it.toFloat()
-                    }
-                    if (mLowestTemperature == null || it < mLowestTemperature!!) {
-                        mLowestTemperature = it.toFloat()
-                    }
-                }
-            }
+        // shiroikuma fork: only the opening guess — the scale is refitted to the hours actually on
+        // screen as soon as the chart has been laid out, and again on every scroll and pinch
+        fitRange(0, weather.hourlyForecast.size)
+    }
+
+    /** Where the scale was last fitted, so an unchanged view is not re-fitted on every scroll. */
+    private var mFittedFirst = -1
+    private var mFittedLast = -1
+
+    override val polylineRange: Pair<Float, Float>?
+        get() = mHighestTemperature?.let { high -> mLowestTemperature?.let { low -> high to low } }
+
+    override fun fitToVisible(first: Int, last: Int): Boolean {
+        if (first == mFittedFirst && last == mFittedLast) return false
+        mFittedFirst = first
+        mFittedLast = last
+        val high = mHighestTemperature
+        val low = mLowestTemperature
+        // One column of slack either side: a column's trace is drawn from the midpoints it shares
+        // with its neighbours, so what those two read decides where its own ends are.
+        fitRange(first - 1, last + 2)
+        return mHighestTemperature != high || mLowestTemperature != low
+    }
+
+    /** Fit the scale to the hours in `[from, until)`, keeping the last fit where there are none. */
+    private fun fitRange(from: Int, until: Int) {
+        val hourly = location.weather!!.hourlyForecast
+        var high: Float? = null
+        var low: Float? = null
+        val start = from.coerceIn(0, hourly.size)
+        for (i in start..<until.coerceIn(start, hourly.size)) {
+            val value = (hourly[i].temperature?.feelsLikeTemperature ?: hourly[i].temperature?.temperature)
+                ?.value?.toFloat() ?: continue
+            if (high == null || value > high) high = value
+            if (low == null || value < low) low = value
+        }
+        val highest = high ?: return
+        val lowest = low ?: return
+        if (highest - lowest < MIN_RANGE) {
+            val middle = (highest + lowest) / 2f
+            mHighestTemperature = middle + MIN_RANGE / 2f
+            mLowestTemperature = middle - MIN_RANGE / 2f
+        } else {
+            mHighestTemperature = highest
+            mLowestTemperature = lowest
+        }
+    }
+
+    companion object {
+        /** The narrowest scale a chart is fitted to, in deci-degrees — two degrees top to bottom. */
+        private const val MIN_RANGE = 20f
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

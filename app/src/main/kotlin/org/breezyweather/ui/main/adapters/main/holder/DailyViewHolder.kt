@@ -83,12 +83,13 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
             subtitle.text = weather.current?.dailyForecast
         }
 
-        // shiroikuma fork: build a chart per source, stacked in the arranged order. With a single
-        // source this is one unlabelled chart — the card as it always was.
+        // shiroikuma fork: build a chart per source, stacked in the arranged order and on one shared
+        // column axis. With a single source this is one unlabelled chart — the card as it always was.
         val blocks = location.forecastSourceBlocks(
             (activity as? MainActivity)?.sourceManager,
             activity,
-            location.orderedDailyForecastSources
+            location.orderedDailyForecastSources,
+            ForecastSeries.DAILY
         )
         sourceContainer.removeAllViews()
         charts.clear()
@@ -220,7 +221,17 @@ class DailyViewHolder(parent: ViewGroup) : AbstractMainCardViewHolder(
                     if (other !== chart) other.recyclerView.refreshColumns()
                 }
             }
+            // shiroikuma fork: the scale follows the days on screen, wherever the chart is scrolled
+            // or pinched to
+            chart.recyclerView.onVisibleColumnsChanged = { first, last ->
+                chart.adapter.fitToVisible(first, last)
+            }
             chart.scrollBar.resetColor(activity)
+        }
+
+        // shiroikuma fork: one axis only holds while nobody swipes a chart on its own
+        if (TenkiViewTheme.state(context).chartScrollSync) {
+            TrendRecyclerView.syncScrolling(charts.map { it.recyclerView })
         }
 
         // shiroikuma fork: the pinch zoom and the scroll are the only things this touches — the

@@ -30,9 +30,11 @@ import org.breezyweather.common.options.appearance.DetailScreen
 import org.breezyweather.common.utils.helpers.IntentHelper
 import org.breezyweather.domain.weather.model.getWeek
 import org.breezyweather.domain.weather.model.isToday
+import org.breezyweather.tenki.TenkiViewTheme
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerView
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerViewAdapter
 import org.breezyweather.ui.common.widgets.trend.item.DailyTrendItemView
+import org.breezyweather.ui.main.adapters.main.holder.isBlankColumn
 import java.util.Date
 
 abstract class AbsDailyTrendAdapter(
@@ -54,6 +56,10 @@ abstract class AbsDailyTrendAdapter(
             val weather = location.weather
             val daily = weather!!.dailyForecast[position]
             val todayIndex = weather.todayIndex
+            // shiroikuma fork: every daily tab shares this column width, so the scroll position
+            // keeps its meaning when the tab is switched — and with several sources stacked, so
+            // does the column a day sits in. Set here rather than per adapter, for the same reason.
+            dailyItem.visibleColumns = TenkiViewTheme.state(context).dailyDaysVisible.coerceAtLeast(1)
             talkBackBuilder.append(context.getString(org.breezyweather.unit.R.string.locale_separator))
             if (todayIndex != null) {
                 when (position) {
@@ -87,7 +93,18 @@ abstract class AbsDailyTrendAdapter(
             detailScreen: DetailScreen,
         ) {
             if (activity.isActivityResumed) {
-                IntentHelper.startDailyWeatherActivity(activity, location.formattedId, adapterPosition, detailScreen)
+                // shiroikuma fork: a blank column is this source's place on the shared axis — there
+                // is no day behind it to open, and the days after it are still indexed by the
+                // source's own list, so the blanks in front come off the position again
+                val days = location.weather?.dailyForecast.orEmpty()
+                val daily = days.getOrNull(adapterPosition) ?: return
+                if (daily.isBlankColumn()) return
+                IntentHelper.startDailyWeatherActivity(
+                    activity,
+                    location.formattedId,
+                    adapterPosition - days.take(adapterPosition).count { it.isBlankColumn() },
+                    detailScreen
+                )
             }
         }
     }
@@ -96,4 +113,15 @@ abstract class AbsDailyTrendAdapter(
     abstract fun isValid(location: Location): Boolean
     abstract fun getDisplayName(context: Context): String
     abstract fun bindBackgroundForHost(host: TrendRecyclerView)
+
+    /**
+     * shiroikuma fork: fit the vertical scale to the columns [first]..[last], the ones on screen.
+     *
+     * Answers whether the scale actually moved. Charts with a scale of their own — a percentage, an
+     * index, a rain total — have nothing to fit and say no.
+     */
+    open fun fitToVisible(first: Int, last: Int): Boolean = false
+
+    /** The fitted scale, highest to lowest, for handing straight to the columns already drawn. */
+    open val polylineRange: Pair<Float, Float>? get() = null
 }

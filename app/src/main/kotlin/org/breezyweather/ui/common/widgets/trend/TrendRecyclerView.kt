@@ -204,8 +204,60 @@ class TrendRecyclerView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * shiroikuma fork: told which columns are on screen, first and last, whenever that changes.
+     *
+     * The chart's vertical scale is fitted to them: a scale worked out once from the settings is
+     * only right until the first pinch or the first swipe, and after either one the hours brought
+     * into view fall outside it and run off the bottom of the pane — at both ends, since scrolling
+     * uncovers a colder night on one side and a colder morning on the other.
+     */
+    var onVisibleColumnsChanged: ((first: Int, last: Int) -> Unit)? = null
+    private var reportedFirst = NO_POSITION
+    private var reportedLast = NO_POSITION
+
+    /**
+     * Which columns are on the screen, worked out from where the columns actually are.
+     *
+     * NOT [LinearLayoutManager.findFirstVisibleItemPosition]: that one measures against the padded
+     * box, and this chart reserves padding at its end for the opening anchor which — clipToPadding
+     * being off — is scrolled through and drawn in, not held empty. Columns sitting in it are on the
+     * screen while the layout manager does not count them, and a scale fitted to what it reports
+     * leaves everything outside that box running off the bottom of the pane. It also answers with
+     * the first child in ITS order rather than the leftmost, which after a few recycles is not
+     * always the same thing.
+     */
+    private fun reportVisibleColumns() {
+        val report = onVisibleColumnsChanged
+        var first = NO_POSITION
+        var last = NO_POSITION
+        for (i in 0..<childCount) {
+            val child = getChildAt(i) ?: continue
+            if (child.right <= 0 || child.left >= width) continue
+            val position = getChildAdapterPosition(child)
+            if (position == NO_POSITION) continue
+            if (first == NO_POSITION || position < first) first = position
+            if (last == NO_POSITION || position > last) last = position
+        }
+
+        if (report == null) return
+        if (first == NO_POSITION || last == NO_POSITION) return
+        if (first == reportedFirst && last == reportedLast) return
+        reportedFirst = first
+        reportedLast = last
+        // Never from inside the layout or the scroll that discovered it — an adapter told anything
+        // in either is an immediate IllegalStateException
+        post { report(first, last) }
+    }
+
+    override fun onScrolled(dx: Int, dy: Int) {
+        super.onScrolled(dx, dy)
+        reportVisibleColumns()
+    }
+
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
+        reportVisibleColumns()
 
         val room = anchorRoom()
         if (room != paddingEnd) {
@@ -374,6 +426,34 @@ class TrendRecyclerView @JvmOverloads constructor(
     }
 
     companion object {
+        /**
+         * shiroikuma fork: make a card's stacked charts scroll as one.
+         *
+         * One shared column axis puts the same hour at the same x, which lasts exactly until one of
+         * the charts is swiped on its own. Every chart passes its own scroll on to the others, and
+         * the pass-on is guarded so the second-hand scrolls it causes are not passed on again.
+         *
+         * Only a scroll the finger is behind — a drag or the fling after it — travels. A
+         * programmatic one leaves the chart IDLE, which is what keeps a card opening on its anchor
+         * from dragging every neighbour along with it.
+         */
+        fun syncScrolling(charts: List<TrendRecyclerView>) {
+            if (charts.size < 2) return
+            var passingOn = false
+            charts.forEach { chart ->
+                chart.addOnScrollListener(
+                    object : OnScrollListener() {
+                        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                            if (passingOn || recyclerView.scrollState == SCROLL_STATE_IDLE) return
+                            passingOn = true
+                            charts.forEach { other -> if (other !== recyclerView) other.scrollBy(dx, 0) }
+                            passingOn = false
+                        }
+                    }
+                )
+            }
+        }
+
         private const val LINE_WIDTH_DIP = 1
         private const val TEXT_SIZE_DIP = 12
         private const val TEXT_MARGIN_DIP = 2

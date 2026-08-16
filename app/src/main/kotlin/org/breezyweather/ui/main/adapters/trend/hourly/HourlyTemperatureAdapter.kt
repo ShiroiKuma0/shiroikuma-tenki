@@ -65,8 +65,11 @@ class HourlyTemperatureAdapter(
      * scrollable, so this decides the vertical scale, not how much forecast is available.
      */
     private val mVisibleColumns: Int = TenkiViewTheme.state(activity).let {
-        val asked = (it.hourlyHoursBack + it.hourlyHoursAhead).coerceAtLeast(2)
-        (asked * 100 / it.hourlyColumnZoom.coerceAtLeast(1)).coerceAtLeast(2)
+        // Deliberately NOT narrowed by the pinch zoom: this is the guess the chart draws with for
+        // the one frame before it can say which columns it is really showing, and a guess that is
+        // too wide only wastes a little of the pane, while one that is too narrow drops the hours
+        // outside it off the bottom.
+        (it.hourlyHoursBack + it.hourlyHoursAhead).coerceAtLeast(2)
     }
 
     /**
@@ -297,23 +300,58 @@ class HourlyTemperatureAdapter(
                 i += 2
             }
         }
-        // shiroikuma fork: the range fits only the hours visible when the card opens, not the whole
-        // scrollable window — otherwise tomorrow afternoon's peak, which you cannot see, dictates
-        // the scale and leaves the visible half empty. Measured from the opening column rather than
-        // from the start of the list, which is now a month of history behind it.
-        mHourlyList
-            .drop(mOpeningIndex)
-            .take(mVisibleColumns)
-            .forEach { hourly ->
-                hourly.temperature?.temperature?.value?.let {
-                    if (mHighestTemperature == null || it > mHighestTemperature!!) {
-                        mHighestTemperature = it.toFloat()
-                    }
-                    if (mLowestTemperature == null || it < mLowestTemperature!!) {
-                        mLowestTemperature = it.toFloat()
-                    }
-                }
-            }
+        // shiroikuma fork: the range fits the hours ON SCREEN, not the whole scrollable window —
+        // otherwise tomorrow afternoon's peak, which you cannot see, dictates the scale and leaves
+        // the visible half empty. This is only the opening guess, for the frame before the chart
+        // has been laid out and can say which columns it is actually showing.
+        fitRange(mOpeningIndex, mOpeningIndex + mVisibleColumns)
+    }
+
+    /** Where the scale was last fitted, so an unchanged view is not re-fitted on every scroll. */
+    private var mFittedFirst = -1
+    private var mFittedLast = -1
+
+    override val polylineRange: Pair<Float, Float>?
+        get() = mHighestTemperature?.let { high -> mLowestTemperature?.let { low -> high to low } }
+
+    override fun fitToVisible(first: Int, last: Int): Boolean {
+        if (first == mFittedFirst && last == mFittedLast) return false
+        mFittedFirst = first
+        mFittedLast = last
+        val high = mHighestTemperature
+        val low = mLowestTemperature
+        // One column of slack either side: a column's trace is drawn from the midpoints it shares
+        // with its neighbours, so what those two read decides where its own ends are.
+        fitRange(first - 1, last + 2)
+        return mHighestTemperature != high || mLowestTemperature != low
+    }
+
+    /**
+     * Fit the scale to the hours in `[from, until)`.
+     *
+     * A stretch of nothing but a source's blank columns keeps the scale it had: there is nothing to
+     * fit to there, and a null range draws no chart at all.
+     */
+    private fun fitRange(from: Int, until: Int) {
+        var high: Float? = null
+        var low: Float? = null
+        val start = from.coerceIn(0, mHourlyList.size)
+        for (i in start..<until.coerceIn(start, mHourlyList.size)) {
+            val value = mHourlyList[i].temperature?.temperature?.value?.toFloat() ?: continue
+            if (high == null || value > high) high = value
+            if (low == null || value < low) low = value
+        }
+        val highest = high ?: return
+        val lowest = low ?: return
+        // An hour that never changes temperature still leaves the chart something to divide by
+        if (highest - lowest < MIN_RANGE) {
+            val middle = (highest + lowest) / 2f
+            mHighestTemperature = middle + MIN_RANGE / 2f
+            mLowestTemperature = middle - MIN_RANGE / 2f
+        } else {
+            mHighestTemperature = highest
+            mLowestTemperature = lowest
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -333,6 +371,9 @@ class HourlyTemperatureAdapter(
 
         /** The lightest window that still fills the band, when a source reports amounts only. */
         private const val MIN_AMOUNT_CEILING_MM = 3f
+
+        /** The narrowest scale a chart is fitted to, in deci-degrees — two degrees top to bottom. */
+        private const val MIN_RANGE = 20f
     }
 
     // FIXME

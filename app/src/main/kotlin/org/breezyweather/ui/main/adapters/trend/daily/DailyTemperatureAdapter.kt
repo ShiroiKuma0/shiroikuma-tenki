@@ -32,6 +32,7 @@ import org.breezyweather.common.extensions.getCalendarMonth
 import org.breezyweather.common.extensions.getIsoFormattedDate
 import org.breezyweather.common.extensions.getThemeColor
 import org.breezyweather.common.options.appearance.DetailScreen
+import org.breezyweather.tenki.TenkiViewTheme
 import org.breezyweather.ui.common.charts.TemperatureColorScale
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerView
 import org.breezyweather.ui.common.widgets.trend.chart.PolylineAndHistogramView
@@ -58,8 +59,32 @@ class DailyTemperatureAdapter(
     private val mResourceProvider: ResourceProvider = provider
     private val mDaytimeTemperatures: Array<Float?>
     private val mNighttimeTemperatures: Array<Float?>
+
+    /**
+     * shiroikuma fork: the half-days whose temperature we filled in ourselves, by day.
+     *
+     * They are plotted like any other knot but drawn faded and left without a reading, so a shape
+     * we extrapolated is never read as one the source forecast.
+     */
+    private val mDaytimeEstimated: BooleanArray
+    private val mNighttimeEstimated: BooleanArray
     private var mHighestTemperature: Float? = null
     private var mLowestTemperature: Float? = null
+
+    /**
+     * shiroikuma fork: how many day columns actually fit on the screen — the days the settings page
+     * asks for, widened or narrowed by whatever the chart has been pinched to.
+     */
+    private val mVisibleColumns: Int = TenkiViewTheme.state(activity).let {
+        // Deliberately NOT narrowed by the pinch zoom: this is the guess the chart draws with for
+        // the one frame before it can say which columns it is really showing, and a guess that is
+        // too wide only wastes a little of the pane, while one that is too narrow drops the days
+        // outside it off the bottom.
+        it.dailyDaysVisible.coerceAtLeast(2)
+    }
+
+    /** The column the card opens on, which is where the vertical scale is measured from. */
+    private val mOpeningIndex: Int = location.weather!!.todayIndex ?: 0
 
     /**
      * shiroikuma fork: each day's rain at HOURLY resolution, keyed by the day's ISO date.
@@ -171,6 +196,16 @@ class DailyTemperatureAdapter(
             val nightValue = mNighttimeTemperatures.getOrNull(position * 2)
             val previousNight = mNighttimeTemperatures.getOrNull(position * 2 - 2)
             val nextDay = mDaytimeTemperatures.getOrNull(position * 2 + 2)
+            // shiroikuma fork: from which knot on this column's trace is ours rather than the
+            // source's — the fall after the peak when the night was filled in, the whole column
+            // when the day was. Each column answers for its own halves only: the boundary a day
+            // shares with a filled-in neighbour is half invented either way, and fading a column
+            // of real readings for it would say far more than that seam is worth.
+            val estimatedFrom = when {
+                mDaytimeEstimated.getOrElse(position) { false } -> 0f
+                mNighttimeEstimated.getOrElse(position) { false } -> PolylineAndHistogramView.DUAL_HIGH_X
+                else -> null
+            }
             mPolylineAndHistogramView.setDualPolylineData(
                 arrayOf(
                     if (previousNight != null && dayValue != null) {
@@ -180,7 +215,10 @@ class DailyTemperatureAdapter(
                     },
                     dayValue,
                     nightValue,
-                    if (nextDay != null && nightValue != null) (nightValue + nextDay) / 2f else nightValue
+                    // Null, not the night again: with no day after this one there is nothing for
+                    // the fall to reach, and holding it level to the column's edge drew a night
+                    // that stopped getting colder at 18:00
+                    if (nextDay != null && nightValue != null) (nightValue + nextDay) / 2f else null
                 ),
                 daily.day?.temperature?.temperature?.formatMeasure(
                     activity,
@@ -195,7 +233,8 @@ class DailyTemperatureAdapter(
                     unitWidth = UnitWidth.NARROW
                 ),
                 mHighestTemperature,
-                mLowestTemperature
+                mLowestTemperature,
+                estimatedFrom
             )
             // shiroikuma fork: one bar per hour of this day, and the day's own figure at the foot.
             val hours = mHourlyPrecipitationByDay[daily.date.getIsoFormattedDate(location)]
@@ -291,15 +330,24 @@ class DailyTemperatureAdapter(
 
     init {
         val weather = location.weather!!
-        mDaytimeTemperatures = arrayOfNulls(max(0, weather.dailyForecast.size * 2 - 1))
+        val days = weather.dailyForecast.size
+        mDaytimeTemperatures = arrayOfNulls(max(0, days * 2 - 1))
+        mNighttimeTemperatures = arrayOfNulls(max(0, days * 2 - 1))
+        mDaytimeEstimated = BooleanArray(days)
+        mNighttimeEstimated = BooleanArray(days)
         run {
             var i = 0
             while (i < mDaytimeTemperatures.size) {
                 mDaytimeTemperatures[i] =
                     weather.dailyForecast.getOrNull(i / 2)?.day?.temperature?.temperature?.value?.toFloat()
+                mNighttimeTemperatures[i] =
+                    weather.dailyForecast.getOrNull(i / 2)?.night?.temperature?.temperature?.value?.toFloat()
                 i += 2
             }
         }
+        // Before the midpoints between them are worked out, so a knot we filled in joins its
+        // neighbours the way a published one would
+        estimateMissingHalfDays(days)
         run {
             var i = 1
             while (i < mDaytimeTemperatures.size) {
@@ -308,21 +356,6 @@ class DailyTemperatureAdapter(
                 } else {
                     mDaytimeTemperatures[i] = null
                 }
-                i += 2
-            }
-        }
-        mNighttimeTemperatures = arrayOfNulls(max(0, weather.dailyForecast.size * 2 - 1))
-        run {
-            var i = 0
-            while (i < mNighttimeTemperatures.size) {
-                mNighttimeTemperatures[i] =
-                    weather.dailyForecast.getOrNull(i / 2)?.night?.temperature?.temperature?.value?.toFloat()
-                i += 2
-            }
-        }
-        run {
-            var i = 1
-            while (i < mNighttimeTemperatures.size) {
                 if (mNighttimeTemperatures[i - 1] != null && mNighttimeTemperatures[i + 1] != null) {
                     mNighttimeTemperatures[i] =
                         (mNighttimeTemperatures[i - 1]!! + mNighttimeTemperatures[i + 1]!!) * 0.5f
@@ -333,40 +366,123 @@ class DailyTemperatureAdapter(
             }
         }
         // shiroikuma fork: the range fits THIS source's own data rather than the monthly normals,
-        // so a source whose forecast diverges is not squashed onto someone else's scale.
-        weather.dailyForecast.forEach { daily ->
-            daily.day?.temperature?.temperature?.value?.let {
-                if (mHighestTemperature == null || it > mHighestTemperature!!) {
-                    mHighestTemperature = it.toFloat()
-                }
-                if (mLowestTemperature == null || it < mLowestTemperature!!) {
-                    mLowestTemperature = it.toFloat()
-                }
-            }
-            daily.night?.temperature?.temperature?.value?.let {
-                if (mHighestTemperature == null || it > mHighestTemperature!!) {
-                    mHighestTemperature = it.toFloat()
-                }
-                if (mLowestTemperature == null || it < mLowestTemperature!!) {
-                    mLowestTemperature = it.toFloat()
-                }
-            }
-        }
+        // so a source whose forecast diverges is not squashed onto someone else's scale — and only
+        // the days visible when the card OPENS, exactly as the hourly chart does it. Measured over
+        // the whole stored series, a hot day scrolled off to either side set the ceiling and left
+        // the week you can actually see sitting well below the top of the pane; with a month of
+        // history behind today, that day is usually one nobody will ever scroll back to.
+        //
+        // From the knots rather than from the days, so a half-day we filled in — which IS drawn —
+        // has room instead of being clipped flat against the floor.
+        // Only the opening guess, for the frame before the chart has been laid out and can say
+        // which days it is actually showing
+        fitRange(mOpeningIndex, mOpeningIndex + mVisibleColumns)
+    }
 
+    /** Where the scale was last fitted, so an unchanged view is not re-fitted on every scroll. */
+    private var mFittedFirst = -1
+    private var mFittedLast = -1
+
+    override val polylineRange: Pair<Float, Float>?
+        get() = mHighestTemperature?.let { high -> mLowestTemperature?.let { low -> high to low } }
+
+    override fun fitToVisible(first: Int, last: Int): Boolean {
+        if (first == mFittedFirst && last == mFittedLast) return false
+        mFittedFirst = first
+        mFittedLast = last
+        val high = mHighestTemperature
+        val low = mLowestTemperature
+        // One column of slack either side: a column's trace is drawn from the midpoints it shares
+        // with its neighbours, so what those two read decides where its own ends are.
+        fitRange(first - 1, last + 2)
+        return mHighestTemperature != high || mLowestTemperature != low
+    }
+
+    /**
+     * Fit the scale to the days in `[from, until)`.
+     *
+     * A stretch of nothing but a source's blank columns keeps the scale it had: there is nothing to
+     * fit to there, and a null range draws no chart at all. The half-days we filled in ourselves
+     * count — they ARE drawn, and a trough clipped against the floor would come out flat again.
+     */
+    private fun fitRange(from: Int, until: Int) {
+        var high: Float? = null
+        var low: Float? = null
+        var i = (from * 2).coerceAtLeast(0)
+        val end = (until * 2).coerceAtMost(mDaytimeTemperatures.size)
+        while (i < end) {
+            listOfNotNull(mDaytimeTemperatures[i], mNighttimeTemperatures[i]).forEach {
+                if (high == null || it > high) high = it
+                if (low == null || it < low) low = it
+            }
+            i += 2
+        }
+        var highest = high ?: return
+        var lowest = low ?: return
+        // A week that never changes temperature still leaves the chart something to divide by
+        if (highest - lowest < MIN_RANGE) {
+            val middle = (highest + lowest) / 2f
+            highest = middle + MIN_RANGE / 2f
+            lowest = middle - MIN_RANGE / 2f
+        }
+        mHighestTemperature = highest
         // shiroikuma fork: room BELOW the coldest night for its reading, which sits under the
         // trough. Nothing is reserved above the warmest day: the peak runs to the top of the pane
         // like the hourly chart's, and its plate tucks under the top edge rather than being kept
         // clear by headroom that would otherwise sit there empty all week.
-        val high = mHighestTemperature
-        val low = mLowestTemperature
-        if (high != null && low != null && high > low) {
-            mLowestTemperature = low - (high - low) * RANGE_PADDING_BOTTOM
+        mLowestTemperature = lowest - (highest - lowest) * RANGE_PADDING_BOTTOM
+    }
+
+    /**
+     * shiroikuma fork: the half-days a source published without their other half, filled in from
+     * the swing of the days around them.
+     *
+     * ČHMÚ's national outlook files a night's minimum under the day it *precedes*, so its last day
+     * arrives with a maximum and no minimum — and a trace with nowhere to fall ran flat from that
+     * day's peak to the end of the week, which read as an afternoon that never cooled off. The
+     * missing half takes the day-to-night swing of the nearest days that have both, preferring the
+     * ones BEFORE it, so the curve comes down the way this source's own week comes down rather than
+     * by some fixed number of degrees.
+     *
+     * Only the value is invented, never a reading: the plate over a knot still comes from the
+     * source's own figure, and stays away when there is none.
+     */
+    private fun estimateMissingHalfDays(days: Int) {
+        val swings = (0 until days).mapNotNull { day ->
+            val high = mDaytimeTemperatures.getOrNull(day * 2)
+            val low = mNighttimeTemperatures.getOrNull(day * 2)
+            if (high != null && low != null) day to (high - low) else null
+        }
+        if (swings.isEmpty()) return
+
+        (0 until days).forEach { day ->
+            val high = mDaytimeTemperatures.getOrNull(day * 2)
+            val low = mNighttimeTemperatures.getOrNull(day * 2)
+            if ((high == null) == (low == null)) return@forEach
+            // The days just before this one, or the ones just after when it opens the week
+            val nearby = swings.filter { it.first < day }.takeLast(SWING_DAYS)
+                .ifEmpty { swings.filter { it.first > day }.take(SWING_DAYS) }
+            if (nearby.isEmpty()) return@forEach
+            val swing = nearby.map { it.second }.average().toFloat()
+            if (high != null) {
+                mNighttimeTemperatures[day * 2] = high - swing
+                mNighttimeEstimated[day] = true
+            } else {
+                mDaytimeTemperatures[day * 2] = low!! + swing
+                mDaytimeEstimated[day] = true
+            }
         }
     }
 
     companion object {
         /** Share of the range left free BELOW the coldest night, for the reading under its trough. */
         private const val RANGE_PADDING_BOTTOM = 0.18f
+
+        /** How many neighbouring days a filled-in half-day takes its rise or fall from. */
+        private const val SWING_DAYS = 3
+
+        /** The narrowest scale a chart is fitted to, in deci-degrees — two degrees top to bottom. */
+        private const val MIN_RANGE = 20f
 
         /** The lightest week that still fills the band, so a drizzle does not read as a downpour. */
         private const val MIN_AMOUNT_CEILING_MM = 3f
