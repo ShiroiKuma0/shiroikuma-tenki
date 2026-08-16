@@ -51,6 +51,9 @@ class PolylineAndHistogramView @JvmOverloads constructor(
         isFilterBitmap = true
     }
     private val mPath = Path()
+
+    /** shiroikuma fork: the extrapolated tail of the daily trace, drawn faded after [mPath]. */
+    private val mEstimatedPath = Path()
     private val mShaderWrapper: DayNightShaderWrapper
 
     @Size(3)
@@ -101,6 +104,17 @@ class PolylineAndHistogramView @JvmOverloads constructor(
      */
     @Size(4)
     private var mDualValues: Array<Float?>? = null
+
+    /**
+     * shiroikuma fork: where along the column the trace stops being forecast and starts being our
+     * own extrapolation, or null when every knot came from the source.
+     *
+     * Drawn thinner in colour rather than left out: a day whose high a source publishes without a
+     * low still HAS a night, and a trace that simply stopped at the peak read as a flat plateau to
+     * the end of the week. Faded, so a shape we filled in is never mistaken for one that was
+     * forecast.
+     */
+    private var mDualEstimatedFrom: Float? = null
 
     @Size(3)
     private var mPrecipitationValues: Array<Float?>? = null
@@ -512,6 +526,13 @@ class PolylineAndHistogramView @JvmOverloads constructor(
         invalidate()
     }
 
+    override fun setPolylineRange(highest: Float?, lowest: Float?) {
+        if (highest == mHighestPolylineValue && lowest == mLowestPolylineValue) return
+        mHighestPolylineValue = highest
+        mLowestPolylineValue = lowest
+        invalidate()
+    }
+
     private fun ensurePolylineShader() {
         val stops = mPolylineGradientStops
         val highest = mHighestPolylineValue
@@ -712,12 +733,14 @@ class PolylineAndHistogramView @JvmOverloads constructor(
         lowValueStr: String?,
         highestValue: Float?,
         lowestValue: Float?,
+        estimatedFrom: Float? = null,
     ) {
         mDualValues = values
         mHighPolylineValueStr = highValueStr
         mLowPolylineValueStr = lowValueStr
         mHighestPolylineValue = highestValue
         mLowestPolylineValue = lowestValue
+        mDualEstimatedFrom = estimatedFrom
         invalidate()
     }
 
@@ -729,13 +752,16 @@ class PolylineAndHistogramView @JvmOverloads constructor(
         val a = values[0] ?: values[1] ?: return null
         val b = values[1] ?: return null
         val c = values[2] ?: b
-        val d = values[3] ?: c
         fun ease(u: Float) = u * u * (3f - 2f * u)
         return when {
             t <= DUAL_HIGH_X -> a + (b - a) * ease((t / DUAL_HIGH_X).coerceIn(0f, 1f))
             t <= DUAL_LOW_X ->
                 b + (c - b) * ease(((t - DUAL_HIGH_X) / (DUAL_LOW_X - DUAL_HIGH_X)).coerceIn(0f, 1f))
-            else -> c + (d - c) * ease(((t - DUAL_LOW_X) / (1f - DUAL_LOW_X)).coerceIn(0f, 1f))
+            // Nothing to reach on the far side of the low: the trace ENDS at the night rather than
+            // running level to the column's edge, which is a fall that stops falling
+            else -> values[3]?.let {
+                c + (it - c) * ease(((t - DUAL_LOW_X) / (1f - DUAL_LOW_X)).coerceIn(0f, 1f))
+            }
         }
     }
 
@@ -753,6 +779,9 @@ class PolylineAndHistogramView @JvmOverloads constructor(
         fun yAt(t: Float): Float? = dualValueAt(values, t)
             ?.let { computeSingleCoordinate(canvasHeight, it, highest, lowest).toFloat() }
 
+        // Everything past this point of the column is our own extrapolation, and is drawn faded
+        val estimatedFrom = mDualEstimatedFrom ?: Float.MAX_VALUE
+
         // the fill, one flat colour per strip
         if (mSolidFill && stops != null) {
             mPaint.apply {
@@ -766,7 +795,9 @@ class PolylineAndHistogramView @JvmOverloads constructor(
                 val value = dualValueAt(values, t)
                 val y = value?.let { computeSingleCoordinate(canvasHeight, it, highest, lowest).toFloat() }
                 if (value != null && y != null) {
-                    mPaint.color = colorFromStops(stops, value)
+                    mPaint.color = colorFromStops(stops, value).let {
+                        if (t >= estimatedFrom) ColorUtils.setAlphaComponent(it, ESTIMATED_ALPHA) else it
+                    }
                     val a = getRTLCompactX(x)
                     val b = getRTLCompactX(next)
                     canvas.drawRect(min(a, b), y, max(a, b), floor, mPaint)
@@ -775,7 +806,7 @@ class PolylineAndHistogramView @JvmOverloads constructor(
             }
         }
 
-        // the trace itself
+        // the trace itself, in two runs so the extrapolated tail can fade without breaking the line
         mPaint.apply {
             shader = mPolylineShader
             style = Paint.Style.STROKE
@@ -783,17 +814,33 @@ class PolylineAndHistogramView @JvmOverloads constructor(
             color = mLineColors[0]
         }
         mPath.reset()
+        mEstimatedPath.reset()
         var started = false
+        var estimatedStarted = false
         var x = 0f
         while (x <= width) {
-            val y = yAt((x / width).coerceIn(0f, 1f))
+            val t = (x / width).coerceIn(0f, 1f)
+            val y = yAt(t)
             if (y != null) {
-                if (started) mPath.lineTo(getRTLCompactX(x), y) else mPath.moveTo(getRTLCompactX(x), y)
-                started = true
+                val cx = getRTLCompactX(x)
+                // The first extrapolated point is drawn onto BOTH runs, or the fade would open a gap
+                if (t <= estimatedFrom) {
+                    if (started) mPath.lineTo(cx, y) else mPath.moveTo(cx, y)
+                    started = true
+                }
+                if (t >= estimatedFrom) {
+                    if (estimatedStarted) mEstimatedPath.lineTo(cx, y) else mEstimatedPath.moveTo(cx, y)
+                    estimatedStarted = true
+                }
             }
             x += step
         }
         if (started) canvas.drawPath(mPath, mPaint)
+        if (estimatedStarted) {
+            mPaint.alpha = ESTIMATED_ALPHA
+            canvas.drawPath(mEstimatedPath, mPaint)
+            mPaint.alpha = 255
+        }
 
         // the two readings, each above its own knot
     }
@@ -1037,32 +1084,28 @@ class PolylineAndHistogramView @JvmOverloads constructor(
     private fun computeCoordinates() {
         val canvasHeight = (measuredHeight - marginTop - marginBottom).toFloat()
         if (mHighestPolylineValue != null && mLowestPolylineValue != null) {
+            // shiroikuma fork: a knot the source does not have stands where this column's own value
+            // stands, which is how the fill already treats it. Zero — the top of the view — put the
+            // reading beside a missing neighbour up against the ceiling, and a column next to a
+            // source's blank always has one.
             mHighPolylineValues?.let {
+                val middle = it[1]?.let { value ->
+                    computeSingleCoordinate(canvasHeight, value, mHighestPolylineValue!!, mLowestPolylineValue!!)
+                } ?: 0
                 for (i in it.indices) {
-                    if (it[i] == null) {
-                        mHighPolylineY[i] = 0
-                    } else {
-                        mHighPolylineY[i] = computeSingleCoordinate(
-                            canvasHeight,
-                            it[i]!!,
-                            mHighestPolylineValue!!,
-                            mLowestPolylineValue!!
-                        )
-                    }
+                    mHighPolylineY[i] = it[i]?.let { value ->
+                        computeSingleCoordinate(canvasHeight, value, mHighestPolylineValue!!, mLowestPolylineValue!!)
+                    } ?: middle
                 }
             }
             mLowPolylineValues?.let {
+                val middle = it[1]?.let { value ->
+                    computeSingleCoordinate(canvasHeight, value, mHighestPolylineValue!!, mLowestPolylineValue!!)
+                } ?: 0
                 for (i in it.indices) {
-                    if (it[i] == null) {
-                        mLowPolylineY[i] = 0
-                    } else {
-                        mLowPolylineY[i] = computeSingleCoordinate(
-                            canvasHeight,
-                            it[i]!!,
-                            mHighestPolylineValue!!,
-                            mLowestPolylineValue!!
-                        )
-                    }
+                    mLowPolylineY[i] = it[i]?.let { value ->
+                        computeSingleCoordinate(canvasHeight, value, mHighestPolylineValue!!, mLowestPolylineValue!!)
+                    } ?: middle
                 }
             }
         }
@@ -1142,9 +1185,14 @@ class PolylineAndHistogramView @JvmOverloads constructor(
         private const val NOW_MARKER_ALPHA = 220
         private const val HISTORY_DIM_ALPHA = 140
 
-        // Where the day's high and the night's low sit across a day's column
-        private const val DUAL_HIGH_X = 0.25f
-        private const val DUAL_LOW_X = 0.75f
+        // Where the day's high and the night's low sit across a day's column. Public because the
+        // adapter names them when it says from which knot on a trace stops being the source's.
+        const val DUAL_HIGH_X = 0.25f
+        const val DUAL_LOW_X = 0.75f
+
+        // What is left of a trace we extrapolated ourselves — dimmed enough to read as a guess,
+        // solid enough to still follow the curve down.
+        private const val ESTIMATED_ALPHA = 120
         private const val SHADOW_ALPHA_FACTOR_LIGHT = 0.15f
         private const val SHADOW_ALPHA_FACTOR_DARK = 0.3f
     }

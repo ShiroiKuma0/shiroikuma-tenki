@@ -32,6 +32,7 @@ import org.breezyweather.tenki.TenkiViewTheme
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerView
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerViewAdapter
 import org.breezyweather.ui.common.widgets.trend.item.HourlyTrendItemView
+import org.breezyweather.ui.main.adapters.main.holder.isBlankColumn
 import kotlin.time.Duration.Companion.days
 
 abstract class AbsHourlyTrendAdapter(
@@ -82,7 +83,11 @@ abstract class AbsHourlyTrendAdapter(
             detailScreen: DetailScreen,
         ) {
             if (activity.isActivityResumed) {
-                val hourlyDate = location.weather!!.hourlyForecast[adapterPosition].date
+                // shiroikuma fork: a blank column is this source's place on the shared axis and has
+                // no hour of its own to open
+                val hourly = location.weather!!.hourlyForecast.getOrNull(adapterPosition) ?: return
+                if (hourly.isBlankColumn()) return
+                val hourlyDate = hourly.date
                 // Might not work with sources like AccuWeather not starting the day at 00:00
                 val dailyIndex = location.weather!!.dailyForecast.indexOfFirst {
                     it.date.time > hourlyDate.time - 1.days.inWholeMilliseconds
@@ -95,6 +100,17 @@ abstract class AbsHourlyTrendAdapter(
     abstract fun isValid(location: Location): Boolean
     abstract fun getDisplayName(context: Context): String
     abstract fun bindBackgroundForHost(host: TrendRecyclerView)
+
+    /**
+     * shiroikuma fork: fit the vertical scale to the columns [first]..[last], the ones on screen.
+     *
+     * Answers whether the scale actually moved. Charts with a scale of their own — a percentage, an
+     * index, a rain total — have nothing to fit and say no.
+     */
+    open fun fitToVisible(first: Int, last: Int): Boolean = false
+
+    /** The fitted scale, highest to lowest, for handing straight to the columns already drawn. */
+    open val polylineRange: Pair<Float, Float>? get() = null
 
     companion object {
         /** shiroikuma fork: label and ice one column in this many — they are only 23dp wide. */

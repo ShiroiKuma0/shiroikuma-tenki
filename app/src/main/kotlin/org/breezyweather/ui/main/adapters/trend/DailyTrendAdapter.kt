@@ -18,12 +18,14 @@ package org.breezyweather.ui.main.adapters.trend
 
 import android.annotation.SuppressLint
 import android.view.ViewGroup
+import androidx.core.view.children
 import androidx.recyclerview.widget.RecyclerView
 import breezyweather.domain.location.model.Location
 import org.breezyweather.common.activities.BreezyActivity
 import org.breezyweather.common.options.appearance.DailyTrendDisplay
 import org.breezyweather.domain.settings.SettingsManager
 import org.breezyweather.ui.common.widgets.trend.TrendRecyclerView
+import org.breezyweather.ui.common.widgets.trend.item.AbsTrendItemView
 import org.breezyweather.ui.main.adapters.trend.daily.AbsDailyTrendAdapter
 import org.breezyweather.ui.main.adapters.trend.daily.DailyAirQualityAdapter
 import org.breezyweather.ui.main.adapters.trend.daily.DailyFeelsLikeAdapter
@@ -68,6 +70,27 @@ class DailyTrendAdapter(
             it.isValid(location)
         }.toTypedArray()
         notifyDataSetChanged()
+    }
+
+    /**
+     * shiroikuma fork: fit every tab's scale to the columns on screen, and hand the selected tab's
+     * new scale to the columns already drawn.
+     *
+     * Every tab and not just the selected one, or switching tabs would land on a scale fitted to
+     * wherever the chart stood when the card was built. Pushed at the views rather than notified
+     * through the adapter: this runs on every scroll, and a rebind of every column — text, icons
+     * and all — several times a second is not something a scroll can afford.
+     */
+    fun fitToVisible(first: Int, last: Int) {
+        var selectedMoved = false
+        adapters.forEachIndexed { index, adapter ->
+            if (adapter.fitToVisible(first, last) && index == selectedIndex) selectedMoved = true
+        }
+        if (!selectedMoved) return
+        val (highest, lowest) = adapters.getOrNull(selectedIndex)?.polylineRange ?: return
+        host.children.forEach { child ->
+            (child as? AbsTrendItemView)?.chartItemView?.setPolylineRange(highest, lowest)
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AbsDailyTrendAdapter.ViewHolder {

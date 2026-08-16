@@ -10,6 +10,64 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+056 — 2026-08-16
+
+Built on upstream **v6.2.1**.
+
+- **The stacked forecast charts stand on one column axis.** A source added today has no history, so
+  its first column was the current hour while the source above it opened three hours earlier — the
+  same x meant a different hour on each chart, which is the one thing a stack of them exists to
+  avoid. Each card now takes the union of every selected source's hours, or of their local days, and
+  hands a source the columns it does not reach as blanks: the hour label and the banding are there,
+  the curve and the icon are not, so missing history reads as missing rather than as a chart that
+  starts somewhere else. Only the range OUTSIDE a source's own hours is filled — MET Norway drops to
+  six-hourly past its second day, and forcing its interior onto a neighbour's hourly grid would break
+  its curve into dots. A blank column opens nothing when tapped, and the day handed to the details
+  screen has the blanks in front of it subtracted again.
+- **A swipe on one of a card's charts carries the others with it.** One shared axis lasts exactly
+  until a chart is scrolled on its own. A drag, and the fling after it, now travels to the card's
+  other charts; a programmatic scroll — the column each chart opens on, the restore-view button —
+  does not, so opening a card no longer drags its neighbours along. **Scroll stacked graphs
+  together** on the theming page turns it off.
+- **The columns no longer hang out of the bottom of their own chart.** A column's height was a fixed
+  dimension while the chart's height is a setting here, and the two only agreed at the one value the
+  setting shipped with. Move the slider and every column stayed the size it always was, hanging out
+  of the bottom of a shorter chart where the plotting floor, the coldest hours and their readings
+  were drawn below the edge and clipped away — which reads as the curve disappearing at both ends,
+  since the ends of a day are its cold end. A column now measures to the height of the chart hosting
+  it, which is also what makes the two graph-height sliders do anything at all for the first time.
+- **The temperature scale is fitted to the columns on the screen.** It was worked out once, when the
+  card was built, from a window derived from the settings — right until the first pinch or the first
+  swipe, after which the hours brought into view fell outside it and ran off the bottom. Each chart
+  now reports which columns it is drawing, from where the columns actually are rather than from the
+  layout manager's padded idea of visible, and the scale follows: wherever you scroll or pinch to,
+  the warmest thing in view reaches the top of the pane and the coldest sits on the floor. The new
+  scale is handed straight to the columns already drawn, so a scroll costs an invalidate instead of
+  rebinding every column, text and icons and all.
+- **The daily graph is sized by how many days you want across it.** A day column was a fixed width,
+  so how much of the week fitted on the screen depended on the screen. **Days across the daily
+  graph** on the theming page decides it instead — nine by default — and the column is the card's
+  width divided by that. Every daily tab shares the width, so switching tabs still keeps its place.
+- **Both graphs are shorter**: the hourly by a third, the daily by a fifth. A shipped default only
+  applies to a setting nobody has ever written, so the store lets go of those two once on this
+  upgrade; a height set deliberately before it is back to the new default, and anything set from here
+  on stays.
+- **A day a source publishes with only one of its halves is filled in rather than run flat.** ČHMÚ's
+  national outlook files a night's minimum under the day it *precedes*, so its last day arrives with
+  a maximum and no minimum — and a trace with nowhere to fall held the peak level to the end of the
+  week, which read as an afternoon that never cooled off. The missing half now takes the day-to-night
+  swing of the nearest days that have both, preferring the ones before it, so the curve comes down
+  the way that source's own week comes down. It is drawn faded and carries no reading: the shape is
+  ours, the figures stay theirs.
+- **The daily trace ends at the night instead of running level to the column's edge.** With no day
+  after the last one there is nothing for the fall to reach, and carrying the night's value across
+  the remaining quarter of the column drew a fall that stopped falling.
+- **A reading beside a column a source does not have no longer flies to the top of the chart.** A
+  missing knot was treated as the very top of the view when the reading was placed, rather than as
+  this column's own value, which is how the fill has always treated it.
+
+---
+
 ## 白い熊 天気 6.2.1+050 — 2026-08-15
 
 Built on upstream **v6.2.1**.

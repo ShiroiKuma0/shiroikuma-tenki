@@ -26,6 +26,18 @@ class TenkiUiConfig(context: Context) {
     private val prefs: SharedPreferences =
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
+    init {
+        // shiroikuma fork: a graph size we ship a new default for is let go of once, so the new
+        // one is what the card actually opens at. See [CHART_DEFAULTS_REV].
+        if (prefs.getInt(KEY_CHART_DEFAULTS_REV, 0) < CHART_DEFAULTS_REV) {
+            prefs.edit {
+                remove(KEY_HOURLY_CHART_HEIGHT)
+                remove(KEY_DAILY_CHART_HEIGHT)
+                putInt(KEY_CHART_DEFAULTS_REV, CHART_DEFAULTS_REV)
+            }
+        }
+    }
+
     private fun int(key: String, def: Int) = prefs.getInt(key, def)
     private fun putInt(key: String, v: Int) = prefs.edit { putInt(key, v) }
     private fun str(key: String, def: String = "") = prefs.getString(key, def) ?: def
@@ -239,6 +251,28 @@ class TenkiUiConfig(context: Context) {
         set(v) = putInt(KEY_DAILY_COLUMN_ZOOM, v)
 
     /**
+     * How many days the daily graph opens with.
+     *
+     * The daily card's answer to [hourlyHoursBack] + [hourlyHoursAhead]: these days share the width
+     * between them — a column is the screen divided by this, not a fixed dp — and the temperature
+     * scale is fitted to exactly them, so the warmest day you can see reaches the top of the pane.
+     * The rest of the week stays there and scrolls.
+     */
+    var dailyDaysVisible: Int
+        get() = int(KEY_DAILY_DAYS_VISIBLE, DEFAULT_DAILY_DAYS_VISIBLE)
+        set(v) = putInt(KEY_DAILY_DAYS_VISIBLE, v)
+
+    /**
+     * Whether a swipe on one of a card's stacked charts carries the others with it.
+     *
+     * On by default: the charts already share a column axis, so scrolling them apart is the one way
+     * left to compare the wrong day with the wrong day.
+     */
+    var chartScrollSync: Boolean
+        get() = bool(KEY_CHART_SCROLL_SYNC, true)
+        set(v) = putBool(KEY_CHART_SCROLL_SYNC, v)
+
+    /**
      * Whether the Meteomap's clock reads 24-hour. On by default: a map of a country that keeps a
      * 24-hour clock has no business showing AM and PM.
      */
@@ -388,15 +422,29 @@ class TenkiUiConfig(context: Context) {
         private const val KEY_HOURLY_HOURS_AHEAD = "hourly_hours_ahead"
         private const val KEY_HOURLY_COLUMN_ZOOM = "hourly_column_zoom"
         private const val KEY_DAILY_COLUMN_ZOOM = "daily_column_zoom"
+        private const val KEY_DAILY_DAYS_VISIBLE = "daily_days_visible"
+        private const val KEY_CHART_SCROLL_SYNC = "chart_scroll_sync"
+        private const val KEY_CHART_DEFAULTS_REV = "chart_defaults_rev"
         private const val KEY_METEOMAP_CLOCK_24H = "meteomap_clock_24h"
         private const val KEY_METEOMAP_HIDDEN_CITIES = "meteomap_hidden_cities"
         private const val KEY_METEOMAP_VALUE_SIZE = "meteomap_value_size"
         private const val KEY_METEOMAP_NAME_SIZE = "meteomap_name_size"
 
-        const val DEFAULT_HOURLY_CHART_HEIGHT = 410
-        const val DEFAULT_DAILY_CHART_HEIGHT = 480
+        const val DEFAULT_HOURLY_CHART_HEIGHT = 275
+        const val DEFAULT_DAILY_CHART_HEIGHT = 384
         const val DEFAULT_HOURLY_HOURS_BACK = 3
         const val DEFAULT_HOURLY_HOURS_AHEAD = 20
+        const val DEFAULT_DAILY_DAYS_VISIBLE = 9
+
+        /**
+         * Which set of shipped graph sizes the store was last brought up to.
+         *
+         * A default only applies to a key nobody has written, so changing one leaves every phone
+         * that ever touched that slider on the old size. Bumping this drops the keys whose shipped
+         * value changed, once, and lets the new default take. A slider moved AFTER the bump stays
+         * moved — the revision is stored, not compared to the value.
+         */
+        private const val CHART_DEFAULTS_REV = 1
 
         /** Percent. The pinch runs from a quarter of the asked-for width to four times it. */
         const val DEFAULT_COLUMN_ZOOM = 100

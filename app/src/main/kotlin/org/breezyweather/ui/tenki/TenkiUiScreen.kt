@@ -200,6 +200,12 @@ fun TenkiUiScreen(onNavigateBack: () -> Unit) {
             SliderRow(ui, "Hours ahead", ui.hourlyHoursAhead, 3..24, "h") {
                 ui.updateHourlyHoursAhead(it)
             }
+            SliderRow(ui, "Days across the daily graph", ui.dailyDaysVisible, 3..16, "d") {
+                ui.updateDailyDaysVisible(it)
+            }
+            ToggleRow(ui, "Scroll stacked graphs together", ui.chartScrollSync) {
+                ui.updateChartScrollSync(it)
+            }
             ToggleRow(ui, "Meteomap clock in 24-hour time", ui.meteomapClock24h) {
                 ui.updateMeteomapClock24h(it)
             }
@@ -222,11 +228,14 @@ fun TenkiUiScreen(onNavigateBack: () -> Unit) {
             )
             RowNote(
                 ui,
-                "History and hours ahead set the window the hourly graph OPENS with: those " +
-                    "columns share the screen between them, and the temperature scale is fitted " +
-                    "to exactly those hours, so the peak you can see reaches the top. Everything " +
-                    "else stays there and scrolls — the rest of the forecast to the right, and " +
-                    "up to a month of what already happened to the left."
+                "History and hours ahead set the window the hourly graph OPENS with, and days " +
+                    "across does the same for the daily one: those columns share the screen " +
+                    "between them — a column is the width divided by them, not a fixed size — " +
+                    "and the temperature scale is fitted to exactly them, so the peak you can " +
+                    "see reaches the top. Everything else stays there and scrolls: the rest of " +
+                    "the forecast to the right, and up to a month of what already happened to " +
+                    "the left. When a card stacks several sources, scrolling them together keeps " +
+                    "the same hour or day under your finger on every one of them."
             )
 
             // ------------------------------------------------------------ density
