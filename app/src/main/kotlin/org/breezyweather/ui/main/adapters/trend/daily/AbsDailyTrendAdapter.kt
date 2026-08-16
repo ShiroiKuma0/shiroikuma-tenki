@@ -36,6 +36,8 @@ import org.breezyweather.ui.common.widgets.trend.TrendRecyclerViewAdapter
 import org.breezyweather.ui.common.widgets.trend.item.DailyTrendItemView
 import org.breezyweather.ui.main.adapters.main.holder.isBlankColumn
 import java.util.Date
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 
 abstract class AbsDailyTrendAdapter(
     val activity: BreezyActivity,
@@ -60,6 +62,10 @@ abstract class AbsDailyTrendAdapter(
             // keeps its meaning when the tab is switched — and with several sources stacked, so
             // does the column a day sits in. Set here rather than per adapter, for the same reason.
             dailyItem.visibleColumns = TenkiViewTheme.state(context).dailyDaysVisible.coerceAtLeast(1)
+            // shiroikuma fork: the dashed "now" rule, on whichever column the moment falls in. Set
+            // here rather than per adapter, so every daily tab marks it — and every stacked source,
+            // each of which reaches this with its own copy of the day list.
+            dailyItem.nowAt = nowAcrossColumn(daily.date, weather.dailyForecast.getOrNull(position + 1)?.date)
             talkBackBuilder.append(context.getString(org.breezyweather.unit.R.string.locale_separator))
             if (todayIndex != null) {
                 when (position) {
@@ -125,3 +131,30 @@ abstract class AbsDailyTrendAdapter(
     /** The fitted scale, highest to lowest, for handing straight to the columns already drawn. */
     open val polylineRange: Pair<Float, Float>? get() = null
 }
+
+/**
+ * shiroikuma fork: where the current moment falls across a day's column, or null when it falls in
+ * another day's.
+ *
+ * A column runs 06:00 to 06:00, NOT midnight to midnight, because that is what its two knots mean: a
+ * daily forecast's day half is 06:00–17:59 and its night half 18:00–05:59 of the morning after, so
+ * their centres — noon and midnight — are exactly the quarter and three-quarter points the trace
+ * peaks and troughs at. Marking the calendar day instead would put noon halfway down the fall, when
+ * noon is the top of the rise.
+ *
+ * Which is why, between midnight and 06:00, the rule lands near the right-hand edge of YESTERDAY's
+ * column. That is honest: the night we are in is the one that day's column falls through, and the
+ * rule crosses the trace at the temperature happening now.
+ *
+ * [nextDate] gives the column its true width — a day the clocks change on is 23 or 25 hours long,
+ * and taking the next column's own midnight rather than adding a fixed 24 keeps the rule in step.
+ */
+private fun nowAcrossColumn(date: Date, nextDate: Date?): Float? {
+    val start = date.time + COLUMN_STARTS_AT.inWholeMilliseconds
+    val end = (nextDate?.time ?: (date.time + 1.days.inWholeMilliseconds)) + COLUMN_STARTS_AT.inWholeMilliseconds
+    if (end <= start) return null
+    return ((System.currentTimeMillis() - start).toFloat() / (end - start)).takeIf { it in 0f..1f }
+}
+
+/** Where a day's column opens — the hour its daytime half starts at. */
+private val COLUMN_STARTS_AT = 6.hours
