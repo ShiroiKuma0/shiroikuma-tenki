@@ -10,6 +10,44 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+060 — 2026-08-19
+
+Built on upstream **v6.2.1**.
+
+- **The Meteomap no longer shows a forecast ČHMÚ has already withdrawn.** Every frame was cached for
+  a week, on the reasoning that a frame's URL names the minute it depicts and so can never change.
+  That holds for a minute already gone; it does not hold for one still ahead. ČHMÚ rewrites those in
+  place under the same URL — the +40 min nowcast frame `202608190530` came back with different bytes
+  four minutes apart, then held, which is exactly the 180 s republish the radar declares. So the
+  radar's nowcast tail froze at whatever it said when the map was opened, and the ALADIN forecast
+  maps, whose timeline carries 48 of its 73 frames over from one day to the next, could show a
+  superseded model run for up to a week. The week-long stamp now applies only to frames whose minute
+  has passed.
+- **The frames held in memory obey the same rule**, which is the half that actually mattered: that
+  cache sits in front of the HTTP one and returned a decoded frame unconditionally, so no amount of
+  care over `Cache-Control` would ever have been reached, and a map left open showed the run it
+  opened on for as long as the process lived. A frame now carries when it stops standing for what
+  ČHMÚ says — never, once its minute is behind us; otherwise the product's own refresh interval,
+  180 s on the radar and an hour on the forecast products, which declare none and ride an hourly
+  ALADIN timeline. It settles itself: a frame fetched while still a forecast expires, is fetched once
+  more after its minute passes, and only then is kept for good.
+- Re-opening the map still costs only the frames published since — the radar's 74 observed frames and
+  every forecast hour already behind us come off the disk, as before. What is paid for is the six
+  nowcast frames, about 126 KB, refreshed every three minutes while the radar is actually on screen.
+- **Opening the app no longer waits for a refresh that the background job had already done.** A
+  location was valid for exactly the background refresh interval, while the job that refreshes it is
+  scheduled exactly one interval on — so the data fell out of validity at the very moment the job
+  came due, and every minute the job ran late (under Doze, and worse under a vendor skin, most of
+  them are) was a minute in which opening the app found nothing valid and refreshed in the foreground
+  while you watched. Validity now carries a margin over the interval: half of it, capped at half an
+  hour. At the default 1 hr 30 min setting the job has thirty minutes of slack before anyone waits,
+  and at 1 hr the window is 1 hr 30 min. With background updates switched off there is no job to wait
+  for and nothing to cover, so that case keeps its plain hour and a half.
+- The refresh rate itself is unchanged, and stays at **1 hr 30 min** by default
+  (Settings → Background updates → Refresh rate). Shortening it would have made the wait *more*
+  likely rather than less, since validity was tied to it: a shorter interval shrinks the window by
+  the same amount it shortens the wait between runs.
+
 ## 白い熊 天気 6.2.1+059 — 2026-08-16
 
 Built on upstream **v6.2.1**.
