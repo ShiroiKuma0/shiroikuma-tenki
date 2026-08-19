@@ -41,6 +41,9 @@ enum class UpdateInterval(
 
     companion object {
 
+        /** The most [validity] ever adds on top of the interval. */
+        private val VALIDITY_MARGIN_MAXIMUM = 30.minutes
+
         fun getInstance(
             value: String,
         ) = entries.firstOrNull {
@@ -53,6 +56,22 @@ enum class UpdateInterval(
 
     override fun getName(context: Context) = UnitUtils.getName(context, this)
 
-    // Makes locations valid for 1.5 hours when background updates are disabled
-    val validity = interval ?: 1.5.hours
+    /**
+     * How long data already fetched is good enough to open the screen on.
+     *
+     * Deliberately **longer** than [interval], and that margin is the whole point. The background
+     * job is scheduled one interval after the last refresh, so with the two equal the data falls out
+     * of validity at the very moment the job is due — and every minute the job runs late, which
+     * under Doze (and worse under a vendor skin) is most of them, is a minute in which opening the
+     * app finds nothing valid and refreshes in the foreground while you wait. The margin covers that
+     * lateness, so the screen opens on what the job has already fetched.
+     *
+     * Half an interval, capped at half an hour: proportionate where the interval is short enough
+     * that a fixed margin would double it, bounded where it is long.
+     *
+     * With background updates off there is no job to wait for and nothing to cover, so that case
+     * keeps its plain hour and a half.
+     */
+    val validity: Duration
+        get() = interval?.let { it + (it / 2).coerceAtMost(VALIDITY_MARGIN_MAXIMUM) } ?: 1.5.hours
 }

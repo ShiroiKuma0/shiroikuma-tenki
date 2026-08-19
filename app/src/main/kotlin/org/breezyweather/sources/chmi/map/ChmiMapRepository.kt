@@ -60,11 +60,20 @@ data class ChmiMapSample(
  *
  * The readings come off the **source** pixels, before the repaint — our own ramp is not invertible,
  * so a value cannot be recovered from the picture once it has been recoloured.
+ *
+ * [staleAfter] is when the picture stops standing for what ČHMÚ now says. A frame that already
+ * depicted the past when it was fetched is an observation and never moves, so it is
+ * [Long.MAX_VALUE]; a frame that depicted the future is a forecast, and ČHMÚ rewrites those in
+ * place — see [ChmiMapRepository] for the measurement that settled it.
  */
 class ChmiMapFrameImage(
     val bitmap: Bitmap,
     val readings: Map<String, Double>,
-)
+    private val staleAfter: Long = Long.MAX_VALUE,
+) {
+    /** Whether this is still worth showing rather than fetching again. */
+    fun isFresh(): Boolean = System.currentTimeMillis() < staleAfter
+}
 
 /**
  * ČHMÚ's map imagery: the manifest that says which frames exist, and the frames themselves.
@@ -85,9 +94,18 @@ class ChmiMapRepository @Inject constructor(
      * The shared client's 50 MiB cache belongs to the weather sources; a session's worth of frames
      * would evict their responses wholesale. So: our own cache, and the connection pool shared.
      *
-     * ČHMÚ sends `max-age=180` on frames whose URLs are stamped with the minute they depict and can
-     * therefore never change, so the response is re-stamped on the way in. Without that the cache
-     * would expire everything after three minutes and be of no use at all.
+     * ČHMÚ sends `max-age=180` on every frame, with no `ETag` and no `Last-Modified`, so once one
+     * goes stale there is nothing to revalidate against and re-checking costs the whole picture
+     * again. A frame that depicts a minute already gone is an observation and can never change, so
+     * that one is re-stamped with a week on the way in; without it the cache would expire after
+     * three minutes and be of no use at all.
+     *
+     * ⚠ **Only what already happened.** A frame whose minute is still ahead is a forecast, and ČHMÚ
+     * rewrites it in place under the same URL: the +40 min nowcast frame `202608190530` came back
+     * with different bytes four minutes apart (`10e798da…` → `e8029348…`, measured 2026-08-19).
+     * Re-stamping those froze the radar's nowcast tail at whatever it said when the map was first
+     * opened, and left the ALADIN maps showing a superseded model run for up to a week. Their
+     * freshness is [ChmiMapManifest.refreshSeconds]' business instead, applied in [loadFrame].
      *
      * ⚠ **Frames only.** The manifest is the index of *which* frames exist — the one thing here that
      * does change — and ČHMÚ marks it `max-age=60`. Re-stamping that too froze the radar at whatever
@@ -99,13 +117,13 @@ class ChmiMapRepository @Inject constructor(
         .addNetworkInterceptor { chain ->
             val request = chain.request()
             val response = chain.proceed(request)
-            if (request.url.toString().startsWith(INIT_URL)) {
-                response
-            } else {
+            if (depictsThePast(request.url.toString())) {
                 response.newBuilder()
                     .removeHeader("Pragma")
                     .header("Cache-Control", "public, max-age=${TimeUnit.DAYS.toSeconds(7)}")
                     .build()
+            } else {
+                response
             }
         }
         .build()
@@ -157,6 +175,12 @@ class ChmiMapRepository @Inject constructor(
     /**
      * One frame, repainted. [ramp] turns a reading into a colour; it is the app's own scale, and is
      * passed in rather than known here so this stays a fetcher rather than a painter.
+     *
+     * A frame held in memory is re-used only while it still stands: the picture of a minute already
+     * gone is final, but one still ahead is a forecast ČHMÚ keeps rewriting, and this cache sits in
+     * front of the HTTP one — so without the deadline no amount of care over `Cache-Control` would
+     * ever be consulted, and a map left open would show the run it opened on for as long as the
+     * process lived.
      */
     suspend fun loadFrame(
         manifest: ChmiMapManifest,
@@ -166,7 +190,7 @@ class ChmiMapRepository @Inject constructor(
     ): ChmiMapFrameImage? = withContext(Dispatchers.IO) {
         val frame = manifest.frames.getOrNull(index) ?: return@withContext null
         val key = "${manifest.product.id}/${frame.dataRef}"
-        frames[key]?.let { return@withContext it }
+        frames[key]?.takeIf { it.isFresh() }?.let { return@withContext it }
 
         val body = fetch(manifest.dataRefBase + frame.dataRef) ?: return@withContext null
         val payload = runCatching { json.decodeFromString<ChmiMapFrame>(body) }.getOrNull()
@@ -177,10 +201,34 @@ class ChmiMapRepository @Inject constructor(
         val source = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return@withContext null
 
         val readings = read(manifest, source, samples)
-        val painted = ChmiMapFrameImage(repaint(manifest, source, ramp), readings)
+        val painted = ChmiMapFrameImage(
+            repaint(manifest, source, ramp),
+            readings,
+            staleAfter(manifest, frame)
+        )
         source.recycle()
         frames.put(key, painted)
         painted
+    }
+
+    /**
+     * When this frame stops speaking for ČHMÚ.
+     *
+     * Never, if its minute had already passed when it was fetched — an observation is finished. A
+     * frame still ahead is re-issued as often as the product itself is, which the manifest states
+     * for the radar (180 s) and leaves unsaid on the forecasts, where the hourly ALADIN timeline
+     * sets the pace. The floor keeps a slider dragged back and forth over the nowcast from turning
+     * into a request per frame.
+     *
+     * Note this is decided at fetch time, and deliberately not re-derived later: a frame fetched
+     * while it was still a forecast expires, is fetched once more when its minute has passed, and
+     * only then is kept for good.
+     */
+    private fun staleAfter(manifest: ChmiMapManifest, frame: ChmiMapFrameRef): Long {
+        val now = System.currentTimeMillis()
+        if (frame.time.time <= now) return Long.MAX_VALUE
+        val window = (manifest.refreshSeconds ?: REVISABLE_SECONDS).coerceAtLeast(MIN_REVISABLE_SECONDS)
+        return now + window * 1000L
     }
 
     /**
@@ -212,15 +260,33 @@ class ChmiMapRepository @Inject constructor(
     private fun mercator(latitude: Double): Double =
         ln(tan(PI / 4 + Math.toRadians(latitude) / 2))
 
-    /** Whether a frame is already in hand, so the player can decide to wait or to skip. */
+    /**
+     * Whether a frame is already in hand, so the player can decide to wait or to skip — and so the
+     * prefetch knows which ones are worth asking for again.
+     */
     fun isLoaded(manifest: ChmiMapManifest, index: Int): Boolean {
         val frame = manifest.frames.getOrNull(index) ?: return false
-        return frames["${manifest.product.id}/${frame.dataRef}"] != null
+        return frames["${manifest.product.id}/${frame.dataRef}"]?.isFresh() == true
     }
 
     fun clear() {
         frames.evictAll()
         recolourTables.clear()
+    }
+
+    /**
+     * Whether this URL names a frame whose minute has already passed.
+     *
+     * The last path segment of a frame URL **is** its `dataRef`, so the question is answered off the
+     * URL alone — which is what lets the network interceptor, which has no manifest in hand, tell an
+     * observation from a forecast. A manifest URL ends in its topic (`radary.radary`), which is not
+     * a timestamp and so parses to null; it is stepped over explicitly all the same, because getting
+     * that one wrong froze the radar for a week once already.
+     */
+    private fun depictsThePast(url: String): Boolean {
+        if (url.startsWith(INIT_URL)) return false
+        val depicts = parseDataRef(url.substringAfterLast('/')) ?: return false
+        return depicts.time <= System.currentTimeMillis()
     }
 
     private fun fetch(url: String, cacheControl: CacheControl? = null): String? {
@@ -284,6 +350,16 @@ class ChmiMapRepository @Inject constructor(
         private const val HEAP_FRACTION = 5
         private const val MAX_CACHE_MB = 64
         private const val BYTES_PER_MB = 1024 * 1024
+
+        /**
+         * How long a frame still ahead of its minute is trusted, when the manifest does not say.
+         * That is every forecast product: they ride an hourly ALADIN timeline and publish no
+         * `refreshInterval` of their own.
+         */
+        private const val REVISABLE_SECONDS = 3600
+
+        /** However often a product claims to move, never fetch the same frame faster than this. */
+        private const val MIN_REVISABLE_SECONDS = 180
 
         /** `dataRef` is `yyyyMMddHHmm`, always UTC — never the manifest's own `startTime`. */
         fun parseDataRef(dataRef: String): Date? {
