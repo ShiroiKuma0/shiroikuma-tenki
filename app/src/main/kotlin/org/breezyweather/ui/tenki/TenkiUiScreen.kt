@@ -279,13 +279,14 @@ private fun AutomationRows(ui: TenkiUiState) {
     var enabled by remember { mutableStateOf(TenkiAutomationAuth.enabled(context)) }
     var token by remember { mutableStateOf(TenkiAutomationAuth.token(context)) }
 
-    ToggleRow(ui, "Automation export", enabled) {
+    ToggleRow(ui, "Automation", enabled) {
         TenkiAutomationAuth.setEnabled(context, it)
         enabled = it
     }
     RowNote(
         ui,
-        "Lets 白い熊 自由作業盤 trigger this app's export through the token-gated intent."
+        "Lets 白い熊 自由作業盤 read this app's weather and locations, and trigger its export, " +
+            "through the token-gated intent."
     )
     Row(
         modifier = pressableRow(ui, false) {

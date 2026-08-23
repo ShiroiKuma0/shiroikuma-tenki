@@ -379,6 +379,9 @@
                 <action android:name="${applicationId}.action.EXPORT_STATE" />
                 <action android:name="${applicationId}.action.LIST_CATEGORIES" />
                 <action android:name="${applicationId}.action.CANCEL_EXPORT" />
+                <action android:name="${applicationId}.action.LIST_LOCATIONS" />
+                <action android:name="${applicationId}.action.LIST_PROVIDERS" />
+                <action android:name="${applicationId}.action.QUERY_WEATHER" />
             </intent-filter>
         </receiver>
 
