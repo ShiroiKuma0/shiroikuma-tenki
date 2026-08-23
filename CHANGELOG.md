@@ -10,6 +10,59 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.1+062 — 2026-08-23
+
+Built on upstream **v6.2.1**.
+
+- **白い熊's watch face is fed from this app instead of by hand.** The HUAWEI Band 11 Pro fetches
+  nothing of its own — it draws whatever the phone last pushed to it — so its temperature was a
+  number typed into a 白い熊 自由作業盤 task, and the face went stale whenever it was forgotten. Three
+  new token-gated actions join the 保存復元 export on the same exported receiver, behind the same
+  switch and the same token: `LIST_LOCATIONS` answers the saved locations, `LIST_PROVIDERS` answers
+  that location's forecast sources so 白い熊 picks which one reaches the wrist, and `QUERY_WEATHER`
+  answers one location-and-source's figures. The point of asking this app rather than letting
+  自由作業盤 call a weather service itself is that nothing new sees 白い熊's coordinates: we already
+  fetch weather, and we already hold the location.
+- **Cache only, deliberately.** Every answer comes out of the database exactly as it was last stored
+  — no network, no geocoding, no API quota — because a watch face updates constantly and has to keep
+  working with the phone offline. Staleness is reported rather than repaired: each reply carries
+  `age_minutes` and a `stale` flag that is the app's own judgement, the cache being older than the
+  configured refresh interval.
+- **A location is addressed as a location, not as a point on the globe.** Weather here is cached per
+  saved location, so a bare latitude and longitude would mean either matching them back to one or
+  fetching for somewhere that was never saved — which needs reverse geocoding plus the per-location
+  source parameters that only exist once a location is properly added (NWS needs its grid ids,
+  AccuWeather its city id), and would spend API quota on every single band update. Coordinates are
+  still accepted, but only as a fallback that snaps to a saved location within 25 km and otherwise
+  fails rather than quietly going out to the network.
+- **The reply says which KIND of number it is holding, because the two are not the same.** An
+  alternate forecast source caches daily and hourly arrays and no current conditions, so only a
+  location's own forecast source can produce an observation — and not even that always, since plenty
+  of sources report no current conditions at all and fall back to their own forecast hour like any
+  alternate. `temperature_kind` therefore reads `observed` or `hourly` on every answer, and is never
+  to be inferred from whether the chosen source happens to be the primary. Today's high and low come
+  from the chosen source's own daily entry either way, so those are genuinely per-source in both
+  cases.
+- **A figure we do not have arrives empty, never as a zero**, since the band draws a real 0 °C if it
+  is handed one and a wrong temperature on the wrist is worse than a blank. That rule governs a
+  missing field inside a real reading; a reading that does not exist at all is an error instead, so
+  asking for a source this location holds nothing from says so rather than returning a row of blanks
+  for the caller to interpret.
+- **`observed_at` means different things for the two kinds, and says so.** For an observation it is
+  when the app last fetched current conditions; for a forecast hour it is that hour itself, which
+  sits up to an hour in the *future* and is not a measurement time at all — so freshness is read from
+  `age_minutes` and `stale`, never by subtracting it from now.
+- **A refresh-before-answering flag is refused rather than half-served.** Going out to a source needs
+  the foreground-service path the export already uses, because a network fetch inside a broadcast
+  window is precisely the ANR that shaped the 保存復元 contract; `refresh=true` answers an explicit
+  error, so nothing can quietly believe it forced a fetch.
+- The reads are answered off the main thread under a timeout that keeps them inside the broadcast
+  window, and the reply now carries its figures as named string extras beside the existing
+  `OK:`/`ERROR:` status line that the export already used.
+- The automation switch is relabelled from **Automation export** to just **Automation**, since it now
+  gates reads as well as the export, and its note says so. It still defaults to off, and the token
+  still lives outside every backup category.
+
 ## 白い熊 天気 6.2.1+060 — 2026-08-19
 
 Built on upstream **v6.2.1**.
