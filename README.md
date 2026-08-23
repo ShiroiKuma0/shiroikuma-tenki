@@ -11,12 +11,12 @@ nowcasting, air quality, pollen and alerts from more than 50 weather sources —
 additions**: several forecast sources stacked side by side for the same place, meteogram-style trend
 charts, an animated radar and forecast map drawn on a basemap of our own, a live theming page that
 repaints the app as you drag a slider, a black-yellow repaint that reaches every surface upstream
-draws, two hand-cut weather-icon packs, Czechia's national weather service, and headless backup
-automation for the 保存復元 batch.
+draws, two hand-cut weather-icon packs, Czechia's national weather service, headless backup
+automation for the 保存復元 batch, and the weather feed behind 白い熊's watch face.
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 Latest release: [`6.2.1+060`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
+**📥 Latest release: [`6.2.1+062`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
 
@@ -233,6 +233,27 @@ byte count and the human size.
 The switch defaults to **off** and the token lives outside every backup category — nothing is
 reachable from another app until it is turned on and the token copied across. Both rows sit in the
 Export/Import section of the UI page, where backup lives.
+
+---
+
+## ⌚ Weather on 白い熊's wrist
+
+白い熊's HUAWEI Band 11 Pro draws whatever the phone last pushed to it, and that number used to be
+typed in by hand — so the face went stale whenever it was forgotten. The app now answers 白い熊
+自由作業盤 directly: which locations it holds, which forecast sources each of those carries, and one
+location-and-source's figures. No second app has to phone a weather service, and nothing new sees
+白い熊's coordinates, because this app already had them.
+
+Every answer comes out of the cache exactly as it was last stored — no network, no geocoding, no API
+quota — because a watch face updates constantly and has to keep working with the phone offline.
+Staleness is reported rather than repaired.
+
+The reply is shaped to be honest rather than convenient. An alternate forecast source carries
+forecast arrays alone, so only a location's own source can produce a real observation — and not even
+that always, since plenty of sources report no current conditions at all. Every answer says which of
+the two kinds it is holding, and a figure the source simply does not have arrives **empty rather than
+as a zero**: a band draws a real 0 °C if you hand it one, and a wrong temperature on the wrist is
+worse than a blank one.
 
 ---
 
