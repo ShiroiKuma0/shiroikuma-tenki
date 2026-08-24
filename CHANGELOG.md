@@ -10,6 +10,39 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.2+001 — 2026-08-24
+
+Built on upstream **v6.2.2** — the first build on the new base, so what is listed here is what
+upstream's release brings plus what the rebase cost us.
+
+- **Rebased the whole fork onto Breezy Weather v6.2.2.** All 33 of our commits replay onto upstream's
+  new release tag, and the build tail restarts at `+001`, so the number again reads as "our first
+  build on this base". Nothing of ours was dropped to make the rebase easier: where upstream had
+  restructured a file we patch, our change was ported to the new shape instead.
+- **Upstream's hourly "feels like" tab now draws precipitation probability**, and it does so on top of
+  our own rewrite of that chart rather than beside it — the tab still starts in the past, still
+  refits its temperature scale to the hours actually on screen, and now carries their probability
+  bars while doing it.
+- **Upstream's animated sun turns dark in explicit dark mode.** It was drawn white regardless, which
+  is why it looked wrong on a black sky. Our header paints its own ground, so this is upstream
+  agreeing with a decision we had already made.
+- **Three source fixes come with the base**: BMKG stops erroring on refresh (it now takes a second
+  credential, a public token, beside its API key), the UK Met Office no longer shifts the day
+  sequence for locations outside UTC, and NCEI's parsing error is gone.
+- **Four translations had to be re-de-branded.** Kannada arrives new, and Danish, Portuguese and
+  Vietnamese gained or reworded the content-provider permission strings — all four came back naming
+  upstream's app, and all four now read 白い熊 天気. Where upstream had improved a translation we had
+  only re-branded, their better wording was taken and the brand re-applied to it, rather than keeping
+  our older text. The Hebrew store description is the same story in reverse: upstream finally
+  translated the source list we had been carrying in English, so theirs is now used, with ČHMÚ put
+  back into it.
+- **The toolchain moved under us and is pinned to what upstream ships**: Gradle 9.7.1, Android Gradle
+  Plugin 9.3.1, Kotlin 2.4.10, Compose Material 3 alpha25. Our black-yellow dialog and button
+  wrappers, which sit directly on those Material 3 signatures, build and run against the new set.
+- Verified rather than assumed after the rebase: the palette override still beats Android 12's
+  Material You in the built APK (`md_theme_primary` reads our yellow with no system-colour variant),
+  and this changelog still merges as a pure insertion above upstream's own history.
+
 ## 白い熊 天気 6.2.1+062 — 2026-08-23
 
 Built on upstream **v6.2.1**.

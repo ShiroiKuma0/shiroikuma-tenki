@@ -16,7 +16,7 @@ automation for the 保存復元 batch, and the weather feed behind 白い熊's w
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 Latest release: [`6.2.1+062`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
+**📥 Latest release: [`6.2.2+001`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
 
@@ -290,7 +290,7 @@ Breezy Weather is unusually fork-friendly, and this fork uses that path rather t
 | Tracked by | upstream **release tags** — `main` mirrors the newest tag, `custom` carries our work |
 | App id | `shiroikuma.tenki` |
 | Flavor | `basic` (upstream's "standard" — all sources), arm64-v8a |
-| Version | `<upstream version>+NNN`, e.g. `6.2.1+001`; `versionCode = <upstream code> * 10000 + N` |
+| Version | `<upstream version>+NNN`, e.g. `6.2.2+001`; `versionCode = <upstream code> * 10000 + N` |
 
 ---
 
