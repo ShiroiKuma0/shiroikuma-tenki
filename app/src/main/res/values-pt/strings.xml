@@ -825,6 +825,6 @@
     <string name="settings_weather_source_no_longer_exists">%s (já não existe)</string>
     <string name="settings_main_background_title">Papel de parede baseado no clima</string>
     <string name="settings_regional_preference">Preferência regional</string>
-    <string name="content_provider_permission_label">Ler dados do Breezy Weather</string>
+    <string name="content_provider_permission_label">Ler dados do 白い熊 天気</string>
     <string name="message_source_non_free_network_title">Esta funcionalidade requer a versão Padrão do aplicativo.</string>
 </resources>

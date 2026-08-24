@@ -224,7 +224,7 @@ versionName suffix) is upstream's and we don't build it.
 - JDK **21** at `/usr/lib/jvm/java-21-openjdk-amd64` (the host default `java` is JDK 11; Gradle 9.x
   aborts on it — always set `JAVA_HOME`).
 - Android SDK at `~/android-sdk`; `compileSdk 37`, `targetSdk 36`, `minSdk 23`,
-  `buildToolsVersion 36.0.0`. Gradle wrapper 9.5.1, AGP 9.2.1, Kotlin 2.4.0.
+  `buildToolsVersion 36.0.0`. Gradle wrapper 9.7.1, AGP 9.3.1, Kotlin 2.4.10.
 - Gradle needs `local.properties` with `sdk.dir=/home/shiroikuma/android-sdk` (gitignored).
 
 ## Architecture (upstream Breezy Weather)

@@ -765,8 +765,8 @@
     <string name="settings_main_background_title">Vejrbaseret baggrund</string>
     <string name="settings_regional_preference">Regional præference</string>
     <string name="about_update_check_eol">Denne Android-version understøttes ikke længere</string>
-    <string name="content_provider_permission_label">Læs Breezy Weather data</string>
-    <string name="content_provider_permission_description">få vejrinformation fra Breezy Weather, herunder koordinaterne for dine placeringer, såsom din aktuelle placering, hvis du har tilføjet det</string>
+    <string name="content_provider_permission_label">Læs 白い熊 天気 data</string>
+    <string name="content_provider_permission_description">få vejrinformation fra 白い熊 天気, herunder koordinaterne for dine placeringer, såsom din aktuelle placering, hvis du har tilføjet det</string>
     <string name="common_weather_text_mostly_cloudy">Hovedsageligt overskyet</string>
     <string name="common_weather_text_mist">Dis</string>
     <string name="common_weather_text_dry">Tør</string>

@@ -709,8 +709,8 @@
     <string name="about_contribution_WangDaYeeeeee">ಮೂಲ ಯೋಜನೆ Geometric Weather ನ ಡೆವಲಪರ್</string>
     <string name="about_contribution_designer">ಚಿನ್ಹೆ ವಿನ್ಯಾಸಗಾರರು</string>
     <string name="about_open_link_message">%s ತೆರೆಯುವುದೇ?</string>
-    <string name="content_provider_permission_label">Breezy Weather ಡೇಟಾವನ್ನು ಓದಿ</string>
-    <string name="content_provider_permission_description">ನೀವು ಸೇರಿಸಿದ ಪ್ರಸ್ತುತ ಸ್ಥಳ ಹಾಗೂ ನಿಮ್ಮ ಸ್ಥಳಗಳ ನಿರ್ದೇಶಾಂಕಗಳನ್ನೂ ಸೇರಿದಂತೆ Breezy Weather ನಿಂದ ಹವಾಮಾನ ಮಾಹಿತಿಯನ್ನು ಪಡೆಯಿರಿ</string>
+    <string name="content_provider_permission_label">白い熊 天気 ಡೇಟಾವನ್ನು ಓದಿ</string>
+    <string name="content_provider_permission_description">ನೀವು ಸೇರಿಸಿದ ಪ್ರಸ್ತುತ ಸ್ಥಳ ಹಾಗೂ ನಿಮ್ಮ ಸ್ಥಳಗಳ ನಿರ್ದೇಶಾಂಕಗಳನ್ನೂ ಸೇರಿದಂತೆ 白い熊 天気 ನಿಂದ ಹವಾಮಾನ ಮಾಹಿತಿಯನ್ನು ಪಡೆಯಿರಿ</string>
     <string name="common_weather_text_clear_sky">ನಿರಭ್ರ ಆಕಾಶ</string>
     <string name="common_weather_text_mostly_clear">ಬಹುತೇಕ ನಿರಭ್ರ</string>
     <string name="common_weather_text_partly_cloudy">ಭಾಗಶಃ ಮೋಡಾವೃತ</string>
