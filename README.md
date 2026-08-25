@@ -16,7 +16,7 @@ automation for the 保存復元 batch, and the weather feed behind 白い熊's w
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 Latest release: [`6.2.2+001`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
+**📥 Latest release: [`6.2.2+003`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
 
@@ -254,6 +254,23 @@ that always, since plenty of sources report no current conditions at all. Every 
 the two kinds it is holding, and a figure the source simply does not have arrives **empty rather than
 as a zero**: a band draws a real 0 °C if you hand it one, and a wrong temperature on the wrist is
 worse than a blank one.
+
+The band wants a **forecast**, not a reading, and it is strict about it: it treats the current-weather
+push and the forecast as one record, and refuses the whole thing below exactly 24 hourly and 8 daily
+entries — so a short forecast takes the temperature and the place down with it. The reply therefore
+carries the series themselves: 24 hours from the one now in progress, up to 15 days from today,
+conditions, UV and wind beside them. **A slot we do not hold is an empty element, never a repeat and
+never an interpolation.** Padding a single temperature out to 24 hours satisfies the count and draws a
+flat line, which is a lie with a chart around it; a source that reports three-hourly comes back
+honestly sparse instead. The hour grid takes its alignment from the data rather than from our clock,
+because a half-hour timezone puts its hours on the half hour.
+
+And because this app holds **several sources per location**, an empty answer has to mean that none of
+them has it. A field the chosen source does not carry is borrowed from the next source cached against
+that location — per field, not per query, so a source that knows the temperature but not the UV index
+no longer costs the UV index. A whole array is borrowed or none of it, re-indexed onto the same hours
+and days so position by position it still means what it did, and the reply **names the source it
+borrowed from**. A borrowed figure is never passed off as the chosen source's own.
 
 ---
 

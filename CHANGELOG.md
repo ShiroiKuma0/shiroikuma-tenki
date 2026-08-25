@@ -10,6 +10,64 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.2+003 — 2026-08-25
+
+Built on upstream **v6.2.2**. Everything here is the watch-face feed growing from a single reading
+into a real forecast.
+
+- **The band was being told the same temperature twenty-four times.** The HUAWEI Band 11 Pro treats
+  the current-weather push and the forecast as **one record**: if the forecast is invalid it silently
+  discards the push as well, so the temperature, the place and the humidity never reach the screen
+  either. And it refuses anything below **exactly 24 hourly entries and 8 daily** ones. 白い熊
+  自由作業盤 had been meeting that count by repeating the one temperature this app gave it across every
+  slot, which drew 21° for each of twenty-four hours and 21°/13° for each of eight days — a flat line
+  is a lie with a chart around it. `QUERY_WEATHER` now answers with the series themselves.
+- **24 hours and up to 15 days, and every element is a figure we actually hold.** The hourly arrays
+  run from the hour now in progress; the daily ones start today. **A slot we do not hold arrives as an
+  empty element** — never a repeat, never an interpolation — so a source that reports three-hourly
+  comes back honestly sparse rather than quietly stretched into an hourly line it never claimed. All
+  the arrays in a group are one length, so position `i` means the same hour, or the same day, in each
+  of them.
+- **The hours take their alignment from the data, not from our clock.** A half-hour timezone (India,
+  Nepal) puts its forecast hours on the half hour, and flooring the current time to a whole UTC hour
+  would miss every slot by thirty minutes. The first hour's own offset is what the grid is built on,
+  and `hourly_start_epoch` states where slot zero sits so nothing has to be guessed at the other end.
+- **A field the chosen source lacks is borrowed from the next source that has it.** This app holds
+  several forecast sources per location, so an empty answer has to mean that *none* of them carries
+  the field — not merely that the first one asked did not. The borrow walks the sources in the order
+  白い熊 arranged them and is **per field, not per query**: a source that knows the temperature but not
+  the UV index no longer costs us the UV index.
+- **A borrowed series is re-indexed, never pasted in.** A whole array comes from one source or none of
+  it — mixing two forecasts inside one series would put a different one at each position, which is the
+  flat line's lie in another costume — and it is matched onto the existing hours and days by
+  timestamp, so a source whose hours sit on a different offset lands on the right ones instead of
+  shifting the whole series. Where it has nothing near a slot, that slot stays empty.
+- **The reply says when a figure was borrowed.** Ten `<key>_source` extras name the provider a field
+  actually came from, and stay blank whenever the chosen source supplied it. This knowingly crosses
+  the coherence rule that `uv` and `wind_speed` share the reading `temperature` came from — a borrowed
+  UV is by definition not that reading — which is exactly why the origin is stated rather than hidden.
+- **Conditions stop at what we can genuinely tell apart.** The band understands sixteen words;
+  upstream's weather codes are coarser. `heavy_rain` and `heavy_snow` are sent, decided by the app's
+  own precipitation thresholds, and both thunder codes map to `thunderstorm`. `mostly_clear`,
+  `overcast` and `drizzle` are **deliberately never sent**: nothing we hold distinguishes them from
+  `clear`, `cloudy` and `rain`, and inventing a threshold would be the guess this contract exists to
+  refuse. An unknown code sends an empty element so the band can fall back.
+- **New single figures beside the series** — `uv` and `uv_max` (today's peak, stated by the daily entry
+  where the source states one and otherwise the highest of today's hours), and `wind_speed` in km/h,
+  converted from the metres per second the app stores.
+- **`place_short`, because the band's line is short.** `プラハ, Jiráskova čtvrť` arrived on the wrist
+  with its head bitten off. The short label is the custom name where 白い熊 kept it under a dozen
+  characters and otherwise the bare city — the shortest true name of the place. `place` is untouched
+  and the short one rides beside it.
+- **`daily_start_epoch` and `utc_offset_seconds`, because the band recomputes the day's high** from
+  the maximum of the hourly array rather than trusting the figure it is handed. Our twenty-four hours
+  straddle two calendar days, so it needs to know where the boundary falls before taking that maximum.
+  The day epoch is also the daily counterpart of `hourly_start_epoch`: the alignment can be checked
+  rather than trusted.
+- **Every existing key keeps its name and its meaning.** `temperature` is still one decimal,
+  `temperature_kind` still says `observed` or `hourly`, and the tasks already built on them are
+  untouched.
+
 ## 白い熊 天気 6.2.2+001 — 2026-08-24
 
 Built on upstream **v6.2.2** — the first build on the new base, so what is listed here is what
