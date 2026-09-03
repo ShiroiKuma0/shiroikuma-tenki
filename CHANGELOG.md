@@ -10,6 +10,36 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.2+004 — 2026-09-03
+
+Built on upstream **v6.2.2**. One fix, in the step that turns coordinates into a place name.
+
+- **“1 updates failed” was the current position losing its whole refresh to a name lookup.** The
+  notification that had been arriving regularly said one location had failed; the log behind it named
+  現在地, the reverse-geocoding step, and Nominatim answering “server unavailable”. The cause was
+  volume rather than Nominatim: the address was looked up again on **any** difference between the
+  stored coordinates and the last known ones, so a single metre of GPS drift was enough to blank the
+  stored address and send a request to the public OpenStreetMap instance — about **sixteen a day** at
+  the default 1:30 refresh rate, on days the phone never left the flat. That instance is rate-limited
+  to one request a second and answers 5xx under exactly that kind of load.
+- **And a failed lookup cost more than the name.** The offline Natural Earth fallback carries country
+  polygons and nothing else, and it deliberately keeps the “needs geocoding” flag set so the real
+  lookup is retried later — which is also the flag the background job checks before fetching weather.
+  So a lookup that blipped skipped the **forecast** for that location for the whole cycle, and left a
+  bare country name standing where the city and district belong until the next success.
+- **The address is now looked up again only when the position really moved** — more than a kilometre,
+  or when the location has never been geocoded at all and so has no country code yet. Below that
+  threshold the new coordinates are still taken, so the forecast is fetched where you actually are;
+  only the address is kept. The app already treated anything under 5 km as the same place for
+  forecast caching, so a kilometre is the conservative end of a line it had already drawn.
+- **A retry that was already owed is still owed.** The pending-geocoding flag is carried through
+  untouched on the short-move path, so a lookup left outstanding by an earlier failure is not
+  silently cleared — it happens on the next cycle, as before.
+
+The visible result is a negative one: on days you stay in one place, the failure notification should
+stop appearing. When it does appear now, something genuinely went wrong on a move — and it is worth
+reading.
+
 ## 白い熊 天気 6.2.2+003 — 2026-08-25
 
 Built on upstream **v6.2.2**. Everything here is the watch-face feed growing from a single reading
