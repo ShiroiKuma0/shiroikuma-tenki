@@ -208,13 +208,39 @@ class RefreshHelper @Inject constructor(
 
         // STEP 1 - Update coordinates if current position
         val locationWithUpdatedCoordinates = if (location.isCurrentPosition) {
-            val coordinatesChanged = location.latitude != currentLocationStore.lastKnownLatitude.toDouble() ||
-                location.longitude != currentLocationStore.lastKnownLongitude.toDouble()
-            if (coordinatesChanged) {
+            val lastKnownLatitude = currentLocationStore.lastKnownLatitude.toDouble()
+            val lastKnownLongitude = currentLocationStore.lastKnownLongitude.toDouble()
+            val coordinatesChanged = location.latitude != lastKnownLatitude ||
+                location.longitude != lastKnownLongitude
+            /*
+             * shiroikuma fork: only re-run reverse geocoding when the position really moved.
+             *
+             * Upstream re-geocodes on ANY coordinate delta, so a single metre of GPS jitter blanks
+             * the stored address and fires a request at the public Nominatim instance — about 16 of
+             * them a day at the default 1:30 refresh rate, on days the phone never leaves the flat.
+             * Nominatim is rate-limited to 1 req/s and answers 5xx under that kind of load, and a
+             * failed lookup is not cheap here: the fallback keeps needsGeocodeRefresh set, which
+             * makes WeatherUpdateJob skip the weather fetch for this location altogether and leaves
+             * the country-only offline result showing where the city name belongs.
+             *
+             * Below the threshold we still take the new coordinates — the forecast is fetched where
+             * the user actually is, and upstream's own CACHING_DISTANCE_LIMIT already treats
+             * anything under 5 km as the same place — we simply keep the address we already have.
+             * A location that has never been geocoded (no country code) always goes the long way.
+             */
+            val movedFarEnoughToReGeocode = coordinatesChanged &&
+                (
+                    location.countryCode.isNullOrEmpty() ||
+                        SphericalUtil.computeDistanceBetween(
+                            LatLng(location.latitude, location.longitude),
+                            LatLng(lastKnownLatitude, lastKnownLongitude)
+                        ) > RE_GEOCODING_DISTANCE_LIMIT
+                    )
+            if (movedFarEnoughToReGeocode) {
                 needsSavingToDb = true
                 location.copy(
-                    latitude = currentLocationStore.lastKnownLatitude.toDouble(),
-                    longitude = currentLocationStore.lastKnownLongitude.toDouble(),
+                    latitude = lastKnownLatitude,
+                    longitude = lastKnownLongitude,
                     /*
                      * Don’t keep old data as the user can have changed position
                      * It avoids keeping old data from a reverse geocoding-compatible weather source
@@ -234,6 +260,13 @@ class RefreshHelper @Inject constructor(
                     city = "",
                     district = "",
                     needsGeocodeRefresh = true
+                )
+            } else if (coordinatesChanged) {
+                // Jitter, or a short walk: take the coordinates, keep the address
+                needsSavingToDb = true
+                location.copy(
+                    latitude = lastKnownLatitude,
+                    longitude = lastKnownLongitude
                 )
             } else {
                 location
@@ -1604,5 +1637,12 @@ class RefreshHelper @Inject constructor(
 
         const val CACHING_DISTANCE_LIMIT = 5000 // 5 km
         const val REVERSE_GEOCODING_DISTANCE_LIMIT = 50000 // 50 km
+
+        /**
+         * shiroikuma fork: how far the current position must move before its address is looked up
+         * again. Small enough that a district name goes at most one refresh stale, large enough
+         * that GPS jitter never reaches the reverse geocoding source. See STEP 1 of getLocation().
+         */
+        const val RE_GEOCODING_DISTANCE_LIMIT = 1000 // 1 km
     }
 }
