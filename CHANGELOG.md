@@ -10,6 +10,50 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.2+005 — 2026-09-04
+
+Built on upstream **v6.2.2**. The sister-app automation contract moves to **v2**: the app can now be
+backed up *with its data* and restored onto a wiped phone, and the gate in front of that is an
+identity check rather than a pasted secret.
+
+- **App data now survives a clean phone.** A new `ContentProvider` at `shiroikuma.tenki.automation`
+  answers `describe`, `export`, `import` and `cancel`, and moves the archive through a
+  **file descriptor the caller opened** rather than a path. That is what lets 白い熊 応用管理 put
+  this app's backup *inside* its own encrypted, checksummed archive instead of dropping a file beside
+  it — a file it did not write is one it cannot encrypt or verify, and one it would rename out from
+  under us while committing. Restoring the app is then: install the APK, stream the data back.
+- **`import` exists only on that door, and nowhere else.** An import overwrites locations, sources
+  and the API keys typed into them. The broadcast receiver next to it is exported with no permission,
+  so an import action there would let any app on the phone wipe this one.
+- **The caller is identified three ways, because two are not enough.** An **exact** package name —
+  never a prefix, since package names are not a namespace anyone owns and any sideloaded app may call
+  itself `shiroikuma.evil`; the uid **the kernel reports**, not the one the caller declares; and a
+  **pinned signing certificate**, which is the only one of the three that still means anything on a
+  freshly wiped phone, where a package that is not installed yet is a name free for the taking.
+- **The automation switch now ships on, and the token became optional.** A pasted 48-character secret
+  cannot survive a wipe, and the case this contract now exists to serve is a phone where nothing has
+  been configured yet. 「Use authorization token?」 is a new row, off by default, for closing the app
+  off deliberately; the token row is hidden unless it is on, so a secret is never left sitting under a
+  switch that ignores it. **A token sent to the app while it is not asking for one is ignored, never
+  refused** — tokens outlive the settings they were pasted for, and refusing them would turn one
+  switch into half a batch mysteriously failing.
+- **A restore now reaches disk before it reports success.** Both restore paths wrote through
+  `apply()`, which queues the write; 応用管理 force-stops the app the instant an import reports
+  success, deliberately, because a live process writes its cached preferences back out at shutdown and
+  would silently undo the restore. That force-stop is a `SIGKILL`, so a queued write was simply lost
+  and the app came back with some files restored and some not. Both paths now commit synchronously.
+  The live setters are untouched and stay asynchronous — they run while you drag a slider.
+- **Hardening, not a fix: the reply path no longer depends on an unrelated line.** On Android 11+ a
+  reply broadcast's `setPackage` is filtered out unless the target is declared visible, and our
+  `<queries>` block named neither automation caller. The replies *were* arriving — an inherited
+  icon-pack query for a bare `android.intent.action.MAIN` makes every app with a launcher activity
+  visible, and the watch-face forecast added in `6.2.2+002` was measured against what came back — so
+  nothing was broken. But it was resting on a line that exists to find icon packs, which anyone
+  tidying that block would have removed without suspecting what else went with it. Both callers are
+  now named explicitly.
+
+---
+
 ## 白い熊 天気 6.2.2+004 — 2026-09-03
 
 Built on upstream **v6.2.2**. One fix, in the step that turns coordinates into a place name.

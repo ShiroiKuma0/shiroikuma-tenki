@@ -12,11 +12,12 @@ additions**: several forecast sources stacked side by side for the same place, m
 charts, an animated radar and forecast map drawn on a basemap of our own, a live theming page that
 repaints the app as you drag a slider, a black-yellow repaint that reaches every surface upstream
 draws, two hand-cut weather-icon packs, Czechia's national weather service, headless backup
-automation for the 保存復元 batch, and the weather feed behind 白い熊's watch face.
+automation for the 保存復元 batch, app data that survives a wiped phone, and the weather feed behind
+白い熊's watch face.
 
 Installs **side-by-side** with Breezy Weather (app id `shiroikuma.tenki`).
 
-**📥 Latest release: [`6.2.2+004`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
+**📥 Latest release: [`6.2.2+005`](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases/latest)** — [all releases & APK downloads »](https://github.com/ShiroiKuma0/shiroikuma-tenki/releases)
 
 </div>
 
@@ -225,14 +226,30 @@ Data © ČHMÚ, CC BY 4.0.
 ## 🤖 On the 保存復元 batch
 
 The app implements the sister-app backup-automation contract, so 白い熊 自由作業盤 can drive its
-export headlessly as part of the one-run batch across every app: a token-gated intent in, the export
-run in a foreground service (never in the receiver, which would be ANR'd mid-write), progress
-reported with real counts rather than a percentage, and one terminal reply carrying the path, the
-byte count and the human size.
+export headlessly as part of the one-run batch across every app: an intent in, the export run in a
+foreground service (never in the receiver, which would be ANR'd mid-write), progress reported with
+real counts rather than a percentage, and one terminal reply carrying the path, the byte count and
+the human size.
 
-The switch defaults to **off** and the token lives outside every backup category — nothing is
-reachable from another app until it is turned on and the token copied across. Both rows sit in the
-Export/Import section of the UI page, where backup lives.
+**And 白い熊 応用管理 can now back the app up *with its data*, and put it back on a wiped phone.**
+That is the point of the second door: a `ContentProvider` that hands the archive through a file
+descriptor the caller opened, so the bytes land inside 応用管理's own encrypted, checksummed backup
+instead of beside it. Restoring an app then means installing the APK and streaming the data back,
+which is as close to root-level backup as a phone without root gets.
+
+The two doors are protected differently, on purpose. The batch's export **writes only where it was
+told to and reports what it did**, so it needs no caller check and the switch now ships **on** — a
+phone that has just been wiped has nobody to turn it on, and a gate that only works once the phone is
+set up is no gate for setting one up. The data door is the dangerous half, because there the caller
+says where this app's data goes, so it identifies who is asking three ways: an **exact** package name
+(never a prefix — any sideloaded app may call itself `shiroikuma.evil`), the uid the kernel reports
+rather than the one the caller declares, and a **pinned signing certificate**, which is what still
+holds on a clean phone where a missing package's name is free for anyone to take.
+
+「Use authorization token?」 remains, defaulting to off, for closing this app off deliberately. A token
+sent to the app while it is not asking for one is **ignored, never refused** — tokens outlive the
+settings they were pasted for, and refusing them would turn one switch into half a batch failing. All
+three rows sit in the Export/Import section of the UI page, where backup lives.
 
 ---
 
