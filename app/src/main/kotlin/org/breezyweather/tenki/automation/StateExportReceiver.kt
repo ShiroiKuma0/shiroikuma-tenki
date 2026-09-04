@@ -17,8 +17,8 @@ import kotlinx.coroutines.withTimeout
 import org.breezyweather.tenki.TenkiBackup
 
 /**
- * The token-gated actions of the sister-app automation contract — the 保存復元 export, and the reads
- * that feed 白い熊's HUAWEI band its weather:
+ * The unauthenticated half of the sister-app automation contract — the 保存復元 export, and the
+ * reads that feed 白い熊's HUAWEI band its weather:
  *
  *  * `<pkg>.action.LIST_CATEGORIES` — instant, answers with the pickable categories;
  *  * `<pkg>.action.EXPORT_STATE` — hands straight off to [StateExportService] and returns, because
@@ -30,6 +30,11 @@ import org.breezyweather.tenki.TenkiBackup
  *    window. See that file for why an alternate source can never report an observation.
  *
  * The receiver never exports anything itself and never blocks.
+ *
+ * **Why no caller check here.** Since contract v2 this receiver is deliberately the unauthenticated
+ * half of the surface: it only ever writes where it was told to and reports what it did. Everything
+ * that moves data through a caller-supplied descriptor — and `import`, which exists nowhere else —
+ * lives behind [AutomationProvider], which asks the framework who is calling.
  */
 class StateExportReceiver : BroadcastReceiver() {
 
@@ -45,8 +50,7 @@ class StateExportReceiver : BroadcastReceiver() {
         when (action) {
             "${app.packageName}.action.CANCEL_EXPORT" -> {
                 // Fire and forget: no reply of its own, and a silent no-op when nothing is running.
-                if (!TenkiAutomationAuth.enabled(app)) return
-                if (!TenkiAutomationAuth.isTokenValid(app, token)) return
+                if (TenkiAutomationAuth.refuse(app, token) != null) return
                 StateExportService.requestCancel(app)
             }
 
@@ -160,12 +164,14 @@ class StateExportReceiver : BroadcastReceiver() {
         }
     }
 
-    /** @return the `ERROR:` line to answer with, or null when the request may proceed. */
-    private fun gate(context: Context, token: String?): String? = when {
-        !TenkiAutomationAuth.enabled(context) -> "ERROR:automation disabled"
-        !TenkiAutomationAuth.isTokenValid(context, token) -> "ERROR:bad token"
-        else -> null
-    }
+    /**
+     * The single gate, shared with [AutomationProvider] — see [TenkiAutomationAuth.refuse]. Since
+     * v2 a token sent to this app while it does not ask for one is **ignored, never refused**.
+     *
+     * @return the `ERROR:` line to answer with, or null when the request may proceed.
+     */
+    private fun gate(context: Context, token: String?): String? =
+        TenkiAutomationAuth.refuse(context, token)
 
     companion object {
         const val EXTRA_TOKEN = "token"

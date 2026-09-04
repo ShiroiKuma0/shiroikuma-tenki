@@ -122,7 +122,7 @@ class StateExportService : Service() {
         replyPackage: String?,
         replyId: String?,
     ): Written {
-        val reporter = ProgressReporter(this, progressAction, replyPackage, replyId, categories.size)
+        val reporter = ProgressReporter(this, progressAction, replyPackage, replyId)
         val configuredDir = TenkiUiConfig(this).exportDir
 
         if (!pathOverride.isNullOrBlank() && Environment.isExternalStorageManager()) {
@@ -222,12 +222,17 @@ class StateExportService : Service() {
      * can highlight the row actually being written. Throttled to one per 500 ms, with a heartbeat
      * so a long single step still proves the export is alive.
      */
-    private class ProgressReporter(
+    internal class ProgressReporter(
         private val context: Context,
         private val action: String?,
         private val replyPackage: String?,
         private val replyId: String?,
-        private val total: Int,
+        /**
+         * A second key carrying the same id, for [AutomationProvider]'s door — which correlates by
+         * `job_id`, not `reply_id`. Null on the broadcast half, so its progress extras stay byte
+         * for byte what 自由作業盤 already parses.
+         */
+        private val alsoIdKey: String? = null,
     ) : TenkiBackup.Progress {
         private var lastSentAt = 0L
 
@@ -242,6 +247,7 @@ class StateExportService : Service() {
                     setPackage(replyPackage)
                     addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
                     putExtra(StateExportReceiver.EXTRA_REPLY_ID, replyId)
+                    alsoIdKey?.let { putExtra(it, replyId) }
                     putExtra("app", context.getString(R.string.brand_name))
                     putExtra("item", cat.id)
                     putExtra("text", "区分 $position/$total — ${cat.label}")

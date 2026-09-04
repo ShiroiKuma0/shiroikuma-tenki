@@ -270,14 +270,24 @@ fun TenkiUiScreen(onNavigateBack: () -> Unit) {
 }
 
 /**
- * The two contract rows: a master switch (default OFF — nothing is reachable from outside until
- * 白い熊 turns it on) and the token, abbreviated, copied on tap, regenerated on the right.
+ * The three contract rows, in the order every sister app shows them: the master switch (default
+ * **ON** since v2 — a phone that has just been wiped has nobody to turn it on), 「Use authorization
+ * token?」 (default **OFF**), and — only while that is on — the token itself, abbreviated, copied on
+ * tap, regenerated on the right.
+ *
+ * The token row is hidden rather than greyed when it is not being asked for: a 48-character secret
+ * sitting under an off switch invites 白い熊 to paste it somewhere it will do nothing.
  */
 @Composable
 private fun AutomationRows(ui: TenkiUiState) {
     val context = LocalContext.current
     var enabled by remember { mutableStateOf(TenkiAutomationAuth.enabled(context)) }
-    var token by remember { mutableStateOf(TenkiAutomationAuth.token(context)) }
+    var requireToken by remember { mutableStateOf(TenkiAutomationAuth.requireToken(context)) }
+    // Read lazily: the first read generates one, and there is no reason to mint a secret for a row
+    // nobody is being shown.
+    var token by remember {
+        mutableStateOf(if (requireToken) TenkiAutomationAuth.token(context) else "")
+    }
 
     ToggleRow(ui, "Automation", enabled) {
         TenkiAutomationAuth.setEnabled(context, it)
@@ -285,9 +295,21 @@ private fun AutomationRows(ui: TenkiUiState) {
     }
     RowNote(
         ui,
-        "Lets 白い熊 自由作業盤 read this app's weather and locations, and trigger its export, " +
-            "through the token-gated intent."
+        "Lets 白い熊 自由作業盤 read this app's weather and locations and trigger its export, and " +
+            "白い熊 応用管理 back this app up with its data and put it back on a clean phone."
     )
+    ToggleRow(ui, "Use authorization token?", requireToken) {
+        TenkiAutomationAuth.setRequireToken(context, it)
+        if (it && token.isBlank()) token = TenkiAutomationAuth.token(context)
+        requireToken = it
+    }
+    RowNote(
+        ui,
+        "Off, any sister app may drive the automation. On, a caller must also present the token " +
+            "below. Either way the data door checks the caller's package name, uid and signing " +
+            "certificate."
+    )
+    if (!requireToken) return
     Row(
         modifier = pressableRow(ui, false) {
             context.getSystemService(ClipboardManager::class.java)

@@ -60,6 +60,21 @@
         android:required="false" />
 
     <queries>
+        <!--
+          The sister-app automation callers. Without a <package> entry a reply broadcast's
+          setPackage() is filtered out on Android 11+ and fails SILENTLY: the export runs, writes
+          correctly, and is never heard of.
+
+          BOTH are named on purpose. 保存復元's batch and the band's weather query are driven by
+          白い熊 自由作業盤, not by 応用管理 — the contract snippet listed only 応用管理 until
+          2026-09-04, which was wrong in v1 too. Our replies did in fact arrive, but by accident:
+          the Chronus icon-pack query below asks for android.intent.action.MAIN, which makes every
+          app with a launcher activity visible. Naming the callers removes that dependency on an
+          unrelated upstream line.
+        -->
+        <package android:name="shiroikuma.oyokanri" />
+        <package android:name="shiroikuma.jiyusagyoban" />
+
         <!-- Breezy Weather Icon Packs -->
         <intent>
             <action android:name="org.breezyweather.ICON_PROVIDER" />
@@ -389,6 +404,43 @@
             android:name=".tenki.automation.StateExportService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <!--
+          Contract v2's data door. Exported with no android:permission on purpose: a custom
+          permission could only be "normal" (any app may hold it) or "signature" (impossible — every
+          app in this family has its own keystore, 42 of them). Neither buys anything the caller
+          check does not, and unlike a broadcast a provider can ask the framework who is calling —
+          see AutomationCallers for the exact-name + uid + pinned-certificate check.
+        -->
+        <provider
+            android:name=".tenki.automation.AutomationProvider"
+            android:authorities="${applicationId}.automation"
+            android:exported="true" />
+
+        <service
+            android:name=".tenki.automation.AutomationDataService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Automation data export/import" />
+        </service>
+
+        <!--
+          Capability discovery, read with MATCH_UNINSTALLED_PACKAGES | MATCH_DISABLED_COMPONENTS.
+          Manifest meta-data rather than a query intent because 白い熊 freezes apps aggressively and
+          a frozen app cannot be asked anything — 応用管理 must still be able to answer "can this app
+          be backed up". An app without these entries is simply not offered for data backup.
+        -->
+        <meta-data
+            android:name="shiroikuma.automation.contract"
+            android:value="2" />
+        <meta-data
+            android:name="shiroikuma.automation.format"
+            android:value="1" />
+        <meta-data
+            android:name="shiroikuma.automation.min_format"
+            android:value="1" />
 
         <!-- widget -->
         <receiver

@@ -339,8 +339,10 @@ class TenkiUiConfig(context: Context) {
     }
 
     /** Restores a [toJson] snapshot. Unknown keys are ignored, so old backups still import. */
+    /** `commit = true`: a restore must be on disk before the caller is told it is — see
+     *  [org.breezyweather.tenki.TenkiBackup.restore], which is force-stopped the moment it replies. */
     fun fromJson(json: JSONObject) {
-        prefs.edit {
+        prefs.edit(commit = true) {
             json.keys().forEach { key ->
                 when (val value = json.get(key)) {
                     is Int -> putInt(key, value)

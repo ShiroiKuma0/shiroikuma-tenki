@@ -278,9 +278,18 @@ object TenkiBackup {
         }
     }
 
+    /**
+     * **`commit = true`, not `apply()`.** 応用管理 force-stops this app the instant we reply that an
+     * import succeeded — deliberately, because a live process writes its cached preferences back
+     * out at orderly shutdown and would silently undo the restore. That force-stop is a `SIGKILL`,
+     * so an `apply()` still queued on the disk-write thread is simply lost, and the app comes back
+     * with some of its files restored and some not. A synchronous commit is what makes the reply
+     * true at the moment it is sent. The live setters elsewhere stay on `apply()` — they run while
+     * 白い熊 drags a slider and must not block.
+     */
     private fun restorePrefs(context: Context, name: String, json: JSONObject) {
         val prefs = context.getSharedPreferences(name, Context.MODE_PRIVATE)
-        prefs.edit {
+        prefs.edit(commit = true) {
             json.keys().forEach { key ->
                 when (val value = json.get(key)) {
                     is Int -> putInt(key, value)
