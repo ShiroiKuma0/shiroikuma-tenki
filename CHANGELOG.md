@@ -10,6 +10,42 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.2+007 — 2026-09-05
+
+Built on upstream **v6.2.2**. One fix, in the automation surface added in `6.2.1+062`: asking this
+app to export could **kill it**, and only ever when nobody was watching.
+
+- **A broadcast is a background start.** The receiver that answers `EXPORT_STATE` handed the work to
+  a foreground service, as it must — a manifest receiver that overruns Android's broadcast window is
+  ANR'd mid-write. But on Android 12 and later `startForegroundService()` is refused unless the app
+  holds a foreground-start allowance, the call throws, and an exception escaping `onReceive` takes
+  the whole process down. Every release since `6.2.1+062` carried this.
+- **It could only fail when unobserved, which is why it lasted a month.** The allowance is granted by
+  recent interaction. Open the app and run an export by hand and it works, every time. Leave it alone
+  and let the 保存復元 batch call it — or restore onto a wiped phone, the case the contract exists
+  for — and it dies. Testing it the obvious way is what hid it.
+- **Now it answers instead of dying — but be clear what that buys.** The start is still refused; what
+  changed is that the app reports `ERROR:startForegroundService() not allowed…` in about a tenth of a
+  second instead of crashing and leaving the caller to wait out a timeout on an export that never
+  began. Diagnosable rather than fixed: 自由作業盤 prints that line straight onto the failed row, so
+  the reason is visible instead of being a silence. Catching without replying would have been the
+  worse half of the fix, since a timeout is indistinguishable from an app that never implemented the
+  contract at all.
+- **Three places could be refused, not one.** The receiver's service start, and *both* services' own
+  `startForeground()` — the export service and the data door's. A refusal in either service is worse
+  than in the receiver: the data door has already answered `OK:<job id>`, so dying quietly there
+  leaves the caller waiting on a job that no longer exists **and** holds open the file it lent us.
+  That path now finishes the job, closes the descriptor and reports the refusal before stopping.
+- **The order inside those services is load-bearing.** The notification must be posted before any
+  early return, or the system kills the app for not starting in time — and the reply extras must be
+  read before the notification, or a refusal has nothing to answer with. Both hold only in this
+  order: read the extras, post the notification under a guard, then take the early returns. Reading
+  extras returns from nothing, so it endangers neither rule.
+
+`6.2.2+006` was an intermediate build, delivered but never released: it guarded the receiver alone.
+
+---
+
 ## 白い熊 天気 6.2.2+005 — 2026-09-04
 
 Built on upstream **v6.2.2**. The sister-app automation contract moves to **v2**: the app can now be
