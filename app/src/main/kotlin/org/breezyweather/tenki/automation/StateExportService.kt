@@ -45,9 +45,13 @@ class StateExportService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startInForeground()
-
+        // **The extras are read BEFORE the notification is posted, and that order is load-bearing.**
+        // `startForeground()` can itself be refused on API 31+, and a refusal we cannot answer is
+        // the worst of the three outcomes: the caller sits out its whole timeout on an export that
+        // never began. Reading a handful of extras costs microseconds, so it does not endanger the
+        // five-second window the system gives us to post the notification.
         val request = intent ?: run {
+            runCatching { startInForeground() }
             stopEverything()
             return START_NOT_STICKY
         }
@@ -64,6 +68,17 @@ class StateExportService : Service() {
             if (!replied.compareAndSet(false, true)) return
             if (replyAction == null || replyPackage == null) return
             StateExportReceiver.reply(this, replyAction, replyPackage, replyId, result)
+        }
+
+        // Now the notification, guarded. Refused, we answer and leave rather than letting the
+        // exception escape `onStartCommand` and take the process down — and rather than unwinding
+        // silently, which the caller cannot tell apart from an app that never implemented this.
+        try {
+            startInForeground()
+        } catch (e: Throwable) {
+            reply("ERROR:${e.message ?: e.javaClass.simpleName}")
+            stopEverything()
+            return START_NOT_STICKY
         }
 
         // The guard is process-local and released in a finally: persist it and one crash wedges the

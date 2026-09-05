@@ -85,17 +85,43 @@ class StateExportReceiver : BroadcastReceiver() {
                     return
                 }
 
-                ContextCompat.startForegroundService(
-                    app,
-                    Intent(app, StateExportService::class.java).apply {
-                        putExtra(EXTRA_PATH, intent.getStringExtra(EXTRA_PATH))
-                        putExtra(EXTRA_ITEMS, items)
-                        putExtra(EXTRA_PROGRESS_ACTION, intent.getStringExtra(EXTRA_PROGRESS_ACTION))
-                        putExtra(EXTRA_REPLY_ACTION, replyAction)
-                        putExtra(EXTRA_REPLY_PACKAGE, replyPackage)
-                        putExtra(EXTRA_REPLY_ID, replyId)
-                    }
-                )
+                // **A broadcast is a background start.** On API 31+ `startForegroundService()`
+                // throws `ForegroundServiceStartNotAllowedException` unless the app happens to hold
+                // a foreground-start allowance, and an exception escaping `onReceive` takes the
+                // whole process down with it.
+                //
+                // The allowance is granted by recent interaction, which is why this never showed up
+                // in testing: open the app, run an export, and it works. Leave it alone and run the
+                // unattended batch — or restore onto a clean phone, the case this contract exists
+                // for — and it throws. The failure is inversely correlated with how closely anyone
+                // was watching.
+                //
+                // Catching is only half the fix. A silent catch turns a crash into no export at all,
+                // and the caller then waits out its full timeout and reports "no response" — which
+                // is indistinguishable from this app never having implemented the contract. The
+                // `ERROR:` reply is what makes it diagnosable: 自由作業盤 renders that string
+                // straight onto the failed row.
+                try {
+                    ContextCompat.startForegroundService(
+                        app,
+                        Intent(app, StateExportService::class.java).apply {
+                            putExtra(EXTRA_PATH, intent.getStringExtra(EXTRA_PATH))
+                            putExtra(EXTRA_ITEMS, items)
+                            putExtra(EXTRA_PROGRESS_ACTION, intent.getStringExtra(EXTRA_PROGRESS_ACTION))
+                            putExtra(EXTRA_REPLY_ACTION, replyAction)
+                            putExtra(EXTRA_REPLY_PACKAGE, replyPackage)
+                            putExtra(EXTRA_REPLY_ID, replyId)
+                        }
+                    )
+                } catch (e: Throwable) {
+                    reply(
+                        app,
+                        replyAction,
+                        replyPackage,
+                        replyId,
+                        "ERROR:${e.message ?: e.javaClass.simpleName}"
+                    )
+                }
             }
 
             "${app.packageName}.action.LIST_LOCATIONS",

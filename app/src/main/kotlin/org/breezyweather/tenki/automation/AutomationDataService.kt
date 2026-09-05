@@ -60,19 +60,52 @@ class AutomationDataService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val importing = intent?.getBooleanExtra(EXTRA_IMPORTING, false) == true
 
-        // FIRST, before any early return. We were started with startForegroundService(), so the
-        // system gives us five seconds to post a notification and kills the app with
-        // ForegroundServiceDidNotStartInTimeException if we do not — and bailing out early is
-        // exactly the path a stale request takes: a caller retrying with a job id we have already
-        // consumed, or a restart handing us a null intent. That crash would land on the app being
-        // RESTORED, at the moment its data is half in place.
-        startForeground(importing)
+        // **Extras first, notification second, early returns third** — the order satisfies two
+        // constraints that pull against each other.
+        //
+        // We were started with `startForegroundService()`, so the system gives us five seconds to
+        // post a notification and kills the app with `ForegroundServiceDidNotStartInTimeException`
+        // if we do not: hence the notification must come before any `return`. But `startForeground`
+        // can itself be REFUSED on API 31+, and a refusal we cannot answer is worse here than
+        // anywhere else in this app — [AutomationProvider] has already told the caller `OK:<job_id>`,
+        // so dying quietly leaves it waiting on a job that no longer exists. Hence the extras, which
+        // carry the only channel we have to say so, must be read before the notification.
+        //
+        // Reading extras is microseconds and returns nothing, so it endangers neither.
+        val jobId = intent?.getStringExtra(EXTRA_JOB)
+        val replyAction = intent?.getStringExtra(AutomationProvider.KEY_REPLY_ACTION)
+        val replyPackage = intent?.getStringExtra(AutomationProvider.KEY_REPLY_PACKAGE)
+        val progressAction = intent?.getStringExtra(AutomationProvider.KEY_PROGRESS_ACTION)
 
-        val jobId = intent?.getStringExtra(EXTRA_JOB) ?: return stop(startId)
+        try {
+            startForeground(importing)
+        } catch (e: Throwable) {
+            // Answer on the job the provider already handed out, then release everything the job
+            // owns: the descriptor is ours the moment the provider handed it over, and a leaked one
+            // holds the caller's file open.
+            if (jobId != null) {
+                AutomationJobs.finish(jobId)
+                HANDOVER.remove(jobId)?.let { pfd -> runCatching { pfd.close() } }
+                if (!replyAction.isNullOrEmpty() && !replyPackage.isNullOrEmpty()) {
+                    sendBroadcast(
+                        Intent(replyAction).apply {
+                            setPackage(replyPackage)
+                            addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
+                            putExtra(AutomationProvider.KEY_JOB_ID, jobId)
+                            putExtra(
+                                AutomationProvider.KEY_RESULT,
+                                "ERROR:${e.message ?: e.javaClass.simpleName}"
+                            )
+                        }
+                    )
+                }
+            }
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
+
+        if (jobId == null) return stop(startId)
         val fd = HANDOVER.remove(jobId) ?: return stop(startId)
-        val replyAction = intent.getStringExtra(AutomationProvider.KEY_REPLY_ACTION)
-        val replyPackage = intent.getStringExtra(AutomationProvider.KEY_REPLY_PACKAGE)
-        val progressAction = intent.getStringExtra(AutomationProvider.KEY_PROGRESS_ACTION)
 
         val replied = AtomicBoolean(false)
         fun reply(result: String) {
