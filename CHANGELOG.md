@@ -10,6 +10,38 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.2+008 — 2026-09-09
+
+Built on upstream **v6.2.2**. One fix, in Export/Import: a restored archive brought every location
+back drawing a **single** provider, throwing away the multi-source arrangement behind the charts.
+
+- **The alternates were not mis-restored — they were never written down.** The export wrote only
+  upstream's one-source-per-feature fields and never the fork's own two ordered lists,
+  `forecastSources` (the hourly charts) and `dailyForecastSources` (the daily ones). A restored
+  location came back with both empty, and an empty list means "only the identity source". The
+  locations reappeared, each with a forecast, which is exactly why it looked like it had worked.
+- **The two lists are exported the way the database holds them, and the asymmetry is deliberate.**
+  The hourly list is normalised, since the identity source always has to lead it; the daily one goes
+  in raw, because empty there means "follow the hourly list". Baking the hourly list into the daily
+  slot would have restored today's rendering perfectly and severed that link for good — the daily
+  charts would have stopped following an hourly list changed later.
+- **A restore over a live install was erasing per-source handles.** The export asked for its
+  locations without their parameters, and the restore hands whatever it carries to a repository call
+  that deletes every parameter a location does not bring with it. So `accu.cityId`, `nws.gridX` and
+  the rest were not merely absent from the archive; importing one **removed** them from the phone.
+  They now ride along, small as they are, and `needsGeocodeRefresh` with them.
+- **Old archives still restore, and that is the one thing to watch.** The zip format stays at
+  version 1: the new keys are additive, an older build ignores them, and an archive written before
+  this release simply has no lists to read — which yields an empty list, precisely what those
+  locations already meant. The corollary matters more: **a backup taken with `6.2.2+007` or earlier
+  does not contain the arrangement at all.** Export once from this build before relying on the round
+  trip.
+
+Both paths are fixed at once — the Export/Import panel on the 白い熊 天気 UI page and the headless
+保存復元 contract share one export core and one restore core.
+
+---
+
 ## 白い熊 天気 6.2.2+007 — 2026-09-05
 
 Built on upstream **v6.2.2**. One fix, in the automation surface added in `6.2.1+062`: asking this
