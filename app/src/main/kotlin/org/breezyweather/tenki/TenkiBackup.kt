@@ -347,12 +347,23 @@ object TenkiBackup {
         ).locationRepository()
 
     /**
-     * The locations, as identity only: where they are, what they are called and which source
-     * answers for each feature. The cached weather itself is deliberately **not** in the archive —
+     * The locations, as identity only: where they are, what they are called and which sources
+     * answer for each feature. The cached weather itself is deliberately **not** in the archive —
      * it is a download, it goes stale in an hour, and it would dwarf everything else in the zip.
+     *
+     * "Which sources" means **both** shapes the fork keeps: upstream's one-per-feature fields, and
+     * our ordered `forecastSources` / `dailyForecastSources` lists behind the multi-source charts.
+     * Leaving the lists out looked harmless — the location came back and still drew a forecast —
+     * but every alternate provider 白い熊 had arranged was gone, because a restored location with an
+     * empty list falls back to "just the identity source".
+     *
+     * The per-source [Location.parameters] ride along too, small as they are (`accu.cityId`,
+     * `nws.gridX`, …). Not for the saving of one lookup: [LocationRepository.addAll] deletes every
+     * parameter a restored location does not carry, so exporting without them made an in-place
+     * restore *erase* them.
      */
     private suspend fun locationsJson(context: Context): JSONObject {
-        val locations = locationRepository(context).getAllLocations(withParameters = false)
+        val locations = locationRepository(context).getAllLocations(withParameters = true)
         return JSONObject().apply {
             put(
                 "locations",
@@ -377,6 +388,12 @@ object TenkiBackup {
                             location.district?.let { put("district", it) }
                             location.customName?.let { put("customName", it) }
                             put("forecastSource", location.forecastSource)
+                            // The ordered lists exactly as the database holds them: the hourly one
+                            // normalised (it always leads with the identity source), the daily one
+                            // raw — empty there means "follow the hourly list", and baking the
+                            // hourly list in would sever that link for good.
+                            put("forecastSources", JSONArray(location.orderedHourlyForecastSources))
+                            put("dailyForecastSources", JSONArray(location.dailyForecastSources))
                             location.currentSource?.let { put("currentSource", it) }
                             location.airQualitySource?.let { put("airQualitySource", it) }
                             location.pollenSource?.let { put("pollenSource", it) }
@@ -385,6 +402,10 @@ object TenkiBackup {
                             location.normalsSource?.let { put("normalsSource", it) }
                             location.reverseGeocodingSource?.let { put("reverseGeocodingSource", it) }
                             put("isCurrentPosition", location.isCurrentPosition)
+                            put("needsGeocodeRefresh", location.needsGeocodeRefresh)
+                            if (location.parameters.isNotEmpty()) {
+                                put("parameters", parametersJson(location.parameters))
+                            }
                         }
                     }
                 )
@@ -415,6 +436,10 @@ object TenkiBackup {
                 district = item.optStringOrNull("district"),
                 customName = item.optStringOrNull("customName"),
                 forecastSource = item.optString("forecastSource", "openmeteo"),
+                // Absent in archives written before the lists were carried: an empty list is
+                // exactly what those locations already meant, so an old backup restores unchanged.
+                forecastSources = item.optStringList("forecastSources"),
+                dailyForecastSources = item.optStringList("dailyForecastSources"),
                 currentSource = item.optStringOrNull("currentSource"),
                 airQualitySource = item.optStringOrNull("airQualitySource"),
                 pollenSource = item.optStringOrNull("pollenSource"),
@@ -422,7 +447,9 @@ object TenkiBackup {
                 alertSource = item.optStringOrNull("alertSource"),
                 normalsSource = item.optStringOrNull("normalsSource"),
                 reverseGeocodingSource = item.optStringOrNull("reverseGeocodingSource"),
-                isCurrentPosition = item.optBoolean("isCurrentPosition", false)
+                isCurrentPosition = item.optBoolean("isCurrentPosition", false),
+                needsGeocodeRefresh = item.optBoolean("needsGeocodeRefresh", false),
+                parameters = item.optParameters("parameters")
             )
         }
         // addAll upserts on the location's formatted id, which is the merge-per-key the family
@@ -432,6 +459,31 @@ object TenkiBackup {
 
     private fun JSONObject.optStringOrNull(key: String): String? =
         if (has(key) && !isNull(key)) optString(key).takeIf { it.isNotEmpty() } else null
+
+    private fun JSONObject.optStringList(key: String): List<String> {
+        val array = optJSONArray(key) ?: return emptyList()
+        return (0 until array.length()).map { array.optString(it) }.filter { it.isNotEmpty() }
+    }
+
+    /** `{"accu": {"cityId": "230"}, …}` — the shape [Location.parameters] already has. */
+    private fun parametersJson(parameters: Map<String, Map<String, String>>): JSONObject =
+        JSONObject().apply {
+            parameters.forEach { (source, values) ->
+                put(source, JSONObject().apply { values.forEach { (key, value) -> put(key, value) } })
+            }
+        }
+
+    private fun JSONObject.optParameters(key: String): Map<String, Map<String, String>> {
+        val root = optJSONObject(key) ?: return emptyMap()
+        val parameters = mutableMapOf<String, Map<String, String>>()
+        root.keys().forEach { source ->
+            val values = root.optJSONObject(source) ?: return@forEach
+            val entries = mutableMapOf<String, String>()
+            values.keys().forEach { name -> entries[name] = values.optString(name) }
+            if (entries.isNotEmpty()) parameters[source] = entries
+        }
+        return parameters
+    }
 
     // ------------------------------------------------------- newest backup scan
 
