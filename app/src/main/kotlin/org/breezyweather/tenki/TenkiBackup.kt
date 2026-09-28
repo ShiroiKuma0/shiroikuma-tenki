@@ -109,7 +109,10 @@ object TenkiBackup {
 
                 when (cat) {
                     Cat.UI -> zip.jsonEntry(cat, TenkiUiConfig(context).toJson())
-                    Cat.SETTINGS -> zip.jsonEntry(cat, prefsJson(context, settingsPrefsName(context)))
+                    Cat.SETTINGS -> zip.jsonEntry(
+                        cat,
+                        prefsJson(context, settingsPrefsName(context), skip = INSTALL_STATE_KEYS)
+                    )
                     Cat.SOURCES -> zip.jsonEntry(cat, sourcesJson(context))
                     Cat.LOCATIONS -> zip.jsonEntry(cat, locationsJson(context))
                     Cat.FONTS -> TenkiFonts.imported(context).forEach { font ->
@@ -236,7 +239,8 @@ object TenkiBackup {
                         Cat.SETTINGS -> restorePrefs(
                             context,
                             settingsPrefsName(context),
-                            JSONObject(String(content))
+                            JSONObject(String(content)),
+                            skip = INSTALL_STATE_KEYS
                         )
                         Cat.SOURCES -> restoreSources(context, JSONObject(String(content)))
                         Cat.LOCATIONS -> restoreLocations(context, JSONObject(String(content)))
@@ -253,6 +257,8 @@ object TenkiBackup {
                 entry = zip.nextEntry
             }
         }
+        // The restored interval and forecast times only take effect once the jobs are rebuilt.
+        if (Cat.SETTINGS in seen) TenkiBackgroundJobs.rescheduleAll(context)
         return seen.size
     }
 
@@ -265,10 +271,30 @@ object TenkiBackup {
      */
     private fun settingsPrefsName(context: Context) = context.packageName + "_preferences"
 
-    private fun prefsJson(context: Context, name: String): JSONObject {
+    /**
+     * Keys in the settings file that record the state of **this install**, not a choice 白い熊
+     * made — left out of every export, and skipped when importing an older archive that has them.
+     *
+     * `last_version_code` is the one that bit: restored onto a wiped app before its first launch,
+     * it told `Migrations.upgrade` the current version had already been set up, so the only code
+     * that schedules the background update never ran, and nothing updated for 19 days. The
+     * timestamps are the same kind of thing — carried over, they claim refreshes this install
+     * never made.
+     */
+    private val INSTALL_STATE_KEYS = setOf(
+        "last_version_code",
+        "app_update_check_last_timestamp",
+        "weather_update_last_timestamp",
+        "weather_manual_update_last_timestamp",
+        "weather_manual_update_last_location_id",
+        "language_update_last_timestamp"
+    )
+
+    private fun prefsJson(context: Context, name: String, skip: Set<String> = emptySet()): JSONObject {
         val prefs = context.getSharedPreferences(name, Context.MODE_PRIVATE)
         return JSONObject().apply {
             prefs.all.forEach { (key, value) ->
+                if (key in skip) return@forEach
                 when (value) {
                     is Int, is Boolean, is String, is Long, is Float -> put(key, value)
                     is Set<*> -> put(key, JSONArray(value.filterIsInstance<String>()))
@@ -287,10 +313,11 @@ object TenkiBackup {
      * true at the moment it is sent. The live setters elsewhere stay on `apply()` — they run while
      * 白い熊 drags a slider and must not block.
      */
-    private fun restorePrefs(context: Context, name: String, json: JSONObject) {
+    private fun restorePrefs(context: Context, name: String, json: JSONObject, skip: Set<String> = emptySet()) {
         val prefs = context.getSharedPreferences(name, Context.MODE_PRIVATE)
         prefs.edit(commit = true) {
             json.keys().forEach { key ->
+                if (key in skip) return@forEach
                 when (val value = json.get(key)) {
                     is Int -> putInt(key, value)
                     is Boolean -> putBoolean(key, value)

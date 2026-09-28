@@ -34,6 +34,7 @@ import org.breezyweather.common.utils.AndroidSignatureFinder
 import org.breezyweather.common.utils.helpers.LogHelper
 import org.breezyweather.domain.settings.SettingsManager
 import org.breezyweather.remoteviews.Notifications
+import org.breezyweather.tenki.TenkiBackgroundJobs
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -95,6 +96,11 @@ class BreezyWeather : Application(), Configuration.Provider {
          * scheduled workers after the app has been killed/shutdown on some devices
          */
         this.workManager.getWorkInfosLiveData(WorkQuery.fromStates(WorkInfo.State.ENQUEUED))
+
+        // shiroikuma fork: put back any background job the settings ask for but WorkManager lost
+        if (getProcessName().equals(packageName)) {
+            TenkiBackgroundJobs.ensureScheduled(this)
+        }
     }
 
     fun addActivity(a: BreezyActivity) {

@@ -99,7 +99,7 @@ class TodayForecastNotificationJob @AssistedInject constructor(
     }
 
     companion object {
-        private const val TAG = "ForecastNotificationToday"
+        internal const val TAG = "ForecastNotificationToday"
 
         fun isRunning(context: Context): Boolean {
             return context.workManager.isRunning(TAG)
