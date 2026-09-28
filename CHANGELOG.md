@@ -10,6 +10,39 @@ has to merge the two histories by hand.
 
 ---
 
+## 白い熊 天気 6.2.2+009 — 2026-09-28
+
+Built on upstream **v6.2.2**. One fix: **background updates had silently stopped** — on 白い熊's phone
+for 19 days — and nothing in the app would ever have started them again.
+
+- **The job was not throttled; it did not exist.** The interval still read one hour thirty, the app
+  was exempt from every battery restriction and Doze, yet the system's job scheduler held nothing for
+  it. The weather was only ever refreshed by opening the app.
+- **Upstream schedules the update in two places only.** `Migrations.upgrade`, which runs when the
+  installed version is newer than the stored `last_version_code`, and the settings screens when a
+  value changes. Nothing else puts the job back — and WorkManager cannot either: it re-registers a
+  force-stopped job from its own database, and that database was empty.
+- **Our backup is what emptied it.** "App settings" exported the whole preferences file,
+  `last_version_code` included. Restored onto an app whose data had been cleared, before its first
+  launch, it told the migration the current version had already been set up — so the one call that
+  schedules the job was skipped, and stayed skipped until the next version bump.
+- **The backup no longer carries install state.** `last_version_code` and the refresh timestamps
+  (`weather_update_last_timestamp`, `weather_manual_update_last_*`, `language_update_last_timestamp`,
+  `app_update_check_last_timestamp`) describe this install, not a choice. They are left out of new
+  exports and skipped when an older archive still has them, so every existing backup is safe to
+  restore.
+- **Every start now checks the jobs are really there.** Each job the settings ask for — the
+  background update and the today / tomorrow forecast notifications — is looked up in WorkManager,
+  and only a missing one is scheduled. A job already enqueued is left alone, so opening the app never
+  resets its timing. This also heals any install already affected: the first start of this build
+  puts the job back.
+- **A settings restore rebuilds the jobs,** so a restored interval or forecast time takes effect
+  instead of waiting for the settings screen to be touched. If 応用管理 force-stops the app straight
+  after the import, the start-up check catches it.
+
+Both restore paths are covered — the Export/Import panel on the 白い熊 天気 UI page and the headless
+保存復元 contract share one restore core.
+
 ## 白い熊 天気 6.2.2+008 — 2026-09-09
 
 Built on upstream **v6.2.2**. One fix, in Export/Import: a restored archive brought every location
